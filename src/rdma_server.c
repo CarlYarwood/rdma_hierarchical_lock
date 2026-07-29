@@ -7,18 +7,24 @@ s_ctx* build_server_spin_context(struct rdma_cm_id* client_id, int lock_size, ui
     struct ibv_cq *cq = NULL;
     struct ibv_mr *lock_mr = NULL;
     struct ibv_mr *server_metadata_mr = NULL;
+    struct ibv_mr *client_metadata_mr = NULL;
     struct ibv_qp_init_attr qp_init_attr;
     struct rdma_buffer_attr *server_metadata_attr;
+    struct rdma_buffer_attr *client_metadata_attr;
     struct rdma_conn_param conn_param;
+    struct ibv_sge server_recv_sge;
+    struct ibv_recv_wr server_recv_wr, *bad_server_recv_wr = NULL;
     
     ctx = (s_ctx*)malloc(sizeof(s_ctx));
     server_metadata_attr = (struct rdma_buffer_attr *)malloc(sizeof(struct rdma_buffer_attr));
+    client_metadata_attr = (struct rdma_buffer_attr *) malloc(sizeof(struct rdma_buffer_attr));
 
     pd = ibv_alloc_pd(client_id->verbs);
     if (!pd) {
         rdma_error("Failed to allocate a protection domain errno: %d\n", -errno);
         free(ctx);
         free(server_metadata_attr);
+        free(client_metadata_attr);
         return NULL;
     }
 
@@ -28,6 +34,7 @@ s_ctx* build_server_spin_context(struct rdma_cm_id* client_id, int lock_size, ui
         ibv_dealloc_pd(pd);
         free(ctx);
         free(server_metadata_attr);
+        free(client_metadata_attr);
         return NULL;
     }
 
@@ -38,6 +45,7 @@ s_ctx* build_server_spin_context(struct rdma_cm_id* client_id, int lock_size, ui
         ibv_dealloc_pd(pd);
         free(ctx);
         free(server_metadata_attr);
+        free(client_metadata_attr);
         return NULL;
     }
 
@@ -48,6 +56,7 @@ s_ctx* build_server_spin_context(struct rdma_cm_id* client_id, int lock_size, ui
         ibv_dealloc_pd(pd);
         free(ctx);
         free(server_metadata_attr);
+        free(client_metadata_attr);
         return NULL;
     }
 
@@ -68,6 +77,7 @@ s_ctx* build_server_spin_context(struct rdma_cm_id* client_id, int lock_size, ui
         ibv_dealloc_pd(pd);
         free(ctx);
         free(server_metadata_attr);
+        free(client_metadata_attr);
         return NULL;
     }
 
@@ -79,6 +89,7 @@ s_ctx* build_server_spin_context(struct rdma_cm_id* client_id, int lock_size, ui
         ibv_dealloc_pd(pd);
         free(ctx);
         free(server_metadata_attr);
+        free(client_metadata_attr);
         return NULL;
     }
 
@@ -88,12 +99,48 @@ s_ctx* build_server_spin_context(struct rdma_cm_id* client_id, int lock_size, ui
     server_metadata_mr = rdma_buffer_register(pd, server_metadata_attr, sizeof(*server_metadata_attr), (IBV_ACCESS_LOCAL_WRITE));
     if(!server_metadata_mr){
         rdma_error("Server failed to create to hold server metadata \n");
-        rdma_buffer_free(lock_mr);
+        rdma_buffer_deregister(lock_mr);
         ibv_destroy_cq(cq);
         ibv_destroy_comp_channel(comp);
         ibv_dealloc_pd(pd);
         free(ctx);
         free(server_metadata_attr);
+        free(client_metadata_attr);
+        return NULL;
+    }
+
+    client_metadata_mr = rdma_buffer_register(pd, client_metadata_attr, sizeof(struct rdma_buffer_attr), (IBV_ACCESS_LOCAL_WRITE|IBV_ACCESS_REMOTE_READ|IBV_ACCESS_REMOTE_WRITE));
+    if(!server_metadata_mr){
+        rdma_error("Server failed to create client metadata\n");
+        rdma_buffer_deregister(server_metadata_mr);
+        rdma_buffer_deregister(lock_mr);
+        ibv_destroy_cq(cq);
+        ibv_destroy_comp_channel(comp);
+        ibv_dealloc_pd(pd);
+        free(ctx);
+        free(server_metadata_attr);
+        free(client_metadata_attr);
+        return NULL;
+    }
+
+    server_recv_sge.addr = (uint64_t)client_metadata_mr->addr;
+    server_recv_sge.length = (uint32_t)client_metadata_mr->length;
+    server_recv_sge.lkey = (uint32_t) client_metadata_mr->lkey;
+
+    bzero(&server_recv_wr, sizeof(struct ibv_recv_wr));
+    server_recv_wr.sg_list = &server_recv_sge;
+    server_recv_wr.num_sge = 1;
+    if(ibv_post_recv(client_id->qp, &server_recv_wr, &bad_server_recv_wr)) {
+        rdma_error("Server failed to prepost receive client metadata\n");
+        rdma_buffer_deregister(client_metadata_mr);
+        rdma_buffer_deregister(server_metadata_mr);
+        rdma_buffer_deregister(lock_mr);
+        ibv_destroy_cq(cq);
+        ibv_destroy_comp_channel(comp);
+        ibv_dealloc_pd(pd);
+        free(ctx);
+        free(server_metadata_attr);
+        free(client_metadata_attr);
         return NULL;
     }
 
@@ -102,7 +149,9 @@ s_ctx* build_server_spin_context(struct rdma_cm_id* client_id, int lock_size, ui
     (*ctx).cq = cq;  
     (*ctx).lock_mr = lock_mr;
     (*ctx).server_metadata_mr = server_metadata_mr;
+    (*ctx).client_metadata_mr = client_metadata_mr;
     (*ctx).server_metadata_attr = server_metadata_attr;
+    (*ctx).client_metadata_attr = client_metadata_attr;
     printf("context built\n");
     return ctx;
 }
@@ -129,7 +178,7 @@ int send_server_metadata(struct rdma_cm_id* client_id) {
 	    return -errno;
     }
 
-    if (process_work_completion_events(ctx->cq, &wc, 1) != 1) {
+    if (process_work_completion_events(ctx->cq, &wc, 2) != 2) {
 	    perror("Failed to send server metadata, ret = %d \n");
 	    return -1;
     }
@@ -157,6 +206,7 @@ int clean_up_context(struct rdma_cm_id* client_id) {
     }
     rdma_buffer_deregister(ctx->lock_mr);
     rdma_buffer_deregister(ctx->server_metadata_mr);
+    rdma_buffer_deregister(ctx->client_metadata_mr);
 
 
     if (ibv_dealloc_pd(ctx->pd)) {
@@ -164,6 +214,7 @@ int clean_up_context(struct rdma_cm_id* client_id) {
         return -errno;
     }
     free(ctx->server_metadata_attr);
+    free(ctx->client_metadata_attr);
     free(ctx);
     printf("context cleaned up\n");
     return 0;

@@ -1,0 +1,120 @@
+#include "local_lock.h"
+
+void lock_local_spin(spinLock *lock, uint64_t node_id) {
+    do {} while(lock->owner != 0);
+    pthread_mutex_lock(lock->lock_mutex);
+    if(lock->owner != 0) {
+        pthread_mutex_unlock(lock->lock_mutex);
+        return acquire_local_spin(lock, node_id);
+    }
+    lock->owner = node_id;
+    pthread_mutex_unlock(lock->lock_mutex);
+}
+
+void unlock_local_spin(spinLock *lock) {
+    pthread_mutex_lock(lock->lock_mutex);
+    lock->owner = 0;
+    pthread_mutex_unlock(lock->lock_mutex);
+}
+
+void lock_local_ticket(ticketLock *lock, uint64_t node_id) {
+    uint64_t ticket;
+    pthread_mutex_lock(lock->lock_mutex);
+    ticket = lock->next;
+    lock->next ++;
+    pthread_mutex_unlock(lock->lock_mutex);
+    do {} while(lock->now != ticket);
+    pthread_mutex_lock(lock->lock_mutex);
+    lock->owner = node_id;
+    pthread_mutex_unlock(lock->lock_mutex);
+}
+
+void unlock_local_ticket(ticketLock *lock) {
+    pthread_mutex_lock(lock->lock_mutex);
+    lock->now ++;
+    pthread_mutex_unlock(lock->lock_mutex);
+}
+
+mcsQueueMember* lock_local_mcs(mcsLock* lock, uint64_t node_id) {
+    mcsQueueMember* ret = (mcsQueueMember *)malloc(sizeof(mcsQueueMember));
+    ret->next = 0;
+    pthread_mutex_lock(lock->lock_mutex);
+    if(lock->owner == 0 && lock->queueEnd == NULL) {
+        lock->owner = node_id;
+        lock->queueEnd = ret;
+        pthread_mutex_unlock(lock->lock_mutex);
+        return ret;
+    }
+    lock->queueEnd->next = node_id;
+    lock->queueEnd = ret;
+    pthread_mutex_unlock(lock->lock_mutex);
+    do {} while(lock->owner != node_id);
+    return ret;
+}
+
+void unlock_local_mcs(mcsLock *lock, mcsQueueMember* next) {
+    pthread_mutex_lock(lock->lock_mutex);
+    if (next->next == 0) {
+        lock->owner = 0;
+        lock->next = NULL;
+        pthread_mutex_unlock(lock->lock_mutex);
+        return;
+    }
+    lock->owner = next->next;
+    pthread_mutex_unlock(mcsLock->lock_mutex);
+    free(next);
+}
+
+spinLock* buildSpinLock() {
+    spinLock *lock = NULL;
+    pthread_mutex_t *lock_mutex = NULL;
+    lock = (spinLock *)malloc(sizeof(spinLock));
+    lock_mutex = (pthread_mutex_t *)malloc(sizeof(pthread_mutex_t));
+    pthread_mutex_init(lock_mutex, NULL);
+    lock->owner = 0;
+    lock->lock_mutex = lock_mutex;
+    return lock;
+}
+
+ticketLock* buildTicketLock() {
+    ticketLock *lock = NULL;
+    pthread_mutex_t *lock_mutex = NULL;
+    lock = (ticket_lock *)malloc(sizeof(ticket_lock));
+    lock_mutex = (pthread_mutex_t *)malloc(sizeof(pthread_mutex_t));
+    pthread_mutex_init(lock_mutex, NULL);
+    lock->owner = 0;
+    lock->now = 0;
+    lock->next = 0;
+    lock->lock_mutex = lock_mutex;
+    return lock;
+}
+
+mcsLock* buildMcsLock() {
+    mcsLock* lock = NULL;
+    pthread_mutex_t *lock_mutex = NULL;
+    lock = (mcsLock *)malloc(sizeof(mcsLock));
+    lock_mutex = (pthread_mutex_t *)malloc(sizeof(pthread_mutex_t));
+    pthread_mutex_init(lock_mutex, NULL);
+    lock->queueEnd = NULL;
+    lock->owner = 0;
+    lock->lock_mutex = lock_mutex;
+    return lock;
+}
+
+void destorySpinLock(spinLock* spin) {
+    pthread_mutex_destroy(spin->lock_mutex);
+    free(spin->lock_mutex);
+    free(spin);
+}
+
+void detroyTicketLock(ticketLock* ticket) {
+    pthread_mutex_destroy(ticket->lock_mutex);
+    free(ticket->lock_mutex);
+    free(ticket);
+}
+
+void detroyMcsLock(mcsLock* mcs) {
+    pthread_mutex_destroy(mcs->lock_mutex);
+    free(mcs->lock_mutex);
+    free(mcs);
+}
