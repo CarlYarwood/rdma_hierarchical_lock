@@ -1,4 +1,4 @@
-#include "rdma_server.h"
+#include "global_server.h"
 #include "local_lock.h"
 
 int main(int argc, char ** argv){
