@@ -1,4 +1,4 @@
-#include "rdma_server.h"
+#include "global_server.h"
 
 s_ctx* build_server_spin_context(struct rdma_cm_id* client_id, int lock_size, uint64_t* lock) {
     s_ctx* ctx;
