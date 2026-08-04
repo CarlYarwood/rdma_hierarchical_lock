@@ -1,15 +1,17 @@
 #ifndef GLOBAL_SERVER_H
 #define GLOBAL_SERVER_H
+#include <string.h>
 #include "rdma_common.h"
 
 #define TICKET (2)
-#define MCS (1)
+#define MCS (2)
 #define SPIN (1)
 
 typedef struct {
     int lock_size;
     int* keep_going;
     long port;
+    char* lock_type;
 } global_server_in;
 
 typedef struct {

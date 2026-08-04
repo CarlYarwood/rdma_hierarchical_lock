@@ -270,10 +270,11 @@ int rdma_write(struct rdma_cm_id *client_id, int offset) {
 
 }
 
-int notify_clients(struct rdma_cm_id ** id_arr, uint64_t *buffer) {
+
+int notify_clients(struct rdma_cm_id ** id_arr, uint64_t *buffer, int offset) {
     *buffer = 1;
     for (int i = 0; i < NUM_NODES ; i++) {
-        if(rdma_write(id_arr[i], SYNC)){
+        if(rdma_write(id_arr[i], offset)){
             printf("Failed to send sync");
         }
     }
@@ -286,6 +287,7 @@ void* global_server(void* in) {
     int lock_size = ((global_server_in *) in)->lock_size;
     long port = ((global_server_in *) in)->port;
     int *keep_going = ((global_server_in *)in)->keep_going;
+    char *lock_type = ((global_server_in *)in)->lock_type;
 	struct sockaddr_in server_sockaddr;
     struct rdma_event_channel *cm_event_channel = NULL;
     struct rdma_cm_id *cm_server_id = NULL;
@@ -333,7 +335,12 @@ void* global_server(void* in) {
 
     do {
         if(num_conn == NUM_NODES) {
-            notify_clients(id_arr, buffer);
+            notify_clients(id_arr, buffer, SYNC);
+            if (strcmp(lock_type, "mcs") == 0) {
+                do {} while (lock[READY] != num_conn);
+                notify_clients(id_arr, buffer, GO);
+                lock[READY] = 0;
+            }
         }
         struct rdma_cm_event *cm_event = NULL;
         struct rdma_cm_id* client_id = NULL;

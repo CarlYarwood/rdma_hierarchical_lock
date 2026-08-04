@@ -1,6 +1,6 @@
 #ifndef LOCAL_LOCK
 #define LOCAL_LOCK
-#include "<pthread.h>"
+#include <pthread.h>
 
 typedef struct {
     volatile uint64_t next;
