@@ -1,6 +1,6 @@
 #include "global_server.h"
 
-g_ctx* build_server_context(struct rdma_cm_id* client_id, int lock_size, uint64_t* lock, uint64_t* buffer) {
+g_ctx* build_server_context(struct rdma_cm_id* client_id, int lock_size, volatile uint64_t* lock, uint64_t* buffer) {
     g_ctx* ctx;
     struct ibv_pd* pd = NULL;
     struct ibv_comp_channel* comp = NULL;
@@ -82,7 +82,7 @@ g_ctx* build_server_context(struct rdma_cm_id* client_id, int lock_size, uint64_
         return NULL;
     }
 
-    lock_mr = rdma_buffer_register(pd, lock, sizeof(uint64_t) * lock_size, (IBV_ACCESS_LOCAL_WRITE|IBV_ACCESS_REMOTE_READ|IBV_ACCESS_REMOTE_WRITE|IBV_ACCESS_REMOTE_ATOMIC));
+    lock_mr = rdma_buffer_register(pd, (void *)lock, sizeof(uint64_t) * lock_size, (IBV_ACCESS_LOCAL_WRITE|IBV_ACCESS_REMOTE_READ|IBV_ACCESS_REMOTE_WRITE|IBV_ACCESS_REMOTE_ATOMIC));
     if(!lock_mr){
         rdma_error("Server failed to create lock memory region \n");
         ibv_destroy_cq(cq);
@@ -273,7 +273,7 @@ int rdma_write(struct rdma_cm_id *client_id, int offset) {
 
 int notify_clients(struct rdma_cm_id ** id_arr, uint64_t *buffer, int offset) {
     *buffer = 1;
-    for (int i = 0; i < NUM_NODES ; i++) {
+    for (int i = 0; i < GLOBAL_CHILDREN ; i++) {
         if(rdma_write(id_arr[i], offset)){
             printf("Failed to send sync");
         }
@@ -282,7 +282,7 @@ int notify_clients(struct rdma_cm_id ** id_arr, uint64_t *buffer, int offset) {
 }
 
 void* global_server(void* in) {
-    uint64_t *lock = NULL;
+    volatile uint64_t *lock = NULL;
     uint64_t *buffer = NULL;
     int lock_size = ((global_server_in *) in)->lock_size;
     long port = ((global_server_in *) in)->port;
@@ -293,8 +293,8 @@ void* global_server(void* in) {
     struct rdma_cm_id *cm_server_id = NULL;
     struct rdma_cm_id ** id_arr = NULL;
 
-    id_arr = (struct rdma_cm_id **)malloc(sizeof(struct rdma_cm_id *) * NUM_NODES);
-    for (int i = 0; i < NUM_NODES; i++) {
+    id_arr = (struct rdma_cm_id **)malloc(sizeof(struct rdma_cm_id *) * GLOBAL_CHILDREN);
+    for (int i = 0; i < GLOBAL_CHILDREN; i++) {
         id_arr[i] = NULL;
     }
     
@@ -334,7 +334,7 @@ void* global_server(void* in) {
 	}
 
     do {
-        if(num_conn == NUM_NODES) {
+        if(num_conn == GLOBAL_CHILDREN) {
             notify_clients(id_arr, buffer, SYNC);
             if (strcmp(lock_type, "mcs") == 0) {
                 do {} while (lock[READY] != num_conn);
@@ -427,7 +427,7 @@ void* global_server(void* in) {
 	if (rdma_destroy_id(cm_server_id)) {
 		rdma_error("Failed to destroy server id cleanly, %d \n", -errno);
 	}
-    free(lock);
+    free((void *)lock);
     free(buffer);
     free(id_arr);
 	rdma_destroy_event_channel(cm_event_channel);

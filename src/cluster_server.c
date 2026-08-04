@@ -92,29 +92,11 @@ long connect_port[NUM_NODES + 1] = {
     DEFAULT_RDMA_PORT + 19,
 };
 
-struct cluster_in {
-	int parent_lock_type;
-    int local_lock_size;
-};
-
-struct c_ctx {
-    uint64_t* node_id;
-    struct ibv_pd* pd;
-    struct ibv_comp_channel* comp;
-    struct ibv_cq* cq;
-    struct ibv_mr* buffer_mr;
-    struct ibv_mr* metadata_mr;
-    struct ibv_mr* server_metadata_mr;
-    struct ibv_mr* client_metadata_mr;
-    struct rdma_buffer_attr* server_metadata_attr;
-    struct rdma_buffer_attr* client_metadata_attr;
-};
-
 void noop(volatile int *dummy) {
     *dummy = *dummy; 
 }
 
-struct c_ctx* build_mcs_context(struct rdma_cm_id* client_id, volatile uint64_t *metadata, uint64_t *buffer, uint64_t* node_id) {
+struct c_ctx* build_mcs_context(struct rdma_cm_id* client_id, volatile uint64_t *metadata, uint64_t *buffer, uint64_t* cluster_id) {
     struct c_ctx* ctx;
     struct ibv_pd* pd = NULL;
     struct ibv_comp_channel* comp = NULL;
@@ -275,7 +257,7 @@ struct c_ctx* build_mcs_context(struct rdma_cm_id* client_id, volatile uint64_t 
         return NULL;
     }
 
-    (*ctx).node_id = node_id;
+    (*ctx).cluster_id = cluster_id;
     (*ctx).pd = pd;
     (*ctx).comp = comp;
     (*ctx).cq = cq;
@@ -417,12 +399,12 @@ int rdma_read(struct rdma_cm_id *client_id, int offset) {
 
 }
 
-int acquire_lock(struct rdma_cm_id ** id_arr, uint64_t *node_id, uint64_t *buffer, volatile uint64_t* metadata) {
+int acquire_lock(struct rdma_cm_id ** id_arr, uint64_t *cluster_id, uint64_t *buffer, volatile uint64_t* metadata) {
     metadata[NEXT] = 0;
     metadata[NOTIFY] = 0;
     uint64_t expected = 0;
     do {
-        compare_and_swap(id_arr[SERVER], expected, *node_id, LOCK);
+        compare_and_swap(id_arr[SERVER], expected, *cluster_id, LOCK);
         if (expected == *buffer) {
             break;
         }
@@ -432,14 +414,14 @@ int acquire_lock(struct rdma_cm_id ** id_arr, uint64_t *node_id, uint64_t *buffe
         return 0;
     }
 
-    compare_and_swap(id_arr[*buffer], 0, *node_id, NEXT);
+    compare_and_swap(id_arr[*buffer], 0, *cluster_id, NEXT);
     do {} while (metadata[NOTIFY] == 0);
     return 0;
 }
 
 int release_lock(struct rdma_cm_id** id_arr, uint64_t* node_id, uint64_t *buffer, volatile uint64_t* metadata) {
 	if (metadata[NEXT] == 0) {
-        compare_and_swap(id_arr[SERVER], *node_id, 0, LOCK);
+        compare_and_swap(id_arr[SERVER], *cluster_id, 0, LOCK);
         if(*buffer == *node_id) {
             return 0;
         }
@@ -449,7 +431,7 @@ int release_lock(struct rdma_cm_id** id_arr, uint64_t* node_id, uint64_t *buffer
     return 0;
 }
 
-struct rdma_cm_id* mcs_connect(struct sockaddr_in* server_sockaddr, struct rdma_event_channel* cm_event_channel, uint64_t *node_id, uint64_t client_node_id, uint64_t *buffer, volatile uint64_t *metadata) {
+struct rdma_cm_id* mcs_connect(struct sockaddr_in* server_sockaddr, struct rdma_event_channel* cm_event_channel, uint64_t *cluster_id, uint64_t client_id, uint64_t *buffer, volatile uint64_t *metadata) {
 	struct c_ctx *ctx = NULL;
 	struct rdma_cm_id *cm_client_id = NULL;
 	struct rdma_cm_event *cm_event = NULL;
@@ -505,7 +487,7 @@ struct rdma_cm_id* mcs_connect(struct sockaddr_in* server_sockaddr, struct rdma_
 	conn_param.initiator_depth = 3;
 	conn_param.responder_resources = 3;
 	conn_param.retry_count = 3;
-    conn_param.private_data = (void *) node_id;
+    conn_param.private_data = (void *) cluster_id;
     conn_param.private_data_len = sizeof(uint64_t);
 	if (rdma_connect(cm_client_id, &conn_param)) {
 		rdma_error("Failed to connect to remote host , errno: %d\n", -errno);
@@ -560,7 +542,7 @@ int clean_up_context(struct rdma_cm_id* client_id) {
         printf("Failed to destroy client protection domain cleanly, %d \n", -errno);
         return -errno;
     }
-    free(ctx->node_id);
+    free(ctx->cluster_id);
     free(ctx->server_metadata_attr);
     free(ctx->client_metadata_attr);
     free(ctx);
@@ -602,7 +584,7 @@ void wait_on_sync(volatile uint64_t *sync) {
 void* rdma_client(void *in) {
     volatile uint64_t *metadata = NULL;
 	uint64_t *buffer = NULL;
-	uint64_t *node_id = calloc(1, sizeof(uint64_t));
+	uint64_t *cluster_id = calloc(1, sizeof(uint64_t));
 	int critical_section = ((struct rdma_client_in *) in)->critical_section;
 	int noncritical_section = ((struct rdma_client_in *) in)->noncritical_section;
 	int num_aquire = ((struct rdma_client_in *) in)->num_aquire;
@@ -613,7 +595,7 @@ void* rdma_client(void *in) {
     struct rdma_cm_id ** id_arr;
 	clock_t start, end;
 
-	*node_id = ((struct rdma_client_in *) in)->node_id;
+	*cluster_id = ((struct rdma_client_in *) in)->cluster_id;
     id_arr = (struct rdma_cm_id **) malloc(sizeof(struct rdma_cm_id *) * (NUM_NODES + 1));
 
     for (int i = 0;  i < (NUM_NODES + 1); i++) {
@@ -628,7 +610,7 @@ void* rdma_client(void *in) {
 	bzero(&client_server_sockaddr, sizeof client_server_sockaddr);
 	client_server_sockaddr.sin_family = AF_INET; /* standard IP NET address */
 	client_server_sockaddr.sin_addr.s_addr = htonl(INADDR_ANY); /* passed address */
-	client_server_sockaddr.sin_port = htons(connect_port[*node_id]);
+	client_server_sockaddr.sin_port = htons(connect_port[*cluster_id]);
 
     cm_event_channel = rdma_create_event_channel();
     if (!cm_event_channel) {
@@ -650,9 +632,8 @@ void* rdma_client(void *in) {
 		rdma_error("rdma_listen failed to listen on server address, errno: %d ", -errno);
 		return NULL;
 	}
-	sleep(10);
 
-    while(num_conn < (*node_id) - 1) {
+    while(num_conn < (*cluster_id) - 1) {
         struct rdma_cm_event *cm_event = NULL;
         struct rdma_cm_id* client_id = NULL;
     
@@ -726,7 +707,7 @@ void* rdma_client(void *in) {
         }
     }
 
-	for (int i = (*node_id); i < NUM_NODES; i++) {
+	for (int i = (*cluster_id); i < NUM_NODES; i++) {
         struct sockaddr_in client_sockaddr;
         bzero(&client_sockaddr, sizeof client_sockaddr);
         client_sockaddr.sin_family = AF_INET;
@@ -736,7 +717,7 @@ void* rdma_client(void *in) {
         }
         client_sockaddr.sin_port = htons(connect_port[i]);
 
-        id_arr[i + 1] = mcs_connect(&client_sockaddr, cm_event_channel, node_id, i, buffer, metadata);
+        id_arr[i + 1] = mcs_connect(&client_sockaddr, cm_event_channel, cluster_id, i, buffer, metadata);
     }
 
 	bzero(&server_sockaddr, sizeof server_sockaddr);
@@ -746,7 +727,7 @@ void* rdma_client(void *in) {
 		return NULL;
 	}
     server_sockaddr.sin_port = htons(parent_port);
-	id_arr[SERVER] = mcs_connect(&server_sockaddr, cm_event_channel, node_id, SERVER, buffer, metadata);
+	id_arr[SERVER] = mcs_connect(&server_sockaddr, cm_event_channel, cluster_id, SERVER, buffer, metadata);
 
 	wait_on_sync(&metadata[SYNC]);
 
@@ -760,13 +741,13 @@ void* rdma_client(void *in) {
 			noop(&i);
 		}
 		// lock
-		acquire_lock(id_arr, node_id, buffer, metadata);
+		acquire_lock(id_arr, cluster_id, buffer, metadata);
 		// work
 		for (int i=0; i < critical_section; i++) {
 			noop(&i);
 		}
 		// unlock
-		release_lock(id_arr, node_id, buffer, metadata);;
+		release_lock(id_arr, cluster_id, buffer, metadata);;
 	}
 
 	end = clock();
@@ -796,7 +777,7 @@ void* rdma_client(void *in) {
 		            rdma_error("Failed to acknowledge the cm event %d\n", -errno);
 		            return NULL;
 	            }
-                id_arr[(*((struct c_ctx *)(client_id->context))->node_id)] = NULL;
+                id_arr[(*((struct c_ctx *)(client_id->context))->cluster_id)] = NULL;
 
                 if (clean_up_context(client_id)) {
                     perror("failed to cleanup client context");
@@ -810,14 +791,14 @@ void* rdma_client(void *in) {
 		        rdma_ack_cm_event(cm_event);
 		        return NULL;
 		}
-	} while (num_conn > (*node_id));
+	} while (num_conn > (*cluster_id));
 
-	for (int i = (*node_id) - 1; i<=0 + 1; i--) {
+	for (int i = (*cluster_id) - 1; i<=0 + 1; i--) {
         mcs_disconnect(id_arr[i], cm_event_channel);
 		id_arr[i] = NULL;
     }
 
-	free(node_id);
+	free(cluster_id);
     free(buffer);
     free((void *)metadata);
     free(id_arr);

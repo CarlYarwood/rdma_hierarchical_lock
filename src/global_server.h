@@ -7,6 +7,8 @@
 #define MCS (2)
 #define SPIN (1)
 
+#define GLOBAL_CHILDREN (4)
+
 typedef struct {
     int lock_size;
     int* keep_going;
