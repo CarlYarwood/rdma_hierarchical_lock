@@ -1,7 +1,7 @@
 #include "global_server.h"
 
-s_ctx* build_server_context(struct rdma_cm_id* client_id, int lock_size, uint64_t* lock, uint64_t* buffer) {
-    s_ctx* ctx;
+g_ctx* build_server_context(struct rdma_cm_id* client_id, int lock_size, uint64_t* lock, uint64_t* buffer) {
+    g_ctx* ctx;
     struct ibv_pd* pd = NULL;
     struct ibv_comp_channel* comp = NULL;
     struct ibv_cq *cq = NULL;
@@ -16,7 +16,7 @@ s_ctx* build_server_context(struct rdma_cm_id* client_id, int lock_size, uint64_
     struct ibv_sge server_recv_sge;
     struct ibv_recv_wr server_recv_wr, *bad_server_recv_wr = NULL;
     
-    ctx = (s_ctx*)malloc(sizeof(s_ctx));
+    ctx = (g_ctx*)malloc(sizeof(g_ctx));
     server_metadata_attr = (struct rdma_buffer_attr *)malloc(sizeof(struct rdma_buffer_attr));
     client_metadata_attr = (struct rdma_buffer_attr *) malloc(sizeof(struct rdma_buffer_attr));
 
@@ -174,7 +174,7 @@ s_ctx* build_server_context(struct rdma_cm_id* client_id, int lock_size, uint64_
 }
 
 int send_server_metadata(struct rdma_cm_id* client_id) {
-    s_ctx * ctx = (s_ctx *) client_id->context;
+    g_ctx * ctx = (g_ctx *) client_id->context;
     struct ibv_wc wc;
     struct ibv_sge server_send_sge;
     struct ibv_send_wr server_send_wr, *bad_server_send_wr = NULL;
@@ -204,7 +204,7 @@ int send_server_metadata(struct rdma_cm_id* client_id) {
 }
 
 int clean_up_context(struct rdma_cm_id* client_id) {
-    s_ctx *ctx = (s_ctx *)client_id->context;
+    g_ctx *ctx = (g_ctx *)client_id->context;
     rdma_destroy_qp(client_id);
 
     if (rdma_destroy_id(client_id)) {
@@ -239,7 +239,7 @@ int clean_up_context(struct rdma_cm_id* client_id) {
 }
 
 int rdma_write(struct rdma_cm_id *client_id, int offset) {
-    struct s_mcs_ctx* ctx = (struct s_mcs_ctx *) (client_id->context);
+    struct s_mcg_ctx* ctx = (struct s_mcg_ctx *) (client_id->context);
     struct ibv_send_wr write_wr, *bad_write_wr = NULL;
     struct ibv_wc write_wc;
     struct ibv_sge write_sge;
@@ -280,12 +280,12 @@ int notify_clients(struct rdma_cm_id ** id_arr, uint64_t *buffer) {
     return 0;
 }
 
-void* rmda_lock_server(void* in) {
+void* global_server(void* in) {
     uint64_t *lock = NULL;
     uint64_t *buffer = NULL;
-    int lock_size = ((rdma_lock_server_in *) in)->lock_size;
-    long port = ((rdma_lock_server_in *) in)->port;
-    int *keep_going = ((rdma_lock_server_in *)in)->keep_going;
+    int lock_size = ((global_server_in *) in)->lock_size;
+    long port = ((global_server_in *) in)->port;
+    int *keep_going = ((global_server_in *)in)->keep_going;
 	struct sockaddr_in server_sockaddr;
     struct rdma_event_channel *cm_event_channel = NULL;
     struct rdma_cm_id *cm_server_id = NULL;
@@ -351,7 +351,7 @@ void* rmda_lock_server(void* in) {
 
         switch (cm_event->event){
             case RDMA_CM_EVENT_CONNECT_REQUEST :
-                s_ctx* ctx = NULL;
+                g_ctx* ctx = NULL;
                 struct rdma_conn_param conn_param;
                 
                 client_id = cm_event->id;

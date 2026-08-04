@@ -1,5 +1,5 @@
-#ifndef RMDA_SERVER_H
-#define RDMA_SERVER_H
+#ifndef GLOBAL_SERVER_H
+#define GLOBAL_SERVER_H
 #include "rdma_common.h"
 
 #define TICKET (2)
@@ -10,7 +10,7 @@ typedef struct {
     int lock_size;
     int* keep_going;
     long port;
-} rdma_lock_server_in;
+} global_server_in;
 
 typedef struct {
     struct ibv_pd* pd;
@@ -22,7 +22,7 @@ typedef struct {
     struct ibv_mr* client_metadata_mr;
     struct rdma_buffer_attr* server_metadata_attr;
     struct rdma_buffer_attr* client_metadata_attr;
-} s_ctx;
+} g_ctx;
 
-void* rdma_lock_server(void *in);
+void* global_server(void *in);
 #endif
