@@ -16,6 +16,7 @@ typedef struct {
     struct ibv_pd* pd;
     struct ibv_comp_channel* comp;
     struct ibv_cq* cq;
+    struct ibv_mr* buffer_mr;
     struct ibv_mr* lock_mr;
     struct ibv_mr* server_metadata_mr;
     struct ibv_mr* client_metadata_mr;
