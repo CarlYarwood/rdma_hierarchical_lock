@@ -1,0 +1,27 @@
+#ifndef MCS_LOCK_CLIENT_H
+#define MCS_LOCK_CLIENT_H
+#include <time.h>
+#include "rdma_common.h"
+
+typedef struct {
+	uint64_t node_id;
+	int critical_section;
+	int noncritical_section;
+	int num_aquire;
+} mcs_client_in;
+
+typedef struct {
+    uint64_t* node_id;
+    struct ibv_pd* pd;
+    struct ibv_comp_channel* comp;
+    struct ibv_cq* cq;
+    struct ibv_mr* buffer_mr;
+    struct ibv_mr* metadata_mr;
+    struct ibv_mr* server_metadata_mr;
+    struct ibv_mr* client_metadata_mr;
+    struct rdma_buffer_attr* server_metadata_attr;
+    struct rdma_buffer_attr* client_metadata_attr;
+} c_mcs_ctx;
+
+void* mcs_client(void *in);
+#endif

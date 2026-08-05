@@ -1,5 +1,5 @@
-#ifndef LOCAL_LOCK
-#define LOCAL_LOCK
+#ifndef LOCAL_LOCK_H
+#define LOCAL_LOCK_H
 #include <pthread.h>
 
 typedef struct {
@@ -24,12 +24,12 @@ typedef struct {
     volatile uint64_t owner;
 } spinLock;
 
-void lock_local_spin(spinLock* lock, uint64_t node_id);
-void unlock_local_spin(spinLock* lock);
-void lock_local_ticket(ticketLock* lock, uint64_t node_id);
-void unlock_local_ticket(ticketLock* lock);
-mcsQueueMember* lock_local_mcs(mcsLock* lock, uint64_t node_id);
-void unlock_local_mcs(mcsLock* lock, mcsQueueMember* next);
+void* lock(spinLock* lock, uint64_t node_id);
+void unlock(spinLock* lock, void*);
+void* lock(ticketLock* lock, uint64_t node_id);
+void unlock(ticketLock* lock, void*);
+mcsQueueMember* lock(mcsLock* lock, uint64_t node_id);
+void unlock(mcsLock* lock, mcsQueueMember* next);
 spinLock* buildSpinLock();
 ticketLock* buildTicketLock();
 mcsLock* buildMcsLock();
