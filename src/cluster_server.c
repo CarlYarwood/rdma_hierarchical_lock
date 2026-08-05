@@ -4,7 +4,7 @@
 
 char * parent_address = "10.10.1.1";
 
-char* connect_address[NUM_NODES] = {
+char* peer_address[NUM_NODES] = {
     "10.10.1.2",
     "10.10.1.2",
     "10.10.1.2",
@@ -49,7 +49,7 @@ char* connect_address[NUM_NODES] = {
 
 parent_port = DEFAULT_RDMA_PORT;
 
-long connect_port[NUM_NODES + 1] = {
+long peer_port[NUM_NODES + 1] = {
     DEFAULT_RDMA_PORT,
     DEFAULT_RDMA_PORT + 1,
     DEFAULT_RDMA_PORT + 2,
@@ -610,7 +610,7 @@ void* rdma_client(void *in) {
 	bzero(&client_server_sockaddr, sizeof client_server_sockaddr);
 	client_server_sockaddr.sin_family = AF_INET; /* standard IP NET address */
 	client_server_sockaddr.sin_addr.s_addr = htonl(INADDR_ANY); /* passed address */
-	client_server_sockaddr.sin_port = htons(connect_port[*cluster_id]);
+	client_server_sockaddr.sin_port = htons(peer_port[*cluster_id]);
 
     cm_event_channel = rdma_create_event_channel();
     if (!cm_event_channel) {
@@ -711,11 +711,11 @@ void* rdma_client(void *in) {
         struct sockaddr_in client_sockaddr;
         bzero(&client_sockaddr, sizeof client_sockaddr);
         client_sockaddr.sin_family = AF_INET;
-        if(get_addr(connect_address[i], (struct sockaddr*) &client_sockaddr)) {
+        if(get_addr(peer_address[i], (struct sockaddr*) &client_sockaddr)) {
             rdma_error("Invalid IP \n");
             return NULL;
         }
-        client_sockaddr.sin_port = htons(connect_port[i]);
+        client_sockaddr.sin_port = htons(peer_port[i]);
 
         id_arr[i + 1] = mcs_connect(&client_sockaddr, cm_event_channel, cluster_id, i, buffer, metadata);
     }
