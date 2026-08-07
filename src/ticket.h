@@ -5,5 +5,5 @@
 #define NEXT (0)
 #define NOW (1)
 
-#define SYNC (0)
+#define TICKET_SYNC (0)
 #endif

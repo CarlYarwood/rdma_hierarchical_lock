@@ -319,9 +319,9 @@ void* mcs_server(void * in) {
 
     do {
         if(num_conn == num_children) {
-            notify_clients(id_arr, buffer, 1, SYNC, num_children);
+            notify_clients(id_arr, buffer, 1, MCS_SYNC, num_children);
             do {} while (lock[READY] != num_conn);
-            notify_clients(id_arr, buffer, 2, SYNC, num_children);
+            notify_clients(id_arr, buffer, 2, MCS_SYNC, num_children);
             lock[READY] = 0;
         }
         struct rdma_cm_event *cm_event = NULL;

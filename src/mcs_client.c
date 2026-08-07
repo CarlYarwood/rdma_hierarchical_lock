@@ -519,7 +519,7 @@ void* mcs_client(void *in) {
     buffer = calloc(1, sizeof(uint64_t));
     metadata[NEXT] = 0;
     metadata[NOTIFY] = 0;
-	metadata[SYNC] = 0;
+	metadata[MCS_SYNC] = 0;
 	bzero(&client_server_sockaddr, sizeof client_server_sockaddr);
 	client_server_sockaddr.sin_family = AF_INET; /* standard IP NET address */
 	client_server_sockaddr.sin_addr.s_addr = htonl(INADDR_ANY); /* passed address */
@@ -555,7 +555,7 @@ void* mcs_client(void *in) {
     server_sockaddr.sin_port = htons(parent_port);
 	id_arr[SERVER] = mcs_connect(&server_sockaddr, cm_event_channel, node_id, SERVER, buffer, metadata);
 
-    wait_on_data(&metadata[SYNC], 1);
+    wait_on_data(&metadata[MCS_SYNC], 1);
 
     while(num_conn < (*node_id) - 1) {
         struct rdma_cm_event *cm_event = NULL;
@@ -646,7 +646,7 @@ void* mcs_client(void *in) {
 
     fetch_and_add(id_arr[SERVER], READY);
 
-	wait_on_data(&metadata[SYNC], 2);
+	wait_on_data(&metadata[MCS_SYNC], 2);
 
 	
 
