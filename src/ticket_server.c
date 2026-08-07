@@ -343,7 +343,7 @@ void * ticket_server(void * in) {
                 
                 client_id = cm_event->id;
 
-                ctx = build_server_spin_context(client_id, ticket, buffer);
+                ctx = build_server_spin_context(client_id, lock, buffer);
                 if(!ctx) {
                     rdma_ack_cm_event(cm_event);
                     perror("Failed to build client Context\n");
