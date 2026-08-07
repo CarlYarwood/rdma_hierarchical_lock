@@ -11,6 +11,10 @@ void noop(volatile int *dummy) {
     *dummy = *dummy; 
 }
 
+void wait_on_sync(volatile uint64_t* sync) {
+	do {} while(*sync == 0);
+}
+
 void show_rdma_cmid(struct rdma_cm_id *id)
 {
 	if(!id){

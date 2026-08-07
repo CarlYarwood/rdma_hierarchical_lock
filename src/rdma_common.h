@@ -68,6 +68,7 @@ struct __attribute((packed)) rdma_buffer_attr {
 	  uint32_t remote_stag;
   }stag;
 };
+
 void wait_on_sync(volatile uint64_t* sync);
 void noop(volatile int *dummy);
 
