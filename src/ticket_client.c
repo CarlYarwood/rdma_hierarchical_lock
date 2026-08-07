@@ -322,7 +322,7 @@ uint64_t acquire_ticket_lock(c_ticket_ctx*  ctx, uint64_t *response) {
 	return ticket;
 }
 
-int release_tickeet_lock(c_ticket_ctx* ctx, uint64_t ticket, uint64_t *response) {
+int release_ticket_lock(c_ticket_ctx* ctx, uint64_t ticket, uint64_t *response) {
 	fetch_and_add(ctx, NOW);
     if(*response != ticket) {
         perror("de-latch failed\n");

@@ -1,6 +1,6 @@
 #include "mcs_server.h"
 
-struct s_mcs_ctx* build_server_spin_context(struct rdma_cm_id* client_id, volatile uint64_t *lock, uint64_t *buffer) {
+struct s_mcs_ctx* build_server_mcs_context(struct rdma_cm_id* client_id, volatile uint64_t *lock, uint64_t *buffer) {
     struct s_mcs_ctx* ctx;
     struct ibv_pd* pd = NULL;
     struct ibv_comp_channel* comp = NULL;
@@ -163,7 +163,7 @@ struct s_mcs_ctx* build_server_spin_context(struct rdma_cm_id* client_id, volati
     return ctx;
 }
 
-int send_server_metadata(struct rdma_cm_id* client_id) {
+int send_server_mcs_metadata(struct rdma_cm_id* client_id) {
     struct s_mcs_ctx * ctx = (struct s_mcs_ctx *) client_id->context;
     struct ibv_wc wc;
     struct ibv_sge server_send_sge;
@@ -227,7 +227,7 @@ int clean_up_mcs_context(struct rdma_cm_id* client_id) {
     return 0;
 }
 
-int rdma_write(struct rdma_cm_id *client_id, int offset) {
+int rdma_mcs_write(struct rdma_cm_id *client_id, int offset) {
     struct s_mcs_ctx* ctx = (struct s_mcs_ctx *) (client_id->context);
     struct ibv_send_wr write_wr, *bad_write_wr = NULL;
     struct ibv_wc write_wc;
@@ -262,7 +262,7 @@ int rdma_write(struct rdma_cm_id *client_id, int offset) {
 int notify_clients(struct rdma_cm_id ** id_arr, uint64_t *buffer, uint64_t val, int offset, int num_children) {
     *buffer = val;
     for (int i = 0; i < num_children ; i++) {
-        if(rdma_write(id_arr[i], offset)){
+        if(rdma_mcs_write(id_arr[i], offset)){
             printf("Failed to send sync");
         }
     }
@@ -345,7 +345,7 @@ void* mcs_server(void * in) {
                 
                 client_id = cm_event->id;
 
-                ctx = build_server_spin_context(client_id, lock, buffer);
+                ctx = build_server_mcs_context(client_id, lock, buffer);
                 if(!ctx) {
                     rdma_ack_cm_event(cm_event);
                     perror("Failed to build client Context\n");
@@ -376,7 +376,7 @@ void* mcs_server(void * in) {
 		            return NULL;
 	            }
 
-                if(send_server_metadata(client_id)) {
+                if(send_server_mcs_metadata(client_id)) {
                      perror("Failed to send server metadata \n");
                      return NULL;
                 }

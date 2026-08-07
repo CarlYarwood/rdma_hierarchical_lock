@@ -163,7 +163,7 @@ s_spin_ctx* build_server_spin_context(struct rdma_cm_id* client_id, uint64_t *lo
     return ctx;
 }
 
-int send_server_metadata(struct rdma_cm_id* client_id) {
+int send_server_spin_metadata(struct rdma_cm_id* client_id) {
     s_spin_ctx * ctx = (s_spin_ctx *) client_id->context;
     struct ibv_wc wc;
     struct ibv_sge server_send_sge;
@@ -227,7 +227,7 @@ int clean_up_spin_context(struct rdma_cm_id* client_id) {
     return 0;
 }
 
-int rdma_write(struct rdma_cm_id *client_id, int offset) {
+int rdma_spin_write(struct rdma_cm_id *client_id, int offset) {
     s_spin_ctx* ctx = (s_spin_ctx *) (client_id->context);
     struct ibv_send_wr write_wr, *bad_write_wr = NULL;
     struct ibv_wc write_wc;
@@ -262,7 +262,7 @@ int rdma_write(struct rdma_cm_id *client_id, int offset) {
 int notify_clients(struct rdma_cm_id ** id_arr, uint64_t *buffer, int num_children) {
     *buffer = 1;
     for (int i = 0; i < num_children ; i++) {
-        if(rdma_write(id_arr[i], SPIN_SYNC)){
+        if(rdma_spin_write(id_arr[i], SPIN_SYNC)){
             printf("Failed to send sync");
         }
     }
@@ -373,7 +373,7 @@ void *spin_server(void * in) {
 		            return NULL;
 	            }
 
-                if(send_server_metadata(client_id)) {
+                if(send_server_spin_metadata(client_id)) {
                      perror("Failed to send server metadata \n");
                      return NULL;
                 }
