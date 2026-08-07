@@ -1,6 +1,6 @@
 #ifndef TICKET_LOCK_SERVER_H
 #define TICKET_LOCK_SERVER_H
-#include "rdma_common.h"
+#include "ticket.h"
 
 typedef struct {
     int num_children;

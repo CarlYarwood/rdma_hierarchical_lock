@@ -1,8 +1,7 @@
 #ifndef SPIN_LOCK_CLIENT_H
 #define SPIN_LOCK_CLIENT_H
-
 #include <time.h>
-#include "rdma_common.h"
+#include "spin.h"
 
 typedef struct {
 	char * parent_address;

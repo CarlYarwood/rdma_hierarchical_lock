@@ -1,6 +1,6 @@
 #ifndef SPIN_LOCK_SERVER_H
 #define SPIN_LOCK_SERVER_H
-#include "rdma_common.h"
+#include "spin.h"
 
 typedef struct {
     int num_children;

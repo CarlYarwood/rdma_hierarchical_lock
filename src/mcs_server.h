@@ -1,8 +1,6 @@
 #ifndef MCS_LOCK_SERVER_H
 #define MCS_LOCK_SERVER_H
-#include "rdma_common.h"
-
-#define SYNC (2)
+#include "mcs.h"
 
 typedef struct {
     int num_children;

@@ -1,7 +1,7 @@
 #ifndef TICKET_LOCK_CLIENT_H
 #define TICKET_LOCK_CLIENT_H
 #include <time.h>
-#include "rdma_common.h"
+#include "ticket.h"
 
 typedef struct {
 	char * parent_address;
@@ -9,7 +9,7 @@ typedef struct {
 	int critical_section;
 	int noncritical_section;
 	int num_aquire;
-} ticket_client_in ;
+} ticket_client_in;
 
 typedef struct {
 	struct rdma_cm_id* client_id;

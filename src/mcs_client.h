@@ -1,11 +1,10 @@
 #ifndef MCS_LOCK_CLIENT_H
 #define MCS_LOCK_CLIENT_H
 #include <time.h>
-#include "rdma_common.h"
+#include "mcs.h"
 
 #define NEXT (0)
 #define NOTIFY (1)
-#define SYNC (2)
 
 typedef struct {
 	uint64_t node_id;
