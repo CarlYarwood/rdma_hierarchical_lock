@@ -2,6 +2,12 @@
 #define MCS_LOCK_SERVER_H
 #include "rdma_common.h"
 
+#define SYNC (2)
+
+typedef struct {
+    int num_children;
+} mcs_server_in;
+
 struct s_mcs_ctx {
     struct ibv_pd* pd;
     struct ibv_comp_channel* comp;

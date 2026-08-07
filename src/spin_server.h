@@ -3,6 +3,10 @@
 #include "rdma_common.h"
 
 typedef struct {
+    int num_children;
+} spin_server_in; 
+
+typedef struct {
     struct ibv_pd* pd;
     struct ibv_comp_channel* comp;
     struct ibv_cq* cq;

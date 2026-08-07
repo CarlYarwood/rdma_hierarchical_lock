@@ -259,9 +259,9 @@ int rdma_write(struct rdma_cm_id *client_id, int offset) {
 
 }
 
-int notify_clients(struct rdma_cm_id ** id_arr, uint64_t *buffer, uint64_t val, int offset) {
+int notify_clients(struct rdma_cm_id ** id_arr, uint64_t *buffer, uint64_t val, int offset, int num_children) {
     *buffer = val;
-    for (int i = 0; i < NUM_NODES ; i++) {
+    for (int i = 0; i < num_children ; i++) {
         if(rdma_write(id_arr[i], offset)){
             printf("Failed to send sync");
         }
@@ -269,16 +269,17 @@ int notify_clients(struct rdma_cm_id ** id_arr, uint64_t *buffer, uint64_t val, 
     return 0;
 }
 
-void* mcs_server(void *) {
-    int option, num_conn = 0;
+void* mcs_server(void * in) {
+    int num_children = ((mcs_server_in *)in)->num_children;
+    int num_conn = 0;
 	struct sockaddr_in server_sockaddr;
     struct rdma_event_channel *cm_event_channel = NULL;
     struct rdma_cm_id *cm_server_id = NULL;
     volatile uint64_t *lock = NULL;
     uint64_t *buffer = NULL;
     struct rdma_cm_id ** id_arr;
-    id_arr = (struct rdma_cm_id **)malloc(sizeof(struct rdma_cm_id *) * NUM_NODES);
-    for (int i = 0; i < NUM_NODES; i++) {
+    id_arr = (struct rdma_cm_id **)malloc(sizeof(struct rdma_cm_id *) * num_children);
+    for (int i = 0; i < num_children; i++) {
         id_arr[i] = NULL;
     }
 
@@ -314,10 +315,10 @@ void* mcs_server(void *) {
 	}
 
     do {
-        if(num_conn == NUM_NODES) {
-            notify_clients(id_arr, buffer, 1, SYNC);
+        if(num_conn == num_children) {
+            notify_clients(id_arr, buffer, 1, SYNC, num_children);
             do {} while (lock[READY] != num_conn);
-            notify_clients(id_arr, buffer, 2, SYNC);
+            notify_clients(id_arr, buffer, 2, SYNC, num_children);
             lock[READY] = 0;
         }
         struct rdma_cm_event *cm_event = NULL;
@@ -402,7 +403,7 @@ void* mcs_server(void *) {
         }
     } while(1);
 
-    for (int i = 0; i < NUM_NODES; i++) {
+    for (int i = 0; i < num_children; i++) {
         id_arr[i] = NULL;
     }
 

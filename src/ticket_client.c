@@ -449,9 +449,11 @@ void wait_on_sync(volatile uint64_t* sync) {
 }
 
 void * ticket_client(void * in) {
+	struct sockaddr_in server_sockaddr;
 	struct c_ticket_ctx *ctx = NULL;
 	struct rdma_event_channel *cm_event_channel = NULL;
-	struct sockaddr_in server_sockaddr = ((struct ticket_client_in *) in)->server_sockaddr;
+	char * parent_address = ((ticket_client_in *)in)->parent_address;
+	long parent_port = ((ticket_client_in *)in)->parent_port;
 	uint64_t *response = calloc(1, sizeof(uint64_t));
 	uint64_t *node_id = calloc(1, sizeof(uint64_t));
 	volatile uint64_t *sync = (volatile uint64_t *)malloc(sizeof(uint64_t));
@@ -460,6 +462,14 @@ void * ticket_client(void * in) {
 	int noncritical_section = ((struct ticket_client_in *) in)->noncritical_section;
 	int num_aquire = ((struct ticket_client_in *) in)->num_aquire;
 	clock_t start, end;
+
+	bzero(&server_sockaddr, sizeof server_sockaddr);
+    server_sockaddr.sin_family = AF_INET;    
+    if (get_addr(parent_address, (struct sockaddr*) &server_sockaddr)) {
+		rdma_error("Invalid IP \n");
+		return NULL;
+	}
+    server_sockaddr.sin_port = htons(parent_port);
 
 	cm_event_channel = rdma_create_event_channel();
 	if (!cm_event_channel) {

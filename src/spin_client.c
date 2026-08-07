@@ -401,8 +401,10 @@ void wait_on_sync(volatile uint64_t* sync) {
 
 void * spin_client(void * in) {
 	c_spin_ctx *ctx = NULL;
+	struct sockaddr_in server_sockaddr;
 	struct rdma_event_channel *cm_event_channel = NULL;
-	struct sockaddr_in server_sockaddr = ((spin_client_in *) in)->server_sockaddr;
+	char * parent_address = ((spin_client_in *)in)->parent_address;
+	long parent_port = ((spin_client_in *)in)->parent_port;
 	uint64_t *response = calloc(1, sizeof(uint64_t));
 	uint64_t *node_id = calloc(1, sizeof(uint64_t));
 	int critical_section = ((spin_client_in *) in)->critical_section;
@@ -413,6 +415,14 @@ void * spin_client(void * in) {
 	*sync = 0;
 	clock_t start, end;
 	*node_id = ((spin_client_in *) in)->node_id;
+
+	bzero(&server_sockaddr, sizeof server_sockaddr);
+    server_sockaddr.sin_family = AF_INET;    
+    if (get_addr(parent_address, (struct sockaddr*) &server_sockaddr)) {
+		rdma_error("Invalid IP \n");
+		return NULL;
+	}
+    server_sockaddr.sin_port = htons(parent_port);
 
 	cm_event_channel = rdma_create_event_channel();
 	if (!cm_event_channel) {

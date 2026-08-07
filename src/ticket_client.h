@@ -4,7 +4,8 @@
 #include "rdma_common.h"
 
 typedef struct {
-	struct sockaddr_in server_sockaddr;
+	char * parent_address;
+	long parent_port;
 	int critical_section;
 	int noncritical_section;
 	int num_aquire;

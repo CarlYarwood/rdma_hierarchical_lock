@@ -1,93 +1,5 @@
 #include "mcs_client.h"
 
-char* address[NUM_NODES + 1] = {
-    "10.10.1.1",
-    "10.10.1.2",
-    "10.10.1.2",
-    "10.10.1.2",
-    "10.10.1.2",
-    "10.10.1.2",
-    "10.10.1.2",
-    "10.10.1.2",
-	"10.10.1.2",
-    "10.10.1.2",
-    "10.10.1.2",
-    "10.10.1.2",
-    "10.10.1.2",
-    "10.10.1.2",
-    "10.10.1.2",
-	"10.10.1.2",
-    "10.10.1.2",
-    "10.10.1.2",
-    "10.10.1.2",
-    "10.10.1.2",
-    "10.10.1.2",
-    "10.10.1.3",
-    "10.10.1.3",
-    "10.10.1.3",
-    "10.10.1.3",
-    "10.10.1.3",
-    "10.10.1.3",
-    "10.10.1.3",
-	"10.10.1.3",
-    "10.10.1.3",
-    "10.10.1.3",
-    "10.10.1.3",
-    "10.10.1.3",
-    "10.10.1.3",
-    "10.10.1.3",
-	"10.10.1.3",
-    "10.10.1.3",
-    "10.10.1.3",
-    "10.10.1.3",
-    "10.10.1.3",
-    "10.10.1.3"
-};
-
-long port[NUM_NODES + 1] = {
-    DEFAULT_RDMA_PORT,
-    DEFAULT_RDMA_PORT,
-    DEFAULT_RDMA_PORT + 1,
-    DEFAULT_RDMA_PORT + 2,
-    DEFAULT_RDMA_PORT + 3,
-    DEFAULT_RDMA_PORT + 4,
-    DEFAULT_RDMA_PORT + 5,
-    DEFAULT_RDMA_PORT + 6,
-	DEFAULT_RDMA_PORT + 7,
-	DEFAULT_RDMA_PORT + 8,
-    DEFAULT_RDMA_PORT + 9,
-    DEFAULT_RDMA_PORT + 10,
-    DEFAULT_RDMA_PORT + 11,
-    DEFAULT_RDMA_PORT + 12,
-    DEFAULT_RDMA_PORT + 13,
-	DEFAULT_RDMA_PORT + 14,
-	DEFAULT_RDMA_PORT + 15,
-    DEFAULT_RDMA_PORT + 16,
-    DEFAULT_RDMA_PORT + 17,
-    DEFAULT_RDMA_PORT + 18,
-    DEFAULT_RDMA_PORT + 19,
-	DEFAULT_RDMA_PORT,
-    DEFAULT_RDMA_PORT + 1,
-    DEFAULT_RDMA_PORT + 2,
-    DEFAULT_RDMA_PORT + 3,
-    DEFAULT_RDMA_PORT + 4,
-    DEFAULT_RDMA_PORT + 5,
-    DEFAULT_RDMA_PORT + 6,
-	DEFAULT_RDMA_PORT + 7,
-	DEFAULT_RDMA_PORT + 8,
-    DEFAULT_RDMA_PORT + 9,
-    DEFAULT_RDMA_PORT + 10,
-    DEFAULT_RDMA_PORT + 11,
-    DEFAULT_RDMA_PORT + 12,
-    DEFAULT_RDMA_PORT + 13,
-	DEFAULT_RDMA_PORT + 14,
-	DEFAULT_RDMA_PORT + 15,
-    DEFAULT_RDMA_PORT + 16,
-    DEFAULT_RDMA_PORT + 17,
-    DEFAULT_RDMA_PORT + 18,
-    DEFAULT_RDMA_PORT + 19,
-};
-
 void noop(volatile int *dummy) {
     *dummy = *dummy; 
 }
@@ -581,6 +493,11 @@ void* mcs_client(void *in) {
     volatile uint64_t *metadata = NULL;
 	uint64_t *buffer = NULL;
 	uint64_t *node_id = calloc(1, sizeof(uint64_t));
+    char * parent_address = ((mcs_client_in *)in)->parent_address;
+    long parent_port = ((mcs_client_in *)in)->parent_port;
+    char ** peer_addresses = ((mcs_client_in *)in)->peer_addresses;
+    long * peer_ports = ((mcs_client_in *)in)->peer_ports;
+    int num_peers = ((mcs_client_in *) in)->num_peers;
 	int critical_section = ((mcs_client_in *) in)->critical_section;
 	int noncritical_section = ((mcs_client_in *) in)->noncritical_section;
 	int num_aquire = ((mcs_client_in *) in)->num_aquire;
@@ -592,9 +509,9 @@ void* mcs_client(void *in) {
 	clock_t start, end;
 
 	*node_id = ((mcs_client_in *) in)->node_id;
-    id_arr = (struct rdma_cm_id **) malloc(sizeof(struct rdma_cm_id *) * (NUM_NODES + 1));
+    id_arr = (struct rdma_cm_id **) malloc(sizeof(struct rdma_cm_id *) * (num_peers + 1));
 
-    for (int i = 0;  i < (NUM_NODES + 1); i++) {
+    for (int i = 0;  i < (num_peers + 1); i++) {
         id_arr[i] = NULL;
     }
 
@@ -606,7 +523,7 @@ void* mcs_client(void *in) {
 	bzero(&client_server_sockaddr, sizeof client_server_sockaddr);
 	client_server_sockaddr.sin_family = AF_INET; /* standard IP NET address */
 	client_server_sockaddr.sin_addr.s_addr = htonl(INADDR_ANY); /* passed address */
-	client_server_sockaddr.sin_port = htons(port[*node_id]);
+	client_server_sockaddr.sin_port = htons(peer_ports[(*node_id) - 1]);
 
     cm_event_channel = rdma_create_event_channel();
     if (!cm_event_channel) {
@@ -631,11 +548,11 @@ void* mcs_client(void *in) {
 	
     bzero(&server_sockaddr, sizeof server_sockaddr);
     server_sockaddr.sin_family = AF_INET;    
-    if (get_addr(address[0], (struct sockaddr*) &server_sockaddr)) {
+    if (get_addr(parent_address, (struct sockaddr*) &server_sockaddr)) {
 		rdma_error("Invalid IP \n");
 		return NULL;
 	}
-    server_sockaddr.sin_port = htons(port[0]);
+    server_sockaddr.sin_port = htons(parent_port);
 	id_arr[SERVER] = mcs_connect(&server_sockaddr, cm_event_channel, node_id, SERVER, buffer, metadata);
 
     wait_on_data(&metadata[SYNC], 1);
@@ -714,15 +631,15 @@ void* mcs_client(void *in) {
         }
     }
 
-	for (int i = (*node_id) + 1; i < NUM_NODES + 1; i++) {
+	for (int i = (*node_id) + 1; i < num_peers + 1; i++) {
         struct sockaddr_in client_sockaddr;
         bzero(&client_sockaddr, sizeof client_sockaddr);
         client_sockaddr.sin_family = AF_INET;
-        if(get_addr(address[i], (struct sockaddr*) &client_sockaddr)) {
+        if(get_addr(peer_addresses[i - 1], (struct sockaddr*) &client_sockaddr)) {
             rdma_error("Invalid IP \n");
             return NULL;
         }
-        client_sockaddr.sin_port = htons(port[i]);
+        client_sockaddr.sin_port = htons(peer_ports[i - 1]);
 
         id_arr[i] = mcs_connect(&client_sockaddr, cm_event_channel, node_id, i, buffer, metadata);
     }
