@@ -53,7 +53,7 @@ char * addresses[2][40] = {
         "10.10.1.3",
         "10.10.1.3"
     }
-}
+};
 
 long ports[2][40] = {
     {DEFAULT_RDMA_PORT},
@@ -99,12 +99,12 @@ long ports[2][40] = {
         DEFAULT_RDMA_PORT + 18,
         DEFAULT_RDMA_PORT + 19
     }
-}
+};
 
 int peer_group_sizes[2] = {
     1,
     40
-}
+};
 
 int main(int argc, char ** argv){
     int option = 0;
