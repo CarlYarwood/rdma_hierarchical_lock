@@ -6,15 +6,17 @@
 #define NEXT (0)
 #define NOTIFY (1)
 
+#define SERVER (0)
+
 typedef struct {
 	uint64_t node_id;
 	int critical_section;
 	int noncritical_section;
 	int num_aquire;
-    char * parent_address
-    long parent_port
-    char ** peer_addresses
-    long * peer_ports
+    char * parent_address;
+    long parent_port;
+    char ** peer_addresses;
+    long * peer_ports;
     int num_peers;
 } mcs_client_in;
 
