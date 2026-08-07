@@ -9,7 +9,7 @@ int critical_section = 1;
 int noncritical_section = 1;
 int num_aquire = 1000;
 
-char *** addresses = {
+char * addresses[2][40] = {
     {"10.10.1.1"},
     {
         "10.10.1.2",
@@ -55,7 +55,7 @@ char *** addresses = {
     }
 }
 
-long** ports = {
+long ports[2][40] = {
     {DEFAULT_RDMA_PORT},
     {
         DEFAULT_RDMA_PORT,
@@ -101,7 +101,7 @@ long** ports = {
     }
 }
 
-int *peer_group_sizes = {
+int peer_group_sizes[2] = {
     1,
     40
 }
