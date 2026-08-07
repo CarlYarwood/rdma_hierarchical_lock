@@ -171,7 +171,7 @@ int main(int argc, char ** argv){
         }
 
         for(int i = 0; i < num_workers; i++) {
-            pthread_join(in[i], NULL);
+            pthread_join(workers[i], NULL);
         }
         free(in);
         free(workers);
@@ -189,7 +189,7 @@ int main(int argc, char ** argv){
         }
 
         for(int i = 0; i < num_workers; i++) {
-            pthread_join(in[i], NULL);
+            pthread_join(workers[i], NULL);
         }
         free(in);
         free(workers);
@@ -208,7 +208,7 @@ int main(int argc, char ** argv){
         }
 
         for(int i = 0; i < num_workers; i++) {
-            pthread_join(in[i], NULL);
+            pthread_join(workers[i], NULL);
         }
         free(in);
         free(workers);
