@@ -4,8 +4,8 @@ void noop(volatile int *dummy) {
     *dummy = *dummy; 
 }
 
-struct c_ticket_ctx* build_client_ticket_context(struct rdma_cm_id* client_id, uint64_t *response, volatile uint64_t* sync) {
-	struct c_ticket_ctx *ctx = NULL;
+c_ticket_ctx* build_client_ticket_context(struct rdma_cm_id* client_id, uint64_t *response, volatile uint64_t* sync) {
+	c_ticket_ctx *ctx = NULL;
 	struct ibv_pd* pd = NULL;
     struct ibv_comp_channel* comp = NULL;
     struct ibv_cq* cq = NULL;
@@ -19,7 +19,7 @@ struct c_ticket_ctx* build_client_ticket_context(struct rdma_cm_id* client_id, u
 	struct ibv_sge server_recv_sge;
 	struct ibv_recv_wr server_recv_wr, *bad_server_recv_wr = NULL;
 
-	ctx = (struct c_ticket_ctx*)malloc(sizeof(struct c_ticket_ctx));
+	ctx = (c_ticket_ctx*)malloc(sizeof(c_ticket_ctx));
     server_metadata_attr = (struct rdma_buffer_attr *)malloc(sizeof(struct rdma_buffer_attr));
 	client_metadata_attr = (struct rdma_buffer_attr *)malloc(sizeof(struct rdma_buffer_attr));
 
@@ -180,7 +180,7 @@ struct c_ticket_ctx* build_client_ticket_context(struct rdma_cm_id* client_id, u
 	return ctx;
 }
 
-int destroy_context(struct c_ticket_ctx* ctx){
+int destroy_context(c_ticket_ctx* ctx){
 	int ret = 0;
 	rdma_destroy_qp(ctx->client_id);
 
@@ -218,7 +218,7 @@ int destroy_context(struct c_ticket_ctx* ctx){
 	return ret;
 }
 
-int send_client_metadata(struct c_ticket_ctx* ctx) {
+int send_client_metadata(c_ticket_ctx* ctx) {
 	struct ibv_wc wc;
 	struct ibv_sge client_send_sge;
 	struct ibv_send_wr client_send_wr, *bad_client_send_wr = NULL;
@@ -245,7 +245,7 @@ int send_client_metadata(struct c_ticket_ctx* ctx) {
 	return 0;
 }
 
-int fetch_and_add(struct c_ticket_ctx* ctx, int offset) {
+int fetch_and_add(c_ticket_ctx* ctx, int offset) {
     int ret = -1;
     struct ibv_send_wr cas_wr, *bad_cas_wr = NULL;
     struct ibv_wc cas_wc;
@@ -277,7 +277,7 @@ int fetch_and_add(struct c_ticket_ctx* ctx, int offset) {
     return 0;
 }
 
-int rdma_read(struct c_ticket_ctx *ctx, int offset) {
+int rdma_read(c_ticket_ctx *ctx, int offset) {
 	int ret = -1;
     struct ibv_send_wr read_wr, *bad_read_wr = NULL;
     struct ibv_wc read_wc;
@@ -310,7 +310,7 @@ int rdma_read(struct c_ticket_ctx *ctx, int offset) {
 
 }
 
-uint64_t acquire_lock(struct c_ticket_ctx*  ctx, uint64_t *response) {
+uint64_t acquire_lock(c_ticket_ctx*  ctx, uint64_t *response) {
 	int test = 1;
 	uint64_t ticket;
 	do {
@@ -326,7 +326,7 @@ uint64_t acquire_lock(struct c_ticket_ctx*  ctx, uint64_t *response) {
 	return ticket;
 }
 
-int release_lock(struct c_ticket_ctx* ctx, uint64_t ticket, uint64_t *response) {
+int release_lock(c_ticket_ctx* ctx, uint64_t ticket, uint64_t *response) {
 	fetch_and_add(ctx, NOW);
     if(*response != ticket) {
         perror("de-latch failed\n");
@@ -336,8 +336,8 @@ int release_lock(struct c_ticket_ctx* ctx, uint64_t ticket, uint64_t *response) 
 	return 0;
 }
 
-struct c_ticket_ctx* connect_to_server(struct rdma_event_channel* cm_event_channel, struct sockaddr_in* server_sockaddr, uint64_t *response, volatile uint64_t* sync) {
-	struct c_ticket_ctx *ctx = NULL;
+c_ticket_ctx* connect_to_server(struct rdma_event_channel* cm_event_channel, struct sockaddr_in* server_sockaddr, uint64_t *response, volatile uint64_t* sync) {
+	c_ticket_ctx *ctx = NULL;
 	struct rdma_cm_id *cm_client_id = NULL;
 	struct rdma_cm_event *cm_event = NULL;
 	struct rdma_conn_param conn_param;
@@ -415,7 +415,7 @@ struct c_ticket_ctx* connect_to_server(struct rdma_event_channel* cm_event_chann
 	return ctx;
 }
 
-int disconnect_from_server(struct rdma_event_channel* cm_event_channel, struct c_ticket_ctx* ctx){
+int disconnect_from_server(struct rdma_event_channel* cm_event_channel, c_ticket_ctx* ctx){
 	struct rdma_cm_event *cm_event = NULL;
 	int ret = 0;
 	if (rdma_disconnect(ctx->client_id)) {
@@ -450,7 +450,7 @@ void wait_on_sync(volatile uint64_t* sync) {
 
 void * ticket_client(void * in) {
 	struct sockaddr_in server_sockaddr;
-	struct c_ticket_ctx *ctx = NULL;
+	c_ticket_ctx *ctx = NULL;
 	struct rdma_event_channel *cm_event_channel = NULL;
 	char * parent_address = ((ticket_client_in *)in)->parent_address;
 	long parent_port = ((ticket_client_in *)in)->parent_port;

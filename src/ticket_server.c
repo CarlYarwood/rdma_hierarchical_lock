@@ -1,7 +1,7 @@
 #include "ticket_server.h"
 
-struct s_ticket_ctx* build_server_spin_context(struct rdma_cm_id* client_id, uint64_t *ticket, uint64_t *buffer) {
-    struct s_ticket_ctx* ctx;
+s_ticket_ctx* build_server_spin_context(struct rdma_cm_id* client_id, uint64_t *ticket, uint64_t *buffer) {
+    s_ticket_ctx* ctx;
     struct ibv_pd* pd = NULL;
     struct ibv_comp_channel* comp = NULL;
     struct ibv_cq* cq = NULL;
@@ -16,7 +16,7 @@ struct s_ticket_ctx* build_server_spin_context(struct rdma_cm_id* client_id, uin
     struct ibv_sge server_recv_sge;
 	struct ibv_recv_wr server_recv_wr, *bad_server_recv_wr = NULL;
     
-    ctx = (struct s_ticket_ctx*)malloc(sizeof(struct s_ticket_ctx));
+    ctx = (s_ticket_ctx*)malloc(sizeof(s_ticket_ctx));
     server_metadata_attr = (struct rdma_buffer_attr *)malloc(sizeof(struct rdma_buffer_attr));
     client_metadata_attr = (struct rdma_buffer_attr *)malloc(sizeof(struct rdma_buffer_attr));
 
@@ -164,7 +164,7 @@ struct s_ticket_ctx* build_server_spin_context(struct rdma_cm_id* client_id, uin
 }
 
 int send_server_metadata(struct rdma_cm_id* client_id) {
-    struct s_ticket_ctx * ctx = (struct s_ticket_ctx *) client_id->context;
+    s_ticket_ctx * ctx = (s_ticket_ctx *) client_id->context;
     struct ibv_wc wc;
     struct ibv_sge server_send_sge;
     struct ibv_send_wr server_send_wr, *bad_server_send_wr = NULL;
@@ -194,7 +194,7 @@ int send_server_metadata(struct rdma_cm_id* client_id) {
 }
 
 int clean_up_context(struct rdma_cm_id* client_id) {
-    struct s_ticket_ctx *ctx = (struct s_ticket_ctx *)client_id->context;
+    s_ticket_ctx *ctx = (s_ticket_ctx *)client_id->context;
     rdma_destroy_qp(client_id);
 
     if (rdma_destroy_id(client_id)) {
@@ -228,7 +228,7 @@ int clean_up_context(struct rdma_cm_id* client_id) {
 }
 
 int rdma_write(struct rdma_cm_id *client_id, int offset) {
-    struct s_ticket_ctx* ctx = (struct s_ticket_ctx *) (client_id->context);
+    s_ticket_ctx* ctx = (s_ticket_ctx *) (client_id->context);
     struct ibv_send_wr write_wr, *bad_write_wr = NULL;
     struct ibv_wc write_wc;
     struct ibv_sge write_sge;
@@ -338,7 +338,7 @@ int ticket_server(void * in) {
 
         switch (cm_event->event){
             case RDMA_CM_EVENT_CONNECT_REQUEST :
-                struct s_ticket_ctx* ctx = NULL;
+                s_ticket_ctx* ctx = NULL;
                 struct rdma_conn_param conn_param;
                 
                 client_id = cm_event->id;
