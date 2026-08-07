@@ -204,7 +204,7 @@ int destroy_context(c_spin_ctx* ctx){
 	return ret;
 }
 
-int send_client_metadata(c_spin_ctx* ctx) {
+int send_client_spin_metadata(c_spin_ctx* ctx) {
 	struct ibv_wc wc;
 	struct ibv_sge client_send_sge;
 	struct ibv_send_wr client_send_wr, *bad_client_send_wr = NULL;
@@ -266,14 +266,14 @@ int copmare_and_swap(c_spin_ctx* ctx, uint64_t cmp, uint64_t swap) {
     return 0;
 }
 
-int acquire_lock(c_spin_ctx * ctx,uint64_t *node_id, uint64_t *response) {
+int acquire_spin_lock(c_spin_ctx * ctx,uint64_t *node_id, uint64_t *response) {
 	do {
         copmare_and_swap(ctx, 0, *node_id);
     } while(*response != 0);
 	return 0;
 }
 
-int release_lock(c_spin_ctx *ctx, uint64_t* node_id, uint64_t *response) {
+int release_spin_lock(c_spin_ctx *ctx, uint64_t* node_id, uint64_t *response) {
 	copmare_and_swap(ctx, *node_id, 0);
     if(*response != *node_id) {
         perror("lock release failed\n");
@@ -354,7 +354,7 @@ c_spin_ctx* connect_to_server(struct rdma_event_channel* cm_event_channel, struc
 		return NULL;
 	}
 
-	if(send_client_metadata(ctx)) {
+	if(send_client_spin_metadata(ctx)) {
 		perror("Failed to send client metadata.\n");
 		return NULL;
 	}
@@ -437,7 +437,7 @@ void * spin_client(void * in) {
 		}
 		//lock
 		// b_acquire = clock();
-		acquire_lock(ctx, node_id, response);
+		acquire_spin_lock(ctx, node_id, response);
 		// e_acquire = clock();
 		// printf("%f l\n", ((double)(e_acquire-b_acquire)/CLOCKS_PER_SEC));
 		//work
@@ -446,7 +446,7 @@ void * spin_client(void * in) {
 		}
 		//unlock
 		// b_release = clock();
-		release_lock(ctx, node_id, response);
+		release_spin_lock(ctx, node_id, response);
 		// e_release = clock();
 
 		// printf("%f u\n", ((double)(e_release-b_release)/CLOCKS_PER_SEC));

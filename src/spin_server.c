@@ -193,7 +193,7 @@ int send_server_metadata(struct rdma_cm_id* client_id) {
     return 0;
 }
 
-int clean_up_context(struct rdma_cm_id* client_id) {
+int clean_up_spin_context(struct rdma_cm_id* client_id) {
     s_spin_ctx *ctx = (s_spin_ctx *)client_id->context;
     rdma_destroy_qp(client_id);
 
@@ -390,7 +390,7 @@ void *spin_server(void * in) {
 		            return NULL;
 	            }
 
-                if (clean_up_context(client_id)) {
+                if (clean_up_spin_context(client_id)) {
                     perror("failed to cleanup client context");
                     return NULL;
                 }

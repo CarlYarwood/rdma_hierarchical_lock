@@ -193,7 +193,7 @@ int send_server_metadata(struct rdma_cm_id* client_id) {
     return 0;
 }
 
-int clean_up_context(struct rdma_cm_id* client_id) {
+int clean_up_mcs_context(struct rdma_cm_id* client_id) {
     struct s_mcs_ctx *ctx = (struct s_mcs_ctx *)client_id->context;
     rdma_destroy_qp(client_id);
 
@@ -393,7 +393,7 @@ void* mcs_server(void * in) {
 		            return NULL;
 	            }
 
-                if (clean_up_context(client_id)) {
+                if (clean_up_mcs_context(client_id)) {
                     perror("failed to cleanup client context");
                     return NULL;
                 }

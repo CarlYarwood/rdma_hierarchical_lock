@@ -174,7 +174,7 @@ c_mcs_ctx* build_mcs_context(struct rdma_cm_id* client_id, volatile uint64_t *me
     return ctx;
 }
 
-int send_client_metadata(struct rdma_cm_id* client_id) {
+int send_client_mcs_metadata(struct rdma_cm_id* client_id) {
     c_mcs_ctx * ctx = (c_mcs_ctx *) client_id->context;
     struct ibv_wc wc;
     struct ibv_sge server_send_sge;
@@ -303,7 +303,7 @@ int rdma_read(struct rdma_cm_id *client_id, int offset) {
 
 }
 
-int acquire_lock(struct rdma_cm_id ** id_arr, uint64_t *node_id, uint64_t *buffer, volatile uint64_t* metadata) {
+int acquire_mcs_lock(struct rdma_cm_id ** id_arr, uint64_t *node_id, uint64_t *buffer, volatile uint64_t* metadata) {
     metadata[NEXT] = 0;
     metadata[NOTIFY] = 0;
     uint64_t expected = 0;
@@ -323,7 +323,7 @@ int acquire_lock(struct rdma_cm_id ** id_arr, uint64_t *node_id, uint64_t *buffe
     return 0;
 }
 
-int release_lock(struct rdma_cm_id** id_arr, uint64_t* node_id, uint64_t *buffer, volatile uint64_t* metadata) {
+int release_mcs_lock(struct rdma_cm_id** id_arr, uint64_t* node_id, uint64_t *buffer, volatile uint64_t* metadata) {
 	if (metadata[NEXT] == 0) {
         compare_and_swap(id_arr[SERVER], *node_id, 0, LOCK);
         if(*buffer == *node_id) {
@@ -409,7 +409,7 @@ struct rdma_cm_id* mcs_connect(struct sockaddr_in* server_sockaddr, struct rdma_
 		return NULL;
 	}
 
-    if(send_client_metadata(cm_client_id)) {
+    if(send_client_mcs_metadata(cm_client_id)) {
         perror("Failed to send client metadata\n");
         return NULL;
     }
@@ -613,7 +613,7 @@ void* mcs_client(void *in) {
 		            return NULL;
 	            }
 
-                if(send_client_metadata(client_id)) {
+                if(send_client_mcs_metadata(client_id)) {
                      perror("Failed to send server metadata \n");
                      return NULL;
                 }
@@ -654,13 +654,13 @@ void* mcs_client(void *in) {
 			noop(&i);
 		}
 		// lock
-		acquire_lock(id_arr, node_id, buffer, metadata);
+		acquire_mcs_lock(id_arr, node_id, buffer, metadata);
 		// work
 		for (int i=0; i < critical_section; i++) {
 			noop(&i);
 		}
 		// unlock
-		release_lock(id_arr, node_id, buffer, metadata);;
+		release_mcs_lock(id_arr, node_id, buffer, metadata);;
 	}
 
 	end = clock();

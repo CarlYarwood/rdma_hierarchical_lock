@@ -214,7 +214,7 @@ int destroy_context(c_ticket_ctx* ctx){
 	return ret;
 }
 
-int send_client_metadata(c_ticket_ctx* ctx) {
+int send_client_ticket_metadata(c_ticket_ctx* ctx) {
 	struct ibv_wc wc;
 	struct ibv_sge client_send_sge;
 	struct ibv_send_wr client_send_wr, *bad_client_send_wr = NULL;
@@ -306,7 +306,7 @@ int rdma_read(c_ticket_ctx *ctx, int offset) {
 
 }
 
-uint64_t acquire_lock(c_ticket_ctx*  ctx, uint64_t *response) {
+uint64_t acquire_ticket_lock(c_ticket_ctx*  ctx, uint64_t *response) {
 	int test = 1;
 	uint64_t ticket;
 	do {
@@ -322,7 +322,7 @@ uint64_t acquire_lock(c_ticket_ctx*  ctx, uint64_t *response) {
 	return ticket;
 }
 
-int release_lock(c_ticket_ctx* ctx, uint64_t ticket, uint64_t *response) {
+int release_tickeet_lock(c_ticket_ctx* ctx, uint64_t ticket, uint64_t *response) {
 	fetch_and_add(ctx, NOW);
     if(*response != ticket) {
         perror("de-latch failed\n");
@@ -403,7 +403,7 @@ c_ticket_ctx* connect_to_server(struct rdma_event_channel* cm_event_channel, str
 		return NULL;
 	}
 
-	if(send_client_metadata(ctx)) {
+	if(send_client_ticket_metadata(ctx)) {
 		perror("Failed to send client metadata.\n");
 		return NULL;
 	}
@@ -487,7 +487,7 @@ void * ticket_client(void * in) {
 		}
 		//lock
 		// b_acquire = clock();
-		ticket = acquire_lock(ctx, response);
+		ticket = acquire_ticket_lock(ctx, response);
 		// e_acquire = clock();
 		// printf("%f l\n", ((double)(e_acquire-b_acquire)/CLOCKS_PER_SEC));
 		//work
@@ -496,7 +496,7 @@ void * ticket_client(void * in) {
 		}
 		//unlock
 		// b_release = clock();
-		release_lock(ctx, ticket, response);
+		release_ticket_lock(ctx, ticket, response);
 		// e_release = clock();
 
 		// printf("%f u\n", ((double)(e_release-b_release)/CLOCKS_PER_SEC));
