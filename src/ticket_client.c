@@ -458,9 +458,9 @@ void * ticket_client(void * in) {
 	uint64_t *node_id = calloc(1, sizeof(uint64_t));
 	volatile uint64_t *sync = (volatile uint64_t *)malloc(sizeof(uint64_t));
 	*sync = 0;
-	int critical_section = ((struct ticket_client_in *) in)->critical_section;
-	int noncritical_section = ((struct ticket_client_in *) in)->noncritical_section;
-	int num_aquire = ((struct ticket_client_in *) in)->num_aquire;
+	int critical_section = ((ticket_client_in *) in)->critical_section;
+	int noncritical_section = ((ticket_client_in *) in)->noncritical_section;
+	int num_aquire = ((ticket_client_in *) in)->num_aquire;
 	clock_t start, end;
 
 	bzero(&server_sockaddr, sizeof server_sockaddr);
