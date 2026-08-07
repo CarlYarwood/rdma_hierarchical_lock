@@ -9,9 +9,9 @@ int critical_section = 1;
 int noncritical_section = 1;
 int num_aquire = 1000;
 
-char *addresses[2][40] = [
-    ["10.10.1.1"],
-    [
+char *** addresses = {
+    {"10.10.1.1"},
+    {
         "10.10.1.2",
         "10.10.1.2",
         "10.10.1.2",
@@ -52,12 +52,12 @@ char *addresses[2][40] = [
         "10.10.1.3",
         "10.10.1.3",
         "10.10.1.3"
-    ]
-]
+    }
+}
 
-long ports[2][40] = [
-    [DEFAULT_RDMA_PORT],
-    [
+long** ports = {
+    {DEFAULT_RDMA_PORT},
+    {
         DEFAULT_RDMA_PORT,
         DEFAULT_RDMA_PORT + 1,
         DEFAULT_RDMA_PORT + 2,
@@ -98,13 +98,13 @@ long ports[2][40] = [
         DEFAULT_RDMA_PORT + 17,
         DEFAULT_RDMA_PORT + 18,
         DEFAULT_RDMA_PORT + 19
-    ]
-]
+    }
+}
 
-int peer_group_sizes[2] = [
+int *peer_group_sizes = {
     1,
     40
-]
+}
 
 int main(int argc, char ** argv){
     int option = 0;
