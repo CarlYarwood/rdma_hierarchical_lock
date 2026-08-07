@@ -1,9 +1,5 @@
 #include "spin_client.h"
 
-void noop(volatile int *dummy) {
-    *dummy = *dummy; 
-}
-
 c_spin_ctx* build_client_spin_context(struct rdma_cm_id* client_id, uint64_t *response, volatile uint64_t* sync) {
 	c_spin_ctx *ctx = NULL;
 	struct ibv_pd* pd = NULL;

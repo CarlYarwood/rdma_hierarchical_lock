@@ -1,9 +1,5 @@
 #include "mcs_client.h"
 
-void noop(volatile int *dummy) {
-    *dummy = *dummy; 
-}
-
 c_mcs_ctx* build_mcs_context(struct rdma_cm_id* client_id, volatile uint64_t *metadata, uint64_t *buffer, uint64_t* node_id) {
     c_mcs_ctx* ctx;
     struct ibv_pd* pd = NULL;

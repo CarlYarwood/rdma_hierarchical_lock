@@ -1,9 +1,5 @@
 #include "ticket_client.h"
 
-void noop(volatile int *dummy) {
-    *dummy = *dummy; 
-}
-
 c_ticket_ctx* build_client_ticket_context(struct rdma_cm_id* client_id, uint64_t *response, volatile uint64_t* sync) {
 	c_ticket_ctx *ctx = NULL;
 	struct ibv_pd* pd = NULL;
