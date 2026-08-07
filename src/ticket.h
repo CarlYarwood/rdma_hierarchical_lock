@@ -2,5 +2,8 @@
 #define TICKET_H
 #include "rdma_common.h"
 
+#define NEXT (0)
+#define NOW (1)
+
 #define SYNC (0)
 #endif
