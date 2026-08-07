@@ -272,6 +272,7 @@ int notify_clients(struct rdma_cm_id ** id_arr, uint64_t *buffer, uint64_t val, 
 void* mcs_server(void * in) {
     int num_children = ((mcs_server_in *)in)->num_children;
     int num_conn = 0;
+    int * keepgoing = NULL;
 	struct sockaddr_in server_sockaddr;
     struct rdma_event_channel *cm_event_channel = NULL;
     struct rdma_cm_id *cm_server_id = NULL;
@@ -283,6 +284,8 @@ void* mcs_server(void * in) {
         id_arr[i] = NULL;
     }
 
+    keepgoing = (int *)malloc(sizeof(int));
+    *keepgoing = 1;
     buffer = (uint64_t *)malloc(sizeof(uint64_t));
     lock = calloc(2, sizeof(uint64_t));
     lock[LOCK] = 0;
@@ -296,22 +299,22 @@ void* mcs_server(void * in) {
     cm_event_channel = rdma_create_event_channel();
     if (!cm_event_channel) {
         rdma_error("Creating cm event channel failed with errno : (%d)", -errno);
-		return -errno;
+		return NULL;
     }
 
 	if (rdma_create_id(cm_event_channel, &cm_server_id, NULL, RDMA_PS_TCP)) {
 		rdma_error("Creating server cm id failed with errno: %d ", -errno);
-		return -errno;
+		return NULL;
 	}
 
     if (rdma_bind_addr(cm_server_id, (struct sockaddr*) &server_sockaddr)) {
 		rdma_error("Failed to bind server address, errno: %d \n", -errno);
-		return -errno;
+		return NULL;
 	}
 
 	if (rdma_listen(cm_server_id, 8)) {
 		rdma_error("rdma_listen failed to listen on server address, errno: %d ", -errno);
-		return -errno;
+		return NULL;
 	}
 
     do {
@@ -326,13 +329,13 @@ void* mcs_server(void * in) {
     
         if (rdma_get_cm_event(cm_event_channel, &cm_event)) {
 		  rdma_error("Failed to retrieve a cm event, errno: %d \n", -errno);
-		  return -errno;
+		  return NULL;
         }
 
         if(0 != cm_event->status){
 		    rdma_error("CM event has non zero status: %d\n", cm_event->status);
 		    rdma_ack_cm_event(cm_event);
-		    return -(cm_event->status);
+		    return NULL;
 	    }
 
         switch (cm_event->event){
@@ -346,14 +349,14 @@ void* mcs_server(void * in) {
                 if(!ctx) {
                     rdma_ack_cm_event(cm_event);
                     perror("Failed to build client Context\n");
-                    return -1;
+                    return NULL;
                 }
 
                 (client_id)->context = (void *)ctx;
 
                 if (rdma_ack_cm_event(cm_event)) {
                     rdma_error("Failed to acknowledge the cm event errno: %d \n", -errno);
-                    return -errno;
+                    return NULL;
                 }
 
                 memset(&conn_param, 0, sizeof(conn_param));
@@ -361,7 +364,7 @@ void* mcs_server(void * in) {
                 conn_param.responder_resources = 3;
                 if (rdma_accept(client_id, &conn_param)) {
 	                rdma_error("Failed to accept the connection, errno: %d \n", -errno);
-	                return -errno;
+	                return NULL;
                 }
                 break;
 
@@ -370,15 +373,16 @@ void* mcs_server(void * in) {
 
                 if (rdma_ack_cm_event(cm_event)) {
 		            rdma_error("Failed to acknowledge the cm event %d\n", -errno);
-		            return -errno;
+		            return NULL;
 	            }
 
                 if(send_server_metadata(client_id)) {
                      perror("Failed to send server metadata \n");
-                     return -1;
+                     return NULL;
                 }
                 id_arr[num_conn] = client_id;
                 num_conn++;
+                *keepgoing = 0;
                 break;
 
             case RDMA_CM_EVENT_DISCONNECTED :
@@ -386,12 +390,12 @@ void* mcs_server(void * in) {
 
                 if (rdma_ack_cm_event(cm_event)) {
 		            rdma_error("Failed to acknowledge the cm event %d\n", -errno);
-		            return -errno;
+		            return NULL;
 	            }
 
                 if (clean_up_context(client_id)) {
                     perror("failed to cleanup client context");
-                    return -1;
+                    return NULL;
                 }
 
                 num_conn--;
@@ -399,9 +403,9 @@ void* mcs_server(void * in) {
             default:
                 rdma_error("Unexpected event received: %s", rdma_event_str(cm_event->event));
 		        rdma_ack_cm_event(cm_event);
-		        return -1;
+		        return NULL;
         }
-    } while(1);
+    } while(num_conn > 0 && *keepgoing = 1);
 
     for (int i = 0; i < num_children; i++) {
         id_arr[i] = NULL;

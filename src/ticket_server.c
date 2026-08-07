@@ -380,6 +380,7 @@ int ticket_server(void * in) {
                 }
                 id_arr[num_conn] = client_id;
                 num_conn++;
+                keepgoing = 0;
                 break;
 
             case RDMA_CM_EVENT_DISCONNECTED :
