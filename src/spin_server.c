@@ -259,7 +259,7 @@ int rdma_spin_write(struct rdma_cm_id *client_id, int offset) {
 
 }
 
-int notify_clients(struct rdma_cm_id ** id_arr, uint64_t *buffer, int num_children) {
+int notify_spin_clients(struct rdma_cm_id ** id_arr, uint64_t *buffer, int num_children) {
     *buffer = 1;
     for (int i = 0; i < num_children ; i++) {
         if(rdma_spin_write(id_arr[i], SPIN_SYNC)){
@@ -319,7 +319,7 @@ void *spin_server(void * in) {
 
     do {
         if(num_conn == num_children) {
-            notify_clients(id_arr, buffer, num_children);
+            notify_spin_clients(id_arr, buffer, num_children);
         }
         struct rdma_cm_event *cm_event = NULL;
         struct rdma_cm_id* client_id = NULL;

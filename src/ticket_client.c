@@ -176,7 +176,7 @@ c_ticket_ctx* build_client_ticket_context(struct rdma_cm_id* client_id, uint64_t
 	return ctx;
 }
 
-int destroy_context(c_ticket_ctx* ctx){
+int destroy_ticket_context(c_ticket_ctx* ctx){
 	int ret = 0;
 	rdma_destroy_qp(ctx->client_id);
 
@@ -241,7 +241,7 @@ int send_client_ticket_metadata(c_ticket_ctx* ctx) {
 	return 0;
 }
 
-int fetch_and_add(c_ticket_ctx* ctx, int offset) {
+int ticket_fetch_and_add(c_ticket_ctx* ctx, int offset) {
     int ret = -1;
     struct ibv_send_wr cas_wr, *bad_cas_wr = NULL;
     struct ibv_wc cas_wc;
@@ -310,7 +310,7 @@ uint64_t acquire_ticket_lock(c_ticket_ctx*  ctx, uint64_t *response) {
 	int test = 1;
 	uint64_t ticket;
 	do {
-		test = fetch_and_add(ctx, NEXT);
+		test = ticket_fetch_and_add(ctx, NEXT);
 	} while(test != 0);
 	ticket = *response;
 	do {
@@ -323,7 +323,7 @@ uint64_t acquire_ticket_lock(c_ticket_ctx*  ctx, uint64_t *response) {
 }
 
 int release_ticket_lock(c_ticket_ctx* ctx, uint64_t ticket, uint64_t *response) {
-	fetch_and_add(ctx, NOW);
+	ticket_fetch_and_add(ctx, NOW);
     if(*response != ticket) {
         perror("de-latch failed\n");
         return -1;
@@ -332,7 +332,7 @@ int release_ticket_lock(c_ticket_ctx* ctx, uint64_t ticket, uint64_t *response) 
 	return 0;
 }
 
-c_ticket_ctx* connect_to_server(struct rdma_event_channel* cm_event_channel, struct sockaddr_in* server_sockaddr, uint64_t *response, volatile uint64_t* sync) {
+c_ticket_ctx* connect_to_ticket_server(struct rdma_event_channel* cm_event_channel, struct sockaddr_in* server_sockaddr, uint64_t *response, volatile uint64_t* sync) {
 	c_ticket_ctx *ctx = NULL;
 	struct rdma_cm_id *cm_client_id = NULL;
 	struct rdma_cm_event *cm_event = NULL;
@@ -411,7 +411,7 @@ c_ticket_ctx* connect_to_server(struct rdma_event_channel* cm_event_channel, str
 	return ctx;
 }
 
-int disconnect_from_server(struct rdma_event_channel* cm_event_channel, c_ticket_ctx* ctx){
+int disconnect_from_ticket_server(struct rdma_event_channel* cm_event_channel, c_ticket_ctx* ctx){
 	struct rdma_cm_event *cm_event = NULL;
 	int ret = 0;
 	if (rdma_disconnect(ctx->client_id)) {
@@ -430,7 +430,7 @@ int disconnect_from_server(struct rdma_event_channel* cm_event_channel, c_ticket
 		//continuing anyways
 	}
 			
-	if(destroy_context(ctx)) {
+	if(destroy_ticket_context(ctx)) {
 		perror("Failed to detroy context fully");
 		ret = -1;
 	}
@@ -438,10 +438,6 @@ int disconnect_from_server(struct rdma_event_channel* cm_event_channel, c_ticket
 	free(ctx);
 
 	return ret;
-}
-
-void wait_on_sync(volatile uint64_t* sync) {
-	do {} while(*sync == 0);
 }
 
 void * ticket_client(void * in) {
@@ -473,7 +469,7 @@ void * ticket_client(void * in) {
 		return NULL;
 	}
 
-	ctx = connect_to_server(cm_event_channel, &server_sockaddr, response, sync);
+	ctx = connect_to_ticket_server(cm_event_channel, &server_sockaddr, response, sync);
 
 	wait_on_sync(sync);
 
@@ -503,7 +499,7 @@ void * ticket_client(void * in) {
 	}
 	end = clock();
 
-	disconnect_from_server(cm_event_channel, ctx);
+	disconnect_from_ticket_server(cm_event_channel, ctx);
 	rdma_destroy_event_channel(cm_event_channel);
 	/* We free the buffers */
 	free(response);

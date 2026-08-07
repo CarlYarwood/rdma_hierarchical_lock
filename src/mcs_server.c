@@ -259,7 +259,7 @@ int rdma_mcs_write(struct rdma_cm_id *client_id, int offset) {
 
 }
 
-int notify_clients(struct rdma_cm_id ** id_arr, uint64_t *buffer, uint64_t val, int offset, int num_children) {
+int notify_mcs_clients(struct rdma_cm_id ** id_arr, uint64_t *buffer, uint64_t val, int offset, int num_children) {
     *buffer = val;
     for (int i = 0; i < num_children ; i++) {
         if(rdma_mcs_write(id_arr[i], offset)){
@@ -319,9 +319,9 @@ void* mcs_server(void * in) {
 
     do {
         if(num_conn == num_children) {
-            notify_clients(id_arr, buffer, 1, MCS_SYNC, num_children);
+            notify_mcs_clients(id_arr, buffer, 1, MCS_SYNC, num_children);
             do {} while (lock[READY] != num_conn);
-            notify_clients(id_arr, buffer, 2, MCS_SYNC, num_children);
+            notify_mcs_clients(id_arr, buffer, 2, MCS_SYNC, num_children);
             lock[READY] = 0;
         }
         struct rdma_cm_event *cm_event = NULL;

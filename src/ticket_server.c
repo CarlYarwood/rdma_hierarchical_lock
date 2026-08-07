@@ -259,7 +259,7 @@ int rdma_ticket_write(struct rdma_cm_id *client_id, int offset) {
 
 }
 
-int notify_clients(struct rdma_cm_id ** id_arr, uint64_t *buffer, int num_children) {
+int notify_ticket_clients(struct rdma_cm_id ** id_arr, uint64_t *buffer, int num_children) {
     *buffer = 1;
     for (int i = 0; i < num_children ; i++) {
         if(rdma_ticket_write(id_arr[i], TICKET_SYNC)){
@@ -320,7 +320,7 @@ void * ticket_server(void * in) {
 
     do {
         if(num_conn == num_children) {
-            notify_clients(id_arr, buffer, num_children);
+            notify_ticket_clients(id_arr, buffer, num_children);
         }
         struct rdma_cm_event *cm_event = NULL;
         struct rdma_cm_id* client_id = NULL;

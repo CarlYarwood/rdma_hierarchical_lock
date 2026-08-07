@@ -236,7 +236,7 @@ int compare_and_swap(struct rdma_cm_id* client_id, uint64_t cmp, uint64_t swap, 
     return 0;
 }
 
-int fetch_and_add(struct rdma_cm_id* client_id, int offset) {
+int mcs_fetch_and_add(struct rdma_cm_id* client_id, int offset) {
 	c_mcs_ctx* ctx = (c_mcs_ctx *)client_id->context;
     int ret = -1;
     struct ibv_send_wr cas_wr, *bad_cas_wr = NULL;
@@ -267,40 +267,6 @@ int fetch_and_add(struct rdma_cm_id* client_id, int offset) {
         return 1;
     }
     return 0;
-}
-
-int rdma_read(struct rdma_cm_id *client_id, int offset) {
-	c_mcs_ctx *ctx = (c_mcs_ctx *)client_id->context;
-	int ret = -1;
-    struct ibv_send_wr read_wr, *bad_read_wr = NULL;
-    struct ibv_wc read_wc;
-    struct ibv_sge read_sge;
-
-    read_sge.addr = (uint64_t) (ctx->buffer_mr)->addr;
-    read_sge.length = (uint64_t) (ctx->buffer_mr)->length;
-    read_sge.lkey = (uint64_t)(ctx->buffer_mr)->lkey;
-
-	bzero(&read_wr, sizeof(read_wr));
-    read_wr.sg_list = &read_sge;
-    read_wr.num_sge = 1;
-    read_wr.opcode = IBV_WR_RDMA_READ;
-	read_wr.send_flags = IBV_SEND_SIGNALED;
-
-	read_wr.wr.rdma.rkey = (ctx->server_metadata_attr)->stag.remote_stag;
-    read_wr.wr.rdma.remote_addr = (ctx->server_metadata_attr)->address + sizeof(uint64_t) * offset;
-
-	ret = ibv_post_send(client_id->qp, &read_wr, &bad_read_wr);
-    if(ret) {
-        perror("Failed to send read\n");
-        return 1;
-    }
-    ret = process_work_completion_events(ctx->cq, &read_wc, 1);
-    if (ret != 1) {
-        perror("We failed to get 1 work completions\n");
-        return 1;
-    }
-    return 0;
-
 }
 
 int acquire_mcs_lock(struct rdma_cm_id ** id_arr, uint64_t *node_id, uint64_t *buffer, volatile uint64_t* metadata) {
@@ -640,7 +606,7 @@ void* mcs_client(void *in) {
         id_arr[i] = mcs_connect(&client_sockaddr, cm_event_channel, node_id, i, buffer, metadata);
     }
 
-    fetch_and_add(id_arr[SERVER], READY);
+    mcs_fetch_and_add(id_arr[SERVER], READY);
 
 	wait_on_data(&metadata[MCS_SYNC], 2);
 

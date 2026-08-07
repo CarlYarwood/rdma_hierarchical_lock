@@ -166,7 +166,7 @@ c_spin_ctx* build_client_spin_context(struct rdma_cm_id* client_id, uint64_t *re
 	return ctx;
 }
 
-int destroy_context(c_spin_ctx* ctx){
+int destroy_spin_context(c_spin_ctx* ctx){
 	int ret = 0;
 	rdma_destroy_qp(ctx->client_id);
 
@@ -283,7 +283,7 @@ int release_spin_lock(c_spin_ctx *ctx, uint64_t* node_id, uint64_t *response) {
 	return 0;
 }
 
-c_spin_ctx* connect_to_server(struct rdma_event_channel* cm_event_channel, struct sockaddr_in* server_sockaddr, uint64_t *response, volatile uint64_t *sync) {
+c_spin_ctx* connect_to_spin_server(struct rdma_event_channel* cm_event_channel, struct sockaddr_in* server_sockaddr, uint64_t *response, volatile uint64_t *sync) {
 	c_spin_ctx *ctx = NULL;
 	struct rdma_cm_id *cm_client_id = NULL;
 	struct rdma_cm_event *cm_event = NULL;
@@ -362,7 +362,7 @@ c_spin_ctx* connect_to_server(struct rdma_event_channel* cm_event_channel, struc
 	return ctx;
 }
 
-int disconnect_from_server(struct rdma_event_channel* cm_event_channel, c_spin_ctx* ctx){
+int disconnect_from_spin_server(struct rdma_event_channel* cm_event_channel, c_spin_ctx* ctx){
 	struct rdma_cm_event *cm_event = NULL;
 	int ret = 0;
 	if (rdma_disconnect(ctx->client_id)) {
@@ -381,7 +381,7 @@ int disconnect_from_server(struct rdma_event_channel* cm_event_channel, c_spin_c
 		//continuing anyways
 	}
 			
-	if(destroy_context(ctx)) {
+	if(destroy_spin_context(ctx)) {
 		perror("Failed to detroy context fully");
 		ret = -1;
 	}
@@ -389,10 +389,6 @@ int disconnect_from_server(struct rdma_event_channel* cm_event_channel, c_spin_c
 	free(ctx);
 
 	return ret;
-}
-
-void wait_on_sync(volatile uint64_t* sync) {
-	do {} while(*sync == 0);
 }
 
 void * spin_client(void * in) {
@@ -426,7 +422,7 @@ void * spin_client(void * in) {
 		return NULL;
 	}
 	
-	ctx = connect_to_server(cm_event_channel, &server_sockaddr, response, sync);
+	ctx = connect_to_spin_server(cm_event_channel, &server_sockaddr, response, sync);
 
 	wait_on_sync(sync);
 
@@ -453,7 +449,7 @@ void * spin_client(void * in) {
 	}
 	end = clock();
 
-	disconnect_from_server(cm_event_channel, ctx);
+	disconnect_from_spin_server(cm_event_channel, ctx);
 	/* We free the buffers */
 	free(node_id);
 	free(response);
