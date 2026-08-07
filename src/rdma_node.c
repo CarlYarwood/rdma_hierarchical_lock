@@ -180,7 +180,7 @@ int main(int argc, char ** argv){
         ticket_client_in * in = (ticket_client_in *)malloc(sizeof(ticket_client_in) * num_workers);
         for(int i = 0; i < num_workers; i++) {
             in[i].parent_address = addresses[parent_peer_group][parent_id];
-            in[i].paretn_port = ports[parent_peer_group][parent_id];
+            in[i].parent_port = ports[parent_peer_group][parent_id];
             in[i].critical_section = critical_section;
             in[i].noncritical_section = noncritical_section;
             in[i].num_aquire = num_aquire;
@@ -226,12 +226,12 @@ int main(int argc, char ** argv){
     }else if(local_lock_type == "ticket"){
         workers = (pthread_t *) malloc(sizeof(pthread_t));
         ticket_server_in * in = (ticket_server_in *)malloc(sizeof(ticket_server_in));
-        ticket_server_in->num_children = peer_group_sizes[child_peer_group];
+        in->num_children = peer_group_sizes[child_peer_group];
         pthread_create(workers, NULL, ticket_server, (void *)in);
         pthread_join(*workers, NULL);
         free(in);
         free(workers);
-        return 0
+        return 0;
     }else if(local_lock_type == "spin"){
         workers = (pthread_t *) malloc(sizeof(pthread_t));
         spin_server_in * in = (spin_server_in *)malloc(sizeof(spin_server_in));
