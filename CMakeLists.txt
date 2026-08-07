@@ -29,4 +29,4 @@ link_libraries(pthread ${IBVERBS_LIBRARY} ${RDMACM_LIBRARY})
 
 include_directories("${PROJECT_SOURCE_DIR}" "/home/atr/local/include/")
 
-add_executable(rdma_node ${PROJECT_SOURCE_DIR}/rdma_common.c ${PROJECT_SOURCE_DIR}/mcs_client.c ${PROJECT_SOURCE_DIR}/mcs_server.c ${PROJECT_SOURCE_DIR}/spin_client.c ${PROJECT_SOURCE_DIR}/spin_server.c ${PROJECT_SOURCE_DIR}/ticket_client.c ${PROJECT_SOURCE_DIR}/ticket_server.c $PROJECT_SOURCE_DIR/rdma_node.c)
+add_executable(rdma_node ${PROJECT_SOURCE_DIR}/rdma_common.c ${PROJECT_SOURCE_DIR}/mcs_client.c ${PROJECT_SOURCE_DIR}/mcs_server.c ${PROJECT_SOURCE_DIR}/spin_client.c ${PROJECT_SOURCE_DIR}/spin_server.c ${PROJECT_SOURCE_DIR}/ticket_client.c ${PROJECT_SOURCE_DIR}/ticket_server.c ${PROJECT_SOURCE_DIR}/rdma_node.c)
