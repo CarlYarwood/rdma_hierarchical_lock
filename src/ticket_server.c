@@ -1,6 +1,6 @@
 #include "ticket_server.h"
 
-s_ticket_ctx* build_server_spin_context(struct rdma_cm_id* client_id, uint64_t *ticket, uint64_t *buffer) {
+s_ticket_ctx* build_server_spin_context(struct rdma_cm_id* client_id, uint64_t *lock, uint64_t *buffer) {
     s_ticket_ctx* ctx;
     struct ibv_pd* pd = NULL;
     struct ibv_comp_channel* comp = NULL;
@@ -269,7 +269,7 @@ int notify_clients(struct rdma_cm_id ** id_arr, uint64_t *buffer, int num_childr
     return 0;
 }
 
-int ticket_server(void * in) {
+void * ticket_server(void * in) {
     uint64_t *lock = NULL;
     uint64_t *buffer = NULL;
     int * keepgoing = NULL;
