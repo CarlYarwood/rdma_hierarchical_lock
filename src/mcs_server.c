@@ -405,7 +405,7 @@ void* mcs_server(void * in) {
 		        rdma_ack_cm_event(cm_event);
 		        return NULL;
         }
-    } while(num_conn > 0 && *keepgoing == 1);
+    } while(num_conn > 0 || *keepgoing == 1);
 
     for (int i = 0; i < num_children; i++) {
         id_arr[i] = NULL;
