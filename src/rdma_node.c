@@ -154,6 +154,7 @@ int main(int argc, char ** argv){
 	}
 
     if (parent_lock_type == "mcs"){
+        printf("in client mcs\n");
         workers = (pthread_t *) malloc(sizeof(pthread_t) * num_workers);
         mcs_client_in * in = (mcs_client_in *)malloc(sizeof(mcs_client_in) * num_workers);
         for (int i = 0; i < num_workers; i++) {
@@ -176,6 +177,7 @@ int main(int argc, char ** argv){
         free(workers);
         return 0;
     }else if(parent_lock_type == "ticket"){
+        printf("in client ticket\n");
         workers = (pthread_t *) malloc(sizeof(pthread_t) * num_workers);
         ticket_client_in * in = (ticket_client_in *)malloc(sizeof(ticket_client_in) * num_workers);
         for(int i = 0; i < num_workers; i++) {
@@ -194,6 +196,7 @@ int main(int argc, char ** argv){
         free(workers);
         return 0;
     }else if(parent_lock_type == "spin"){
+        printf("in client spin\n");
         workers = (pthread_t *) malloc(sizeof(pthread_t) * num_workers);
         spin_client_in * in = (spin_client_in *)malloc(sizeof(spin_client_in) * num_workers);
         for (int i = 0; i < num_workers ; i++) {
@@ -215,6 +218,7 @@ int main(int argc, char ** argv){
     }
  
     if (local_lock_type == "mcs"){
+        printf("in server mcs\n");
         workers = (pthread_t *) malloc(sizeof(pthread_t));
         mcs_server_in * in = (mcs_server_in *)malloc(sizeof(mcs_server_in));
         in->num_children = peer_group_sizes[child_peer_group];
@@ -224,6 +228,7 @@ int main(int argc, char ** argv){
         free(workers);
         return 0;
     }else if(local_lock_type == "ticket"){
+        printf("in server ticket\n");
         workers = (pthread_t *) malloc(sizeof(pthread_t));
         ticket_server_in * in = (ticket_server_in *)malloc(sizeof(ticket_server_in));
         in->num_children = peer_group_sizes[child_peer_group];
@@ -233,6 +238,7 @@ int main(int argc, char ** argv){
         free(workers);
         return 0;
     }else if(local_lock_type == "spin"){
+        printf("in server spin\n");
         workers = (pthread_t *) malloc(sizeof(pthread_t));
         spin_server_in * in = (spin_server_in *)malloc(sizeof(spin_server_in));
         in->num_children = peer_group_sizes[child_peer_group];
