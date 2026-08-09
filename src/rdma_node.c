@@ -152,6 +152,7 @@ int main(int argc, char ** argv){
                 return -1;
 		}
 	}
+    printf("before if\n");
 
     if (strcmp(parent_lock_type, "mcs") == 0){
         printf("in client mcs\n");
