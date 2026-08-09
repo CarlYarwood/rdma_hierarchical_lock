@@ -147,6 +147,7 @@ int main(int argc, char ** argv){
                 break;
             case 'i':
                 node_id_start = strtoul(optarg, NULL, 0);
+                break;
             default:
                 printf("invalid option detected\n");
                 return -1;
