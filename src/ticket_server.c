@@ -404,15 +404,19 @@ void * ticket_server(void * in) {
 		        return NULL;
         }
     } while(num_conn > 0 || *keepgoing == 1);
+    printf("out of loop\n");
 
     for (int i = 0; i < num_children; i++) {
         id_arr[i] = NULL;
     }
 
+    printf("begin free\n");
     free(id_arr);
     free(buffer);
     free(lock);
     free(keepgoing);
+
+    printf("destroy rdma things\n");
 	if (rdma_destroy_id(cm_server_id)) {
 		rdma_error("Failed to destroy server id cleanly, %d \n", -errno);
 	}
