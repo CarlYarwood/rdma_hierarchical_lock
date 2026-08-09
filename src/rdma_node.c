@@ -169,7 +169,7 @@ int main(int argc, char ** argv){
             in[i].peer_addresses = addresses[node_peer_group];
             in[i].peer_ports = ports[node_peer_group];
             in[i].num_peers = peer_group_sizes[node_peer_group];
-            pthread_create(&workers[i], NULL, mcs_client, (void *)&in);
+            pthread_create(&workers[i], NULL, mcs_client, (void *)&in[i]);
         }
 
         for(int i = 0; i < num_workers; i++) {
@@ -188,7 +188,7 @@ int main(int argc, char ** argv){
             in[i].critical_section = critical_section;
             in[i].noncritical_section = noncritical_section;
             in[i].num_aquire = num_aquire;
-            pthread_create(&workers[i], NULL, ticket_client, (void *)&in);
+            pthread_create(&workers[i], NULL, ticket_client, (void *)&in[ibv_create_cq]);
         }
 
         for(int i = 0; i < num_workers; i++) {
