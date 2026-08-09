@@ -153,7 +153,6 @@ int main(int argc, char ** argv){
                 return -1;
 		}
 	}
-    printf("%s\n", parent_lock_type);
 
     if (strcmp(parent_lock_type, "mcs") == 0){
         printf("in client mcs\n");
