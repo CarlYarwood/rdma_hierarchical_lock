@@ -188,7 +188,7 @@ int main(int argc, char ** argv){
             in[i].critical_section = critical_section;
             in[i].noncritical_section = noncritical_section;
             in[i].num_aquire = num_aquire;
-            pthread_create(&workers[i], NULL, ticket_client, (void *)&in[ibv_create_cq]);
+            pthread_create(&workers[i], NULL, ticket_client, (void *)&in[i]);
         }
 
         for(int i = 0; i < num_workers; i++) {
