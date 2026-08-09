@@ -115,8 +115,8 @@ int main(int argc, char ** argv){
     int num_workers = -1;
     int child_peer_group = -1;
     uint64_t node_id_start = 0;
-    char * parent_lock_type = NULL;
-    char * local_lock_type = NULL;
+    char * parent_lock_type = "none";
+    char * local_lock_type = "none";
     pthread_t * workers;
 
     while ((option = getopt(argc, argv, "p:n:P:N:l:L:c:C:i")) != -1) {
