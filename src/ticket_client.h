@@ -16,7 +16,7 @@ typedef struct {
 		mcsLock * mcs;
 		ticketLock * ticket;
 		spinLock * spin;
-	};
+	}machine_lock;
 } ticket_client_in;
 
 typedef struct {
