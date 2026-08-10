@@ -15,8 +15,8 @@ typedef struct {
 	union machine_lock {
 		spinLock * spin;
 		ticketLock * ticket;
-		mcsLock * mcsLock;
-	}
+		mcsLock * mcs;
+	};
 } spin_client_in;
 
 typedef struct {

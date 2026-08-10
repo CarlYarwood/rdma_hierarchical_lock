@@ -24,7 +24,7 @@ typedef struct {
         mcsLock * mcs;
         ticketLock * ticket;
         spinLock * spin;
-    }
+    };
 } mcs_client_in;
 
 typedef struct {
