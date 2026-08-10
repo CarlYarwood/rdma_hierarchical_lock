@@ -103,7 +103,7 @@ mcsLock* buildMcsLock() {
     return lock;
 }
 
-void destorySpinLock(spinLock* spin) {
+void destroySpinLock(spinLock* spin) {
     pthread_mutex_destroy(spin->lock_mutex);
     free(spin->lock_mutex);
     free(spin);
