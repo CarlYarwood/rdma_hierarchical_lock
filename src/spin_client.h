@@ -12,11 +12,7 @@ typedef struct {
 	int critical_section;
 	int noncritical_section;
 	int num_aquire;
-	union machine_lock {
-		spinLock * spin;
-		ticketLock * ticket;
-		mcsLock * mcs;
-	}machine_lock;
+	union machine_lock machine_lock;
 } spin_client_in;
 
 typedef struct {

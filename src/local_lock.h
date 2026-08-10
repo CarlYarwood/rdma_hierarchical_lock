@@ -38,6 +38,12 @@ typedef struct {
     volatile uint64_t owner;
 } spinLock;
 
+union machine_lock {
+    mcsLock * mcs;
+    ticketLock * ticket;
+    spinLock * spin;
+};
+
 void* lockSpin(spinLock* lock, uint64_t node_id);
 void unlockSpin(spinLock* lock, void*);
 void* lockTicket(ticketLock* lock, uint64_t node_id);

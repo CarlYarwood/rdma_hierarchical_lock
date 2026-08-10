@@ -20,11 +20,7 @@ typedef struct {
     char ** peer_addresses;
     long * peer_ports;
     int num_peers;
-    union machine_lock {
-        mcsLock * mcs;
-        ticketLock * ticket;
-        spinLock * spin;
-    }machine_lock;
+    union machine_lock machine_lock;
 } mcs_client_in;
 
 typedef struct {
