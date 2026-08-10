@@ -54,6 +54,6 @@ spinLock* buildSpinLock();
 ticketLock* buildTicketLock();
 mcsLock* buildMcsLock();
 void destorySpinLock(spinLock* spin);
-void detroyTicketLock(ticketLock* ticket);
-void detroyMcsLock(mcsLock* mcs);
+void destroyTicketLock(ticketLock* ticket);
+void destroyMcsLock(mcsLock* mcs);
 #endif
