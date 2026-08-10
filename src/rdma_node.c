@@ -199,7 +199,7 @@ int main(int argc, char ** argv){
         return 0;
     }else if(strcmp(parent_lock_type, "ticket") == 0){
         mcsLock* mcs = buildMcsLock();
-        ticketLock* tickt = buildTicketLock();
+        ticketLock* ticket = buildTicketLock();
         spinLock* spin = buildSpinLock();
         printf("in client ticket\n");
         workers = (pthread_t *) malloc(sizeof(pthread_t) * num_workers);
@@ -235,7 +235,7 @@ int main(int argc, char ** argv){
         return 0;
     }else if(strcmp(parent_lock_type, "spin") == 0){
         mcsLock* mcs = buildMcsLock();
-        ticketLock* tickt = buildTicketLock();
+        ticketLock* ticket = buildTicketLock();
         spinLock* spin = buildSpinLock();
         printf("in client spin\n");
         workers = (pthread_t *) malloc(sizeof(pthread_t) * num_workers);
