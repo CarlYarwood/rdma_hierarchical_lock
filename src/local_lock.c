@@ -5,7 +5,7 @@ void* lockSpin(spinLock *lock, uint64_t node_id) {
     pthread_mutex_lock(lock->lock_mutex);
     if(lock->owner != 0) {
         pthread_mutex_unlock(lock->lock_mutex);
-        return acquire_local_spin(lock, node_id);
+        return lockSpin(lock, node_id);
     }
     lock->owner = node_id;
     pthread_mutex_unlock(lock->lock_mutex);
@@ -58,12 +58,12 @@ void unlockMcs(mcsLock *lock, mcsQueueMember* next) {
     pthread_mutex_lock(lock->lock_mutex);
     if (next->next == 0) {
         lock->owner = 0;
-        lock->next = NULL;
+        lock->queueEnd = NULL;
         pthread_mutex_unlock(lock->lock_mutex);
         return;
     }
     lock->owner = next->next;
-    pthread_mutex_unlock(mcsLock->lock_mutex);
+    pthread_mutex_unlock(lock->lock_mutex);
     free(next);
 }
 
@@ -81,7 +81,7 @@ spinLock* buildSpinLock() {
 ticketLock* buildTicketLock() {
     ticketLock *lock = NULL;
     pthread_mutex_t *lock_mutex = NULL;
-    lock = (ticket_lock *)malloc(sizeof(ticket_lock));
+    lock = (ticketLock *)malloc(sizeof(ticketLock));
     lock_mutex = (pthread_mutex_t *)malloc(sizeof(pthread_mutex_t));
     pthread_mutex_init(lock_mutex, NULL);
     lock->owner = 0;
