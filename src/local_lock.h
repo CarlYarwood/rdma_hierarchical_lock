@@ -53,7 +53,7 @@ void unlockMcs(mcsLock* lock, mcsQueueMember* next);
 spinLock* buildSpinLock();
 ticketLock* buildTicketLock();
 mcsLock* buildMcsLock();
-void destorySpinLock(spinLock* spin);
+void destroySpinLock(spinLock* spin);
 void destroyTicketLock(ticketLock* ticket);
 void destroyMcsLock(mcsLock* mcs);
 #endif
