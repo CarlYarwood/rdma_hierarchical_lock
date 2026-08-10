@@ -452,7 +452,6 @@ void * ticket_client(void * in) {
 	char * parent_address = ((ticket_client_in *)in)->parent_address;
 	long parent_port = ((ticket_client_in *)in)->parent_port;
 	uint64_t *response = calloc(1, sizeof(uint64_t));
-	uint64_t *node_id = calloc(1, sizeof(uint64_t));
 	volatile uint64_t *sync = (volatile uint64_t *)malloc(sizeof(uint64_t));
 	*sync = 0;
 	int critical_section = ((ticket_client_in *) in)->critical_section;
