@@ -449,11 +449,11 @@ void * spin_client(void * in) {
 		mcsQueueMember *next = NULL;
         if(strcmp(machine_lock_type, "none") != 0) {
             if (strcmp(machine_lock_type, "mcs")){
-                next = lockMcs(mcs, node_id);
+                next = lockMcs(mcs, *node_id);
             } else if (strcmp(machine_lock_type, "ticket")){
-                next = lockTicket(ticket, node_id);
+                next = lockTicket(ticket, *node_id);
             } else if (strcmp(machine_lock_type, "spin")) {
-                next = lockSpin(spin, node_id);
+                next = lockSpin(spin, *node_id);
             }
         }
 		acquire_spin_lock(ctx, node_id, response);
