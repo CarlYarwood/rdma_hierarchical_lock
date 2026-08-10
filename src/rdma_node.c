@@ -193,7 +193,7 @@ int main(int argc, char ** argv){
                 }else if(strcmp(machine_lock_type, "ticket") == 0) {
                     detroyTicketLock(in[i].machine_lock.ticket);
                 }else if(strcmp(machine_lock_type, "spin") == 0) {
-                    destroySpinLock(in[i].machine_lock.spin);
+                    destorySpinLock(in[i].machine_lock.spin);
                 }
             }
         }
@@ -232,7 +232,7 @@ int main(int argc, char ** argv){
                 }else if(strcmp(machine_lock_type, "ticket") == 0) {
                     detroyTicketLock(in[i].machine_lock.ticket);
                 }else if(strcmp(machine_lock_type, "spin") == 0) {
-                    destroySpinLock(in[i].machine_lock.spin);
+                    destorySpinLock(in[i].machine_lock.spin);
                 }
             }
         }
@@ -271,7 +271,7 @@ int main(int argc, char ** argv){
                 }else if(strcmp(machine_lock_type, "ticket") == 0) {
                     detroyTicketLock(in[i].machine_lock.ticket);
                 }else if(strcmp(machine_lock_type, "spin") == 0) {
-                    destroySpinLock(in[i].machine_lock.spin);
+                    destorySpinLock(in[i].machine_lock.spin);
                 }
             }
         }
