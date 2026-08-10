@@ -152,8 +152,6 @@ int main(int argc, char ** argv){
             case 'm':
                 machine_lock_type = optarg;
                 break;
-            case 'M':
-                machine_handoff = atoi(optarg);
             default:
                 printf("invalid option detected\n");
                 return -1;
@@ -181,7 +179,7 @@ int main(int argc, char ** argv){
                 }else if(strcmp(machine_lock_type, "ticket") == 0) {
                     in[i].machine_lock.ticket = buildTicketLock();
                 }else if(strcmp(machine_lock_type, "spin") == 0) {
-                    in[i].machine_lock.spin = buildSpinLock()
+                    in[i].machine_lock.spin = buildSpinLock();
                 }
             }
             pthread_create(&workers[i], NULL, mcs_client, (void *)&in[i]);
@@ -191,9 +189,9 @@ int main(int argc, char ** argv){
             pthread_join(workers[i], NULL);
             if(strcmp(machine_lock_type, "none") != 0) {
                 if(strcmp(machine_lock_type, "mcs") == 0) {
-                    destroyMcsLock(in[i].machine_lock.mcs);
+                    destorySpinLock(in[i].machine_lock.mcs);
                 }else if(strcmp(machine_lock_type, "ticket") == 0) {
-                    destroyTicketLock(in[i].machine_lock.ticket);
+                    detroyTicketLock(in[i].machine_lock.ticket);
                 }else if(strcmp(machine_lock_type, "spin") == 0) {
                     destroySpinLock(in[i].machine_lock.spin);
                 }
@@ -220,7 +218,7 @@ int main(int argc, char ** argv){
                 }else if(strcmp(machine_lock_type, "ticket") == 0) {
                     in[i].machine_lock.ticket = buildTicketLock();
                 }else if(strcmp(machine_lock_type, "spin") == 0) {
-                    in[i].machine_lock.spin = buildSpinLock()
+                    in[i].machine_lock.spin = buildSpinLock();
                 }
             }
             pthread_create(&workers[i], NULL, ticket_client, (void *)&in[i]);
@@ -230,9 +228,9 @@ int main(int argc, char ** argv){
             pthread_join(workers[i], NULL);
             if(strcmp(machine_lock_type, "none") != 0) {
                 if(strcmp(machine_lock_type, "mcs") == 0) {
-                    destroyMcsLock(in[i].machine_lock.mcs);
+                    destorySpinLock(in[i].machine_lock.mcs);
                 }else if(strcmp(machine_lock_type, "ticket") == 0) {
-                    destroyTicketLock(in[i].machine_lock.ticket);
+                    detroyTicketLock(in[i].machine_lock.ticket);
                 }else if(strcmp(machine_lock_type, "spin") == 0) {
                     destroySpinLock(in[i].machine_lock.spin);
                 }
@@ -259,7 +257,7 @@ int main(int argc, char ** argv){
                 }else if(strcmp(machine_lock_type, "ticket") == 0) {
                     in[i].machine_lock.ticket = buildTicketLock();
                 }else if(strcmp(machine_lock_type, "spin") == 0) {
-                    in[i].machine_lock.spin = buildSpinLock()
+                    in[i].machine_lock.spin = buildSpinLock();
                 }
             }
             pthread_create(&workers[i], NULL, spin_client, (void *)&in[i]);
@@ -269,9 +267,9 @@ int main(int argc, char ** argv){
             pthread_join(workers[i], NULL);
             if(strcmp(machine_lock_type, "none") != 0) {
                 if(strcmp(machine_lock_type, "mcs") == 0) {
-                    destroyMcsLock(in[i].machine_lock.mcs);
+                    destorySpinLock(in[i].machine_lock.mcs);
                 }else if(strcmp(machine_lock_type, "ticket") == 0) {
-                    destroyTicketLock(in[i].machine_lock.ticket);
+                    detroyTicketLock(in[i].machine_lock.ticket);
                 }else if(strcmp(machine_lock_type, "spin") == 0) {
                     destroySpinLock(in[i].machine_lock.spin);
                 }
