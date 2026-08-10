@@ -504,9 +504,9 @@ void * ticket_client(void * in) {
             if (strcmp(machine_lock_type, "mcs")){
                 next = lockMcs(mcs, *node_id);
             } else if (strcmp(machine_lock_type, "ticket")){
-                next = lockTicket(ticket, *node_id);
+                lockTicket(ticket, *node_id);
             } else if (strcmp(machine_lock_type, "spin")) {
-                next = lockSpin(spin, *node_id);
+                lockSpin(spin, *node_id);
             }
         }
 		place = acquire_ticket_lock(ctx, response);
