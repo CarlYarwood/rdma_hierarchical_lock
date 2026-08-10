@@ -109,13 +109,13 @@ void destorySpinLock(spinLock* spin) {
     free(spin);
 }
 
-void detroyTicketLock(ticketLock* ticket) {
+void destroyTicketLock(ticketLock* ticket) {
     pthread_mutex_destroy(ticket->lock_mutex);
     free(ticket->lock_mutex);
     free(ticket);
 }
 
-void detroyMcsLock(mcsLock* mcs) {
+void destroyMcsLock(mcsLock* mcs) {
     pthread_mutex_destroy(mcs->lock_mutex);
     free(mcs->lock_mutex);
     free(mcs);

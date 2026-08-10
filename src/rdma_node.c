@@ -159,6 +159,9 @@ int main(int argc, char ** argv){
 	}
 
     if (strcmp(parent_lock_type, "mcs") == 0){
+        mcsLock* mcs = buildMcsLock();
+        ticketLock* ticket = buildTicketLock();
+        spinLock* spin = buildSpinLock();
         printf("in client mcs\n");
         workers = (pthread_t *) malloc(sizeof(pthread_t) * num_workers);
         mcs_client_in * in = (mcs_client_in *)malloc(sizeof(mcs_client_in) * num_workers);
@@ -175,11 +178,11 @@ int main(int argc, char ** argv){
             in[i].machine_lock_type = machine_lock_type;
             if(strcmp(machine_lock_type, "none") != 0) {
                 if(strcmp(machine_lock_type, "mcs") == 0) {
-                    in[i].machine_lock.mcs = buildMcsLock();
+                    in[i].machine_lock.mcs = mcs;
                 }else if(strcmp(machine_lock_type, "ticket") == 0) {
-                    in[i].machine_lock.ticket = buildTicketLock();
+                    in[i].machine_lock.ticket = ticket;
                 }else if(strcmp(machine_lock_type, "spin") == 0) {
-                    in[i].machine_lock.spin = buildSpinLock();
+                    in[i].machine_lock.spin = spin;
                 }
             }
             pthread_create(&workers[i], NULL, mcs_client, (void *)&in[i]);
@@ -187,20 +190,17 @@ int main(int argc, char ** argv){
 
         for(int i = 0; i < num_workers; i++) {
             pthread_join(workers[i], NULL);
-            if(strcmp(machine_lock_type, "none") != 0) {
-                if(strcmp(machine_lock_type, "mcs") == 0) {
-                    detroyMcsLock(in[i].machine_lock.mcs);
-                }else if(strcmp(machine_lock_type, "ticket") == 0) {
-                    detroyTicketLock(in[i].machine_lock.ticket);
-                }else if(strcmp(machine_lock_type, "spin") == 0) {
-                    destorySpinLock(in[i].machine_lock.spin);
-                }
-            }
         }
+        destroyMcsLock(mcs);
+        destroyTicketLock(ticket);
+        destroySpinLock(spin);
         free(in);
         free(workers);
         return 0;
     }else if(strcmp(parent_lock_type, "ticket") == 0){
+        mcsLock* mcs = buildMcsLock();
+        ticketLock* tickt = buildTicketLock();
+        spinLock* spin = buildSpinLock();
         printf("in client ticket\n");
         workers = (pthread_t *) malloc(sizeof(pthread_t) * num_workers);
         ticket_client_in * in = (ticket_client_in *)malloc(sizeof(ticket_client_in) * num_workers);
@@ -214,11 +214,11 @@ int main(int argc, char ** argv){
             in[i].machine_lock_type = machine_lock_type;
             if(strcmp(machine_lock_type, "none") != 0) {
                 if(strcmp(machine_lock_type, "mcs") == 0) {
-                    in[i].machine_lock.mcs = buildMcsLock();
+                    in[i].machine_lock.mcs = mcs;
                 }else if(strcmp(machine_lock_type, "ticket") == 0) {
-                    in[i].machine_lock.ticket = buildTicketLock();
+                    in[i].machine_lock.ticket = ticket;
                 }else if(strcmp(machine_lock_type, "spin") == 0) {
-                    in[i].machine_lock.spin = buildSpinLock();
+                    in[i].machine_lock.spin = spin;
                 }
             }
             pthread_create(&workers[i], NULL, ticket_client, (void *)&in[i]);
@@ -226,20 +226,17 @@ int main(int argc, char ** argv){
 
         for(int i = 0; i < num_workers; i++) {
             pthread_join(workers[i], NULL);
-            if(strcmp(machine_lock_type, "none") != 0) {
-                if(strcmp(machine_lock_type, "mcs") == 0) {
-                    detroyMcsLock(in[i].machine_lock.mcs);
-                }else if(strcmp(machine_lock_type, "ticket") == 0) {
-                    detroyTicketLock(in[i].machine_lock.ticket);
-                }else if(strcmp(machine_lock_type, "spin") == 0) {
-                    destorySpinLock(in[i].machine_lock.spin);
-                }
-            }
         }
+        destroyMcsLock(mcs);
+        destroyTicketLock(ticket);
+        destroySpinLock(spin);
         free(in);
         free(workers);
         return 0;
     }else if(strcmp(parent_lock_type, "spin") == 0){
+        mcsLock* mcs = buildMcsLock();
+        ticketLock* tickt = buildTicketLock();
+        spinLock* spin = buildSpinLock();
         printf("in client spin\n");
         workers = (pthread_t *) malloc(sizeof(pthread_t) * num_workers);
         spin_client_in * in = (spin_client_in *)malloc(sizeof(spin_client_in) * num_workers);
@@ -253,11 +250,11 @@ int main(int argc, char ** argv){
             in[i].num_aquire = num_aquire;
             if(strcmp(machine_lock_type, "none") != 0) {
                 if(strcmp(machine_lock_type, "mcs") == 0) {
-                    in[i].machine_lock.mcs = buildMcsLock();
+                    in[i].machine_lock.mcs = mcs;
                 }else if(strcmp(machine_lock_type, "ticket") == 0) {
-                    in[i].machine_lock.ticket = buildTicketLock();
+                    in[i].machine_lock.ticket = ticket;
                 }else if(strcmp(machine_lock_type, "spin") == 0) {
-                    in[i].machine_lock.spin = buildSpinLock();
+                    in[i].machine_lock.spin = spin;
                 }
             }
             pthread_create(&workers[i], NULL, spin_client, (void *)&in[i]);
@@ -265,16 +262,10 @@ int main(int argc, char ** argv){
 
         for(int i = 0; i < num_workers; i++) {
             pthread_join(workers[i], NULL);
-            if(strcmp(machine_lock_type, "none") != 0) {
-                if(strcmp(machine_lock_type, "mcs") == 0) {
-                    detroyMcsLock(in[i].machine_lock.mcs);
-                }else if(strcmp(machine_lock_type, "ticket") == 0) {
-                    detroyTicketLock(in[i].machine_lock.ticket);
-                }else if(strcmp(machine_lock_type, "spin") == 0) {
-                    destorySpinLock(in[i].machine_lock.spin);
-                }
-            }
         }
+        destroyMcsLock(mcs);
+        destroyTicketLock(ticket);
+        destroySpinLock(spin);
         free(in);
         free(workers);
         return 0;
