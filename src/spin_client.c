@@ -446,7 +446,7 @@ void * spin_client(void * in) {
 			noop(&i);
 		}
 		//lock
-		mcsQueueMember *next = NULL;
+		volatile uint64_t *next = NULL;
         if(strcmp(machine_lock_type, "none") != 0) {
             if (strcmp(machine_lock_type, "mcs")){
                 next = lockMcs(mcs, *node_id);
