@@ -17,13 +17,9 @@
 #include <infiniband/verbs.h>
 
 typedef struct {
-    volatile uint64_t next;
-} mcsQueueMember;
-
-typedef struct {
     pthread_mutex_t* lock_mutex;
     volatile uint64_t owner;
-    mcsQueueMember * volatile queueEnd;
+    volatile uint64_t * volatile queueEnd;
 } mcsLock;
 
 typedef struct {

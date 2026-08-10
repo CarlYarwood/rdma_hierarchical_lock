@@ -37,32 +37,32 @@ void unlockTicket(ticketLock *lock, void*) {
     pthread_mutex_unlock(lock->lock_mutex);
 }
 
-mcsQueueMember* lockMcs(mcsLock* lock, uint64_t node_id) {
-    mcsQueueMember* ret = (mcsQueueMember *)malloc(sizeof(mcsQueueMember));
-    ret->next = 0;
+volatile uint64_t* lockMcs(mcsLock* lock, uint64_t node_id) {
+    uint64_t* next = (uint64_t *)malloc(sizeof(uint64_t));
+    *next = 0;
     pthread_mutex_lock(lock->lock_mutex);
     if(lock->owner == 0 && lock->queueEnd == NULL) {
         lock->owner = node_id;
-        lock->queueEnd = ret;
+        lock->queueEnd = next;
         pthread_mutex_unlock(lock->lock_mutex);
-        return ret;
+        return next;
     }
-    lock->queueEnd->next = node_id;
-    lock->queueEnd = ret;
+    *(lock->queueEnd) = node_id;
+    lock->queueEnd = next;
     pthread_mutex_unlock(lock->lock_mutex);
     do {} while(lock->owner != node_id);
-    return ret;
+    return next;
 }
 
-void unlockMcs(mcsLock *lock, mcsQueueMember* next) {
+void unlockMcs(mcsLock *lock, volatile uint64_t * next) {
     pthread_mutex_lock(lock->lock_mutex);
-    if (next->next == 0) {
+    if (*next == 0) {
         lock->owner = 0;
         lock->queueEnd = NULL;
         pthread_mutex_unlock(lock->lock_mutex);
         return;
     }
-    lock->owner = next->next;
+    lock->owner = *next;
     pthread_mutex_unlock(lock->lock_mutex);
     free(next);
 }
