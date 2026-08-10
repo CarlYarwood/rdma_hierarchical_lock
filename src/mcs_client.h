@@ -2,6 +2,7 @@
 #define MCS_LOCK_CLIENT_H
 #include <time.h>
 #include "mcs.h"
+#include "local_lock.h"
 
 #define NEXT (0)
 #define NOTIFY (1)
@@ -13,11 +14,17 @@ typedef struct {
 	int critical_section;
 	int noncritical_section;
 	int num_aquire;
+    char * machine_lock_type;
     char * parent_address;
     long parent_port;
     char ** peer_addresses;
     long * peer_ports;
     int num_peers;
+    union machine_lock {
+        mcsLock * mcs;
+        ticketLock * ticket;
+        spinLock * spin;
+    }
 } mcs_client_in;
 
 typedef struct {

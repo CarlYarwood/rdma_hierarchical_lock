@@ -443,7 +443,12 @@ int disconnect_from_ticket_server(struct rdma_event_channel* cm_event_channel, c
 void * ticket_client(void * in) {
 	struct sockaddr_in server_sockaddr;
 	c_ticket_ctx *ctx = NULL;
+	spinLock * spin = NULL;
+    ticketLock * ticket = NULL;
+    mcsLock * mcs = NULL;
+	uint64_t * node_id = NULL;
 	struct rdma_event_channel *cm_event_channel = NULL;
+	char * machine_lock_type = ((ticket_client_in *)in)->machine_lock_type;
 	char * parent_address = ((ticket_client_in *)in)->parent_address;
 	long parent_port = ((ticket_client_in *)in)->parent_port;
 	uint64_t *response = calloc(1, sizeof(uint64_t));
@@ -455,6 +460,9 @@ void * ticket_client(void * in) {
 	int num_aquire = ((ticket_client_in *) in)->num_aquire;
 	clock_t start, end;
 
+	node_id = (uint64_t *)malloc(sizeof(uint64_t));
+	*node_id = ((ticket_client_in *)in)->node_id;
+
 	bzero(&server_sockaddr, sizeof server_sockaddr);
     server_sockaddr.sin_family = AF_INET;    
     if (get_addr(parent_address, (struct sockaddr*) &server_sockaddr)) {
@@ -462,6 +470,16 @@ void * ticket_client(void * in) {
 		return NULL;
 	}
     server_sockaddr.sin_port = htons(parent_port);
+
+	if(strcmp(machine_lock_type, "none") != 0) {
+        if (strcmp(machine_lock_type, "mcs")){
+            mcs = ((mcs_client_in *)in)->machine_lock.mcs;
+        } else if (strcmp(machine_lock_type, "ticket")){
+            ticket = ((mcs_client_in *)in)->machine_lock.ticket;
+        } else if (strcmp(machine_lock_type, "spin")) {
+            spin = ((mcs_client_in *)in)->machine_lock.spin;
+        }
+    }
 
 	cm_event_channel = rdma_create_event_channel();
 	if (!cm_event_channel) {
@@ -477,25 +495,37 @@ void * ticket_client(void * in) {
 	start = clock();
 
 	for (int i = 0; i < num_aquire; i++) {
-		uint64_t ticket;
+		uint64_t place;
 		for (int i = 0; i < noncritical_section; i++) {
 			noop(&i);
 		}
 		//lock
-		// b_acquire = clock();
-		ticket = acquire_ticket_lock(ctx, response);
-		// e_acquire = clock();
-		// printf("%f l\n", ((double)(e_acquire-b_acquire)/CLOCKS_PER_SEC));
+		mcsQueueMember *next = NULL;
+        if(strcmp(machine_lock_type, "none") != 0) {
+            if (strcmp(machine_lock_type, "mcs")){
+                next = lock(mcs, node_id);
+            } else if (strcmp(machine_lock_type, "ticket")){
+                next = lock(ticket, node_id);
+            } else if (strcmp(machine_lock_type, "spin")) {
+                next = lock(spin, node_id);
+            }
+        }
+		place = acquire_ticket_lock(ctx, response);
 		//work
 		for (int i=0; i < critical_section; i++) {
 			noop(&i);
 		}
 		//unlock
-		// b_release = clock();
-		release_ticket_lock(ctx, ticket, response);
-		// e_release = clock();
-
-		// printf("%f u\n", ((double)(e_release-b_release)/CLOCKS_PER_SEC));
+		release_ticket_lock(ctx, place, response);
+		if(strcmp(machine_lock_type, "none") != 0) {
+            if (strcmp(machine_lock_type, "mcs")){
+                unlock(mcs, next);
+            } else if (strcmp(machine_lock_type, "ticket")){
+                unlock(ticket, next);
+            } else if (strcmp(machine_lock_type, "spin")) {
+                unlock(spin, next);
+            }
+        }
 	}
 	end = clock();
 

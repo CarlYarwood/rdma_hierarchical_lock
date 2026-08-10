@@ -393,8 +393,12 @@ int disconnect_from_spin_server(struct rdma_event_channel* cm_event_channel, c_s
 
 void * spin_client(void * in) {
 	c_spin_ctx *ctx = NULL;
+	spinLock * spin = NULL;
+    ticketLock * ticket = NULL;
+    mcsLock * mcs = NULL;
 	struct sockaddr_in server_sockaddr;
 	struct rdma_event_channel *cm_event_channel = NULL;
+	char * machine_lock_type = ((spin_client_in *)in)->machine_lock_type;
 	char * parent_address = ((spin_client_in *)in)->parent_address;
 	long parent_port = ((spin_client_in *)in)->parent_port;
 	uint64_t *response = calloc(1, sizeof(uint64_t));
@@ -406,6 +410,16 @@ void * spin_client(void * in) {
 	sync = (uint64_t *)malloc(sizeof(uint64_t));
 	*sync = 0;
 	clock_t start, end;
+	if(strcmp(machine_lock_type, "none") != 0) {
+        if (strcmp(machine_lock_type, "mcs")){
+            mcs = ((mcs_client_in *)in)->machine_lock.mcs;
+        } else if (strcmp(machine_lock_type, "ticket")){
+            ticket = ((mcs_client_in *)in)->machine_lock.ticket;
+        } else if (strcmp(machine_lock_type, "spin")) {
+            spin = ((mcs_client_in *)in)->machine_lock.spin;
+        }
+    }
+
 	*node_id = ((spin_client_in *) in)->node_id;
 
 	bzero(&server_sockaddr, sizeof server_sockaddr);
@@ -432,20 +446,32 @@ void * spin_client(void * in) {
 			noop(&i);
 		}
 		//lock
-		// b_acquire = clock();
+		mcsQueueMember *next = NULL;
+        if(strcmp(machine_lock_type, "none") != 0) {
+            if (strcmp(machine_lock_type, "mcs")){
+                next = lock(mcs, node_id);
+            } else if (strcmp(machine_lock_type, "ticket")){
+                next = lock(ticket, node_id);
+            } else if (strcmp(machine_lock_type, "spin")) {
+                next = lock(spin, node_id);
+            }
+        }
 		acquire_spin_lock(ctx, node_id, response);
-		// e_acquire = clock();
-		// printf("%f l\n", ((double)(e_acquire-b_acquire)/CLOCKS_PER_SEC));
 		//work
 		for (int i=0; i < critical_section; i++) {
 			noop(&i);
 		}
 		//unlock
-		// b_release = clock();
 		release_spin_lock(ctx, node_id, response);
-		// e_release = clock();
-
-		// printf("%f u\n", ((double)(e_release-b_release)/CLOCKS_PER_SEC));
+		if(strcmp(machine_lock_type, "none") != 0) {
+            if (strcmp(machine_lock_type, "mcs")){
+                unlock(mcs, next);
+            } else if (strcmp(machine_lock_type, "ticket")){
+                unlock(ticket, next);
+            } else if (strcmp(machine_lock_type, "spin")) {
+                unlock(spin, next);
+            }
+        }
 	}
 	end = clock();
 

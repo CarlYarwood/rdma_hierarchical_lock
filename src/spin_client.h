@@ -2,14 +2,21 @@
 #define SPIN_LOCK_CLIENT_H
 #include <time.h>
 #include "spin.h"
+#include "local_lock.h"
 
 typedef struct {
+	char * machine_lock_type;
 	char * parent_address;
 	long parent_port;
 	uint64_t node_id;
 	int critical_section;
 	int noncritical_section;
 	int num_aquire;
+	union machine_lock {
+		spinLock * spin;
+		ticketLock * ticket;
+		mcsLock * mcsLock;
+	}
 } spin_client_in;
 
 typedef struct {

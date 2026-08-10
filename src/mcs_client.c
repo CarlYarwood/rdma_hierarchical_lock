@@ -455,6 +455,10 @@ void* mcs_client(void *in) {
     volatile uint64_t *metadata = NULL;
 	uint64_t *buffer = NULL;
 	uint64_t *node_id = calloc(1, sizeof(uint64_t));
+    spinLock * spin = NULL;
+    ticketLock * ticket = NULL;
+    mcsLock * mcs = NULL;
+    char * machine_lock_type = ((mcs_client_in *)in)->machine_lock_type;
     char * parent_address = ((mcs_client_in *)in)->parent_address;
     long parent_port = ((mcs_client_in *)in)->parent_port;
     char ** peer_addresses = ((mcs_client_in *)in)->peer_addresses;
@@ -469,6 +473,15 @@ void* mcs_client(void *in) {
     struct rdma_cm_id *cm_server_id = NULL;
     struct rdma_cm_id ** id_arr;
 	clock_t start, end;
+    if(strcmp(machine_lock_type, "none") != 0) {
+        if (strcmp(machine_lock_type, "mcs")){
+            mcs = ((mcs_client_in *)in)->machine_lock.mcs;
+        } else if (strcmp(machine_lock_type, "ticket")){
+            ticket = ((mcs_client_in *)in)->machine_lock.ticket;
+        } else if (strcmp(machine_lock_type, "spin")) {
+            spin = ((mcs_client_in *)in)->machine_lock.spin;
+        }
+    }
 
 	*node_id = ((mcs_client_in *) in)->node_id;
     id_arr = (struct rdma_cm_id **) malloc(sizeof(struct rdma_cm_id *) * (num_peers + 1));
@@ -620,13 +633,32 @@ void* mcs_client(void *in) {
 			noop(&i);
 		}
 		// lock
+        mcsQueueMember *next = NULL;
+        if(strcmp(machine_lock_type, "none") != 0) {
+            if (strcmp(machine_lock_type, "mcs")){
+                next = lock(mcs, node_id);
+            } else if (strcmp(machine_lock_type, "ticket")){
+                next = lock(ticket, node_id);
+            } else if (strcmp(machine_lock_type, "spin")) {
+                next = lock(spin, node_id);
+            }
+        }
 		acquire_mcs_lock(id_arr, node_id, buffer, metadata);
 		// work
 		for (int i=0; i < critical_section; i++) {
 			noop(&i);
 		}
 		// unlock
-		release_mcs_lock(id_arr, node_id, buffer, metadata);;
+		release_mcs_lock(id_arr, node_id, buffer, metadata);
+        if(strcmp(machine_lock_type, "none") != 0) {
+            if (strcmp(machine_lock_type, "mcs")){
+                unlock(mcs, next);
+            } else if (strcmp(machine_lock_type, "ticket")){
+                unlock(ticket, next);
+            } else if (strcmp(machine_lock_type, "spin")) {
+                unlock(spin, next);
+            }
+        }
 	}
 
 	end = clock();

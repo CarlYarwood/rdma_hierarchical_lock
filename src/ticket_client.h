@@ -2,13 +2,21 @@
 #define TICKET_LOCK_CLIENT_H
 #include <time.h>
 #include "ticket.h"
+#include "local_lock.h"
 
 typedef struct {
+	uint64_t node_id;
+	char * machine_lock_type;
 	char * parent_address;
 	long parent_port;
 	int critical_section;
 	int noncritical_section;
 	int num_aquire;
+	union machine_lock {
+		mcsLock * mcs;
+		ticketLock * ticekt;
+		spinLock * spin;
+	}
 } ticket_client_in;
 
 typedef struct {

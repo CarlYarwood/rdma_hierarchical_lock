@@ -117,9 +117,10 @@ int main(int argc, char ** argv){
     uint64_t node_id_start = 0;
     char * parent_lock_type = "none";
     char * local_lock_type = "none";
+    char * machine_lock_type = "none";
     pthread_t * workers;
 
-    while ((option = getopt(argc, argv, "p:n:P:N:l:L:c:C:i:")) != -1) {
+    while ((option = getopt(argc, argv, "p:n:P:N:l:L:c:C:i:m:M:")) != -1) {
 		switch (option) {
             case 'p':
                 parent_peer_group = atoi(optarg);
@@ -139,15 +140,20 @@ int main(int argc, char ** argv){
             case 'L':
                 local_lock_type = optarg;
                 break;
-            case 'c':
+            case 'w':
                 num_workers = atoi(optarg);
                 break;
-            case 'C':
+            case 'c':
                 child_peer_group = atoi(optarg);
                 break;
             case 'i':
                 node_id_start = strtoul(optarg, NULL, 0);
                 break;
+            case 'm':
+                machine_lock_type = optarg;
+                break;
+            case 'M':
+                machine_handoff = atoi(optarg);
             default:
                 printf("invalid option detected\n");
                 return -1;
@@ -168,11 +174,30 @@ int main(int argc, char ** argv){
             in[i].peer_addresses = addresses[node_peer_group];
             in[i].peer_ports = ports[node_peer_group];
             in[i].num_peers = peer_group_sizes[node_peer_group];
+            in[i].machine_lock_type = machine_lock_type;
+            if(strcmp(machine_lock_type, "none") != 0) {
+                if(strcmp(machine_lock_type, "mcs") == 0) {
+                    in[i].machine_lock.mcs = buildMcsLock();
+                }else if(strcmp(machine_lock_type, "ticket") == 0) {
+                    in[i].machine_lock.ticket = buildTicketLock();
+                }else if(strcmp(machine_lock_type, "spin") == 0) {
+                    in[i].machine_lock.spin = buildSpinLock()
+                }
+            }
             pthread_create(&workers[i], NULL, mcs_client, (void *)&in[i]);
         }
 
         for(int i = 0; i < num_workers; i++) {
             pthread_join(workers[i], NULL);
+            if(strcmp(machine_lock_type, "none") != 0) {
+                if(strcmp(machine_lock_type, "mcs") == 0) {
+                    destroyMcsLock(in[i].machine_lock.mcs);
+                }else if(strcmp(machine_lock_type, "ticket") == 0) {
+                    destroyTicketLock(in[i].machine_lock.ticket);
+                }else if(strcmp(machine_lock_type, "spin") == 0) {
+                    destroySpinLock(in[i].machine_lock.spin);
+                }
+            }
         }
         free(in);
         free(workers);
@@ -182,16 +207,36 @@ int main(int argc, char ** argv){
         workers = (pthread_t *) malloc(sizeof(pthread_t) * num_workers);
         ticket_client_in * in = (ticket_client_in *)malloc(sizeof(ticket_client_in) * num_workers);
         for(int i = 0; i < num_workers; i++) {
+            in[i].node_id = node_id_start + (uint64_t) i;
             in[i].parent_address = addresses[parent_peer_group][parent_id];
             in[i].parent_port = ports[parent_peer_group][parent_id];
             in[i].critical_section = critical_section;
             in[i].noncritical_section = noncritical_section;
             in[i].num_aquire = num_aquire;
+            in[i].machine_lock_type = machine_lock_type;
+            if(strcmp(machine_lock_type, "none") != 0) {
+                if(strcmp(machine_lock_type, "mcs") == 0) {
+                    in[i].machine_lock.mcs = buildMcsLock();
+                }else if(strcmp(machine_lock_type, "ticket") == 0) {
+                    in[i].machine_lock.ticket = buildTicketLock();
+                }else if(strcmp(machine_lock_type, "spin") == 0) {
+                    in[i].machine_lock.spin = buildSpinLock()
+                }
+            }
             pthread_create(&workers[i], NULL, ticket_client, (void *)&in[i]);
         }
 
         for(int i = 0; i < num_workers; i++) {
             pthread_join(workers[i], NULL);
+            if(strcmp(machine_lock_type, "none") != 0) {
+                if(strcmp(machine_lock_type, "mcs") == 0) {
+                    destroyMcsLock(in[i].machine_lock.mcs);
+                }else if(strcmp(machine_lock_type, "ticket") == 0) {
+                    destroyTicketLock(in[i].machine_lock.ticket);
+                }else if(strcmp(machine_lock_type, "spin") == 0) {
+                    destroySpinLock(in[i].machine_lock.spin);
+                }
+            }
         }
         free(in);
         free(workers);
@@ -201,17 +246,36 @@ int main(int argc, char ** argv){
         workers = (pthread_t *) malloc(sizeof(pthread_t) * num_workers);
         spin_client_in * in = (spin_client_in *)malloc(sizeof(spin_client_in) * num_workers);
         for (int i = 0; i < num_workers ; i++) {
+            in[i].machine_lock_type = machine_lock_type;
             in[i].parent_address = addresses[parent_peer_group][parent_id];
             in[i].parent_port = ports[parent_peer_group][parent_id];
             in[i].node_id = node_id_start + (uint64_t) i;
             in[i].critical_section = critical_section;
             in[i].noncritical_section = noncritical_section;
             in[i].num_aquire = num_aquire;
+            if(strcmp(machine_lock_type, "none") != 0) {
+                if(strcmp(machine_lock_type, "mcs") == 0) {
+                    in[i].machine_lock.mcs = buildMcsLock();
+                }else if(strcmp(machine_lock_type, "ticket") == 0) {
+                    in[i].machine_lock.ticket = buildTicketLock();
+                }else if(strcmp(machine_lock_type, "spin") == 0) {
+                    in[i].machine_lock.spin = buildSpinLock()
+                }
+            }
             pthread_create(&workers[i], NULL, spin_client, (void *)&in[i]);
         }
 
         for(int i = 0; i < num_workers; i++) {
             pthread_join(workers[i], NULL);
+            if(strcmp(machine_lock_type, "none") != 0) {
+                if(strcmp(machine_lock_type, "mcs") == 0) {
+                    destroyMcsLock(in[i].machine_lock.mcs);
+                }else if(strcmp(machine_lock_type, "ticket") == 0) {
+                    destroyTicketLock(in[i].machine_lock.ticket);
+                }else if(strcmp(machine_lock_type, "spin") == 0) {
+                    destroySpinLock(in[i].machine_lock.spin);
+                }
+            }
         }
         free(in);
         free(workers);
