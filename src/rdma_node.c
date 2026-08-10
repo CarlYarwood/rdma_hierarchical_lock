@@ -120,7 +120,7 @@ int main(int argc, char ** argv){
     char * machine_lock_type = "none";
     pthread_t * workers;
 
-    while ((option = getopt(argc, argv, "p:n:P:N:l:L:c:C:i:m:M:")) != -1) {
+    while ((option = getopt(argc, argv, "p:n:P:N:l:L:w:c:i:m:")) != -1) {
 		switch (option) {
             case 'p':
                 parent_peer_group = atoi(optarg);
