@@ -473,11 +473,11 @@ void * ticket_client(void * in) {
 
 	if(strcmp(machine_lock_type, "none") != 0) {
         if (strcmp(machine_lock_type, "mcs")){
-            mcs = ((mcs_client_in *)in)->machine_lock.mcs;
+            mcs = ((ticket_client_in *)in)->machine_lock.mcs;
         } else if (strcmp(machine_lock_type, "ticket")){
-            ticket = ((mcs_client_in *)in)->machine_lock.ticket;
+            ticket = ((ticket_client_in *)in)->machine_lock.ticket;
         } else if (strcmp(machine_lock_type, "spin")) {
-            spin = ((mcs_client_in *)in)->machine_lock.spin;
+            spin = ((ticket_client_in *)in)->machine_lock.spin;
         }
     }
 
