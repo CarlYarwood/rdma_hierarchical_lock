@@ -1,6 +1,12 @@
 #ifndef LOCAL_LOCK_H
 #define LOCAL_LOCK_H
 #include <pthread.h>
+#include <stdio.h>
+#include <stdlib.h>
+#include <unistd.h>
+#include <string.h>
+#include <errno.h>
+#include <getopt.h>
 
 typedef struct {
     volatile uint64_t next;
