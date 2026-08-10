@@ -8,6 +8,14 @@
 #include <errno.h>
 #include <getopt.h>
 
+#include <netdb.h>
+#include <netinet/in.h>	
+#include <arpa/inet.h>
+#include <sys/socket.h>
+
+#include <rdma/rdma_cma.h>
+#include <infiniband/verbs.h>
+
 typedef struct {
     volatile uint64_t next;
 } mcsQueueMember;
