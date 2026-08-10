@@ -62,7 +62,7 @@ void unlockMcs(mcsLock *lock, volatile uint64_t * next) {
     }
     lock->owner = *next;
     pthread_mutex_unlock(lock->lock_mutex);
-    free(next);
+    free((void *)next);
 }
 
 spinLock* buildSpinLock() {
