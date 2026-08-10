@@ -23,7 +23,7 @@ typedef struct {
 typedef struct {
     pthread_mutex_t* lock_mutex;
     volatile uint64_t owner;
-    volatile mcsQueueMember* queueEnd;
+    mcsQueueMember * volatile queueEnd;
 } mcsLock;
 
 typedef struct {
