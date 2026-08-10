@@ -1,6 +1,6 @@
 #include "local_lock.h"
 
-void* lockSpin(spinLock *lock, uint64_t node_id) {
+void lockSpin(spinLock *lock, uint64_t node_id) {
     do {} while(lock->owner != 0);
     pthread_mutex_lock(lock->lock_mutex);
     if(lock->owner != 0) {
@@ -9,16 +9,15 @@ void* lockSpin(spinLock *lock, uint64_t node_id) {
     }
     lock->owner = node_id;
     pthread_mutex_unlock(lock->lock_mutex);
-    return NULL;
 }
 
-void unlockSpin(spinLock *lock, void*) {
+void unlockSpin(spinLock *lock) {
     pthread_mutex_lock(lock->lock_mutex);
     lock->owner = 0;
     pthread_mutex_unlock(lock->lock_mutex);
 }
 
-void* lockTicket(ticketLock *lock, uint64_t node_id) {
+void lockTicket(ticketLock *lock, uint64_t node_id) {
     uint64_t ticket;
     pthread_mutex_lock(lock->lock_mutex);
     ticket = lock->next;
@@ -28,10 +27,9 @@ void* lockTicket(ticketLock *lock, uint64_t node_id) {
     pthread_mutex_lock(lock->lock_mutex);
     lock->owner = node_id;
     pthread_mutex_unlock(lock->lock_mutex);
-    return NULL;
 }
 
-void unlockTicket(ticketLock *lock, void*) {
+void unlockTicket(ticketLock *lock) {
     pthread_mutex_lock(lock->lock_mutex);
     lock->now ++;
     pthread_mutex_unlock(lock->lock_mutex);

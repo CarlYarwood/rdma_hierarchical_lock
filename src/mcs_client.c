@@ -638,9 +638,9 @@ void* mcs_client(void *in) {
             if (strcmp(machine_lock_type, "mcs")){
                 next = lockMcs(mcs, *node_id);
             } else if (strcmp(machine_lock_type, "ticket")){
-                next = lockTicket(ticket, *node_id);
+                lockTicket(ticket, *node_id);
             } else if (strcmp(machine_lock_type, "spin")) {
-                next = lockSpin(spin, *node_id);
+                lockSpin(spin, *node_id);
             }
         }
 		acquire_mcs_lock(id_arr, node_id, buffer, metadata);
@@ -654,9 +654,9 @@ void* mcs_client(void *in) {
             if (strcmp(machine_lock_type, "mcs")){
                 unlockMcs(mcs, next);
             } else if (strcmp(machine_lock_type, "ticket")){
-                unlockTicket(ticket, next);
+                unlockTicket(ticket);
             } else if (strcmp(machine_lock_type, "spin")) {
-                unlockSpin(spin, next);
+                unlockSpin(spin);
             }
         }
 	}

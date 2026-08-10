@@ -40,10 +40,10 @@ union machine_lock {
     spinLock * spin;
 };
 
-void* lockSpin(spinLock* lock, uint64_t node_id);
-void unlockSpin(spinLock* lock, void*);
-void* lockTicket(ticketLock* lock, uint64_t node_id);
-void unlockTicket(ticketLock* lock, void*);
+void lockSpin(spinLock* lock, uint64_t node_id);
+void unlockSpin(spinLock* lock);
+void lockTicket(ticketLock* lock, uint64_t node_id);
+void unlockTicket(ticketLock* lock);
 volatile uint64_t* lockMcs(mcsLock* lock, uint64_t node_id);
 void unlockMcs(mcsLock* lock, volatile uint64_t* next);
 spinLock* buildSpinLock();

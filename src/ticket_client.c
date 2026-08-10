@@ -520,9 +520,9 @@ void * ticket_client(void * in) {
             if (strcmp(machine_lock_type, "mcs")){
                 unlockMcs(mcs, next);
             } else if (strcmp(machine_lock_type, "ticket")){
-                unlockTicket(ticket, next);
+                unlockTicket(ticket);
             } else if (strcmp(machine_lock_type, "spin")) {
-                unlockSpin(spin, next);
+                unlockSpin(spin);
             }
         }
 	}
