@@ -24,12 +24,12 @@ typedef struct {
     volatile uint64_t owner;
 } spinLock;
 
-void* lock(spinLock* lock, uint64_t node_id);
-void unlock(spinLock* lock, void*);
-void* lock(ticketLock* lock, uint64_t node_id);
-void unlock(ticketLock* lock, void*);
-mcsQueueMember* lock(mcsLock* lock, uint64_t node_id);
-void unlock(mcsLock* lock, mcsQueueMember* next);
+void* lockSpin(spinLock* lock, uint64_t node_id);
+void unlockSpin(spinLock* lock, void*);
+void* lockTicket(ticketLock* lock, uint64_t node_id);
+void unlockTicket(ticketLock* lock, void*);
+mcsQueueMember* lockMcs(mcsLock* lock, uint64_t node_id);
+void unlockMcs(mcsLock* lock, mcsQueueMember* next);
 spinLock* buildSpinLock();
 ticketLock* buildTicketLock();
 mcsLock* buildMcsLock();

@@ -1,6 +1,6 @@
 #include "local_lock.h"
 
-void* lock(spinLock *lock, uint64_t node_id) {
+void* lockSpin(spinLock *lock, uint64_t node_id) {
     do {} while(lock->owner != 0);
     pthread_mutex_lock(lock->lock_mutex);
     if(lock->owner != 0) {
@@ -12,13 +12,13 @@ void* lock(spinLock *lock, uint64_t node_id) {
     return NULL;
 }
 
-void unlock(spinLock *lock, void*) {
+void unlockSpin(spinLock *lock, void*) {
     pthread_mutex_lock(lock->lock_mutex);
     lock->owner = 0;
     pthread_mutex_unlock(lock->lock_mutex);
 }
 
-void* lock(ticketLock *lock, uint64_t node_id) {
+void* lockTicket(ticketLock *lock, uint64_t node_id) {
     uint64_t ticket;
     pthread_mutex_lock(lock->lock_mutex);
     ticket = lock->next;
@@ -31,13 +31,13 @@ void* lock(ticketLock *lock, uint64_t node_id) {
     return NULL;
 }
 
-void unlock_local_ticket(ticketLock *lock, void*) {
+void unlockTicket(ticketLock *lock, void*) {
     pthread_mutex_lock(lock->lock_mutex);
     lock->now ++;
     pthread_mutex_unlock(lock->lock_mutex);
 }
 
-mcsQueueMember* lock(mcsLock* lock, uint64_t node_id) {
+mcsQueueMember* lockMcs(mcsLock* lock, uint64_t node_id) {
     mcsQueueMember* ret = (mcsQueueMember *)malloc(sizeof(mcsQueueMember));
     ret->next = 0;
     pthread_mutex_lock(lock->lock_mutex);
@@ -54,7 +54,7 @@ mcsQueueMember* lock(mcsLock* lock, uint64_t node_id) {
     return ret;
 }
 
-void unlock(mcsLock *lock, mcsQueueMember* next) {
+void unlockMcs(mcsLock *lock, mcsQueueMember* next) {
     pthread_mutex_lock(lock->lock_mutex);
     if (next->next == 0) {
         lock->owner = 0;
