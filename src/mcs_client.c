@@ -633,10 +633,9 @@ void* mcs_client(void *in) {
 			noop(&i);
 		}
 		// lock
-        volatile uint64_t *next = NULL;
         if(strcmp(machine_lock_type, "none") != 0) {
             if (strcmp(machine_lock_type, "mcs")){
-                next = lockMcs(mcs, *node_id);
+                lockMcs(mcs, *node_id);
             } else if (strcmp(machine_lock_type, "ticket")){
                 lockTicket(ticket, *node_id);
             } else if (strcmp(machine_lock_type, "spin")) {
@@ -652,7 +651,7 @@ void* mcs_client(void *in) {
 		release_mcs_lock(id_arr, node_id, buffer, metadata);
         if(strcmp(machine_lock_type, "none") != 0) {
             if (strcmp(machine_lock_type, "mcs")){
-                unlockMcs(mcs, next);
+                unlockMcs(mcs);
             } else if (strcmp(machine_lock_type, "ticket")){
                 unlockTicket(ticket);
             } else if (strcmp(machine_lock_type, "spin")) {

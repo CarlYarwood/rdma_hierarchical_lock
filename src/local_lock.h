@@ -15,11 +15,16 @@
 
 #include <rdma/rdma_cma.h>
 #include <infiniband/verbs.h>
+typedef struct {
+    uint64_t * owner;
+    mcsQMember * volatile next;
+} mcsQMember;
 
 typedef struct {
     pthread_mutex_t* lock_mutex;
     volatile uint64_t owner;
-    volatile uint64_t * volatile queueEnd;
+    mcsQMember * volatile next;
+    mcsQMember * volatile last;
 } mcsLock;
 
 typedef struct {

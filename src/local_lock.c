@@ -35,32 +35,35 @@ void unlockTicket(ticketLock *lock) {
     pthread_mutex_unlock(lock->lock_mutex);
 }
 
-volatile uint64_t* lockMcs(mcsLock* lock, uint64_t node_id) {
-    uint64_t* next = (uint64_t *)malloc(sizeof(uint64_t));
-    *next = 0;
+volatile void lockMcs(mcsLock* lock, uint64_t node_id) {
+    last = (mcsQMember *)malloc(sizeof(mcsQMember));
+    last->owner = node_id;
+    last->next = NULL;
     pthread_mutex_lock(lock->lock_mutex);
-    if(lock->owner == 0 && lock->queueEnd == NULL) {
+    if(lock->owner == 0 && lock->next == NULL && lock->last == NULL) {
         lock->owner = node_id;
-        lock->queueEnd = next;
-        pthread_mutex_unlock(lock->lock_mutex);
-        return next;
-    }
-    *(lock->queueEnd) = node_id;
-    lock->queueEnd = next;
-    pthread_mutex_unlock(lock->lock_mutex);
-    do {} while(lock->owner != node_id);
-    return next;
-}
-
-void unlockMcs(mcsLock *lock, volatile uint64_t * next) {
-    pthread_mutex_lock(lock->lock_mutex);
-    if (*next == 0) {
-        lock->owner = 0;
-        lock->queueEnd = NULL;
+        lock->next = last;
+        lock->last = last;
         pthread_mutex_unlock(lock->lock_mutex);
         return;
     }
-    lock->owner = *next;
+    lock->last->next = last;
+    lock->last = last;
+    pthread_mutex_unlock(lock->lock_mutex);
+    do {} while(lock->owner != node_id);
+}
+
+void unlockMcs(mcsLock *lock) {
+    pthread_mutex_lock(lock->lock_mutex);
+    if (lock->next->next == NULL) {
+        lock->owner = 0;
+        lock->next = NULL;
+        lock->last = NULL;
+        pthread_mutex_unlock(lock->lock_mutex);
+        return;
+    }
+    lock->owner = lock->next->next->owner;
+    lock-next = lock->next->next;
     pthread_mutex_unlock(lock->lock_mutex);
     free((void *)next);
 }
@@ -95,7 +98,8 @@ mcsLock* buildMcsLock() {
     lock = (mcsLock *)malloc(sizeof(mcsLock));
     lock_mutex = (pthread_mutex_t *)malloc(sizeof(pthread_mutex_t));
     pthread_mutex_init(lock_mutex, NULL);
-    lock->queueEnd = NULL;
+    lock->next = NULL;
+    lock->last = NULL;
     lock->owner = 0;
     lock->lock_mutex = lock_mutex;
     return lock;
