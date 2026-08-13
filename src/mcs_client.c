@@ -635,7 +635,6 @@ void* mcs_client(void *in) {
 		// lock
         if(strcmp(machine_lock_type, "none") != 0) {
             if (strcmp(machine_lock_type, "mcs")){
-                printf("in lock mcs if\n");
                 lockMcs(mcs, *node_id);
             } else if (strcmp(machine_lock_type, "ticket")){
                 lockTicket(ticket, *node_id);
@@ -653,7 +652,6 @@ void* mcs_client(void *in) {
         if(strcmp(machine_lock_type, "none") != 0) {
 
             if (strcmp(machine_lock_type, "mcs")){
-                printf("in unlock mcs if");
                 unlockMcs(mcs);
             } else if (strcmp(machine_lock_type, "ticket")){
                 unlockTicket(ticket);
