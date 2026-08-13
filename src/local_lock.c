@@ -36,22 +36,20 @@ void unlockTicket(ticketLock *lock) {
 }
 
 void lockMcs(mcsLock* lock, uint64_t node_id) {
+    printf("lock mcs \n");
     struct mcsQMember* last = (struct mcsQMember *)malloc(sizeof(struct mcsQMember));
     last->owner = node_id;
     last->next = NULL;
     pthread_mutex_lock(lock->lock_mutex);
     if(lock->owner == 0) {
-        printf("lock in if\n");
         lock->owner = node_id;
         free(last);
         pthread_mutex_unlock(lock->lock_mutex);
         return;
     } else if (lock->next  == NULL) {
-        printf("lock in elif 1\n");
         lock->next = last;
         lock->last = last;
     } else {
-        printf("lock in elif 2\n");
         lock->last->next = last;
         lock->last = last;
     }
@@ -60,15 +58,14 @@ void lockMcs(mcsLock* lock, uint64_t node_id) {
 }
 
 void unlockMcs(mcsLock *lock) {
+    printf("unlock mcs\n");
     pthread_mutex_lock(lock->lock_mutex);
     if (lock->next == NULL) {
-        printf("unlock in if\n");
         lock->owner = 0;
         lock->last = NULL;
         pthread_mutex_unlock(lock->lock_mutex);
         return;
     }
-    printf("unlock in else\n");
     lock->owner = lock->next->owner;
     struct mcsQMember* trash = lock->next;
     lock->next = lock->next->next;
