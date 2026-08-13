@@ -36,12 +36,16 @@ void unlockTicket(ticketLock *lock) {
 }
 
 volatile void lockMcs(mcsLock* lock, uint64_t node_id) {
-    last = (mcsQMember *)malloc(sizeof(mcsQMember));
+    last = (struct mcsQMember *)malloc(sizeof(struct mcsQMember));
     last->owner = node_id;
     last->next = NULL;
     pthread_mutex_lock(lock->lock_mutex);
-    if(lock->owner == 0 && lock->next == NULL && lock->last == NULL) {
+    if(lock->owner == 0) {
         lock->owner = node_id;
+        free(last);
+        pthread_mutex_unlock(lock->lock_mutex);
+        return;
+    } elif (lock->next  == NULL) {
         lock->next = last;
         lock->last = last;
         pthread_mutex_unlock(lock->lock_mutex);
@@ -55,17 +59,18 @@ volatile void lockMcs(mcsLock* lock, uint64_t node_id) {
 
 void unlockMcs(mcsLock *lock) {
     pthread_mutex_lock(lock->lock_mutex);
-    if (lock->next->next == NULL) {
+    if (lock->next == NULL) {
         lock->owner = 0;
         lock->next = NULL;
         lock->last = NULL;
         pthread_mutex_unlock(lock->lock_mutex);
         return;
     }
-    lock->owner = lock->next->next->owner;
-    lock-next = lock->next->next;
+    lock->owner = lock->next->owner;
+    struct mcsQmember* trash = lock->next;
+    lock->next = lock->next->next;
+    free(trash);
     pthread_mutex_unlock(lock->lock_mutex);
-    free((void *)next);
 }
 
 spinLock* buildSpinLock() {
