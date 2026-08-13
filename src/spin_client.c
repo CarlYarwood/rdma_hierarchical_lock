@@ -447,12 +447,11 @@ void * spin_client(void * in) {
 		}
 		//lock
         if(strcmp(machine_lock_type, "none") != 0) {
-            if (strcmp(machine_lock_type, "mcs")){
-				printf("in lock mcs if\n");
+            if (strcmp(machine_lock_type, "mcs") == 0){
             	lockMcs(mcs, *node_id);
-            } else if (strcmp(machine_lock_type, "ticket")){
+            } else if (strcmp(machine_lock_type, "ticket") == 0){
                 lockTicket(ticket, *node_id);
-            } else if (strcmp(machine_lock_type, "spin")) {
+            } else if (strcmp(machine_lock_type, "spin") == 0) {
                 lockSpin(spin, *node_id);
             }
         }
@@ -464,12 +463,11 @@ void * spin_client(void * in) {
 		//unlock
 		release_spin_lock(ctx, node_id, response);
 		if(strcmp(machine_lock_type, "none") != 0) {
-            if (strcmp(machine_lock_type, "mcs")){
-				printf("in unlock mcs if");
+            if (strcmp(machine_lock_type, "mcs") == 0){
                 unlockMcs(mcs);
-            } else if (strcmp(machine_lock_type, "ticket")){
+            } else if (strcmp(machine_lock_type, "ticket") == 0){
                 unlockTicket(ticket);
-            } else if (strcmp(machine_lock_type, "spin")) {
+            } else if (strcmp(machine_lock_type, "spin") == 0) {
                 unlockSpin(spin);
             }
         }

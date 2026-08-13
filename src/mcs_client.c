@@ -634,11 +634,11 @@ void* mcs_client(void *in) {
 		}
 		// lock
         if(strcmp(machine_lock_type, "none") != 0) {
-            if (strcmp(machine_lock_type, "mcs")){
+            if (strcmp(machine_lock_type, "mcs") == 0){
                 lockMcs(mcs, *node_id);
-            } else if (strcmp(machine_lock_type, "ticket")){
+            } else if (strcmp(machine_lock_type, "ticket") == 0){
                 lockTicket(ticket, *node_id);
-            } else if (strcmp(machine_lock_type, "spin")) {
+            } else if (strcmp(machine_lock_type, "spin") == 0) {
                 lockSpin(spin, *node_id);
             }
         }

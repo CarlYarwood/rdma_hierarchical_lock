@@ -36,7 +36,6 @@ void unlockTicket(ticketLock *lock) {
 }
 
 void lockMcs(mcsLock* lock, uint64_t node_id) {
-    printf("lock mcs \n");
     struct mcsQMember* last = (struct mcsQMember *)malloc(sizeof(struct mcsQMember));
     last->owner = node_id;
     last->next = NULL;
@@ -58,7 +57,6 @@ void lockMcs(mcsLock* lock, uint64_t node_id) {
 }
 
 void unlockMcs(mcsLock *lock) {
-    printf("unlock mcs\n");
     pthread_mutex_lock(lock->lock_mutex);
     if (lock->next == NULL) {
         lock->owner = 0;
