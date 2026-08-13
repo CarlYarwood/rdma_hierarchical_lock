@@ -16,7 +16,7 @@
 #include <rdma/rdma_cma.h>
 #include <infiniband/verbs.h>
 struct mcsQMember {
-    uint64_t * owner;
+    uint64_t owner;
     struct mcsQMember * volatile next;
 };
 
@@ -49,8 +49,8 @@ void lockSpin(spinLock* lock, uint64_t node_id);
 void unlockSpin(spinLock* lock);
 void lockTicket(ticketLock* lock, uint64_t node_id);
 void unlockTicket(ticketLock* lock);
-volatile uint64_t* lockMcs(mcsLock* lock, uint64_t node_id);
-void unlockMcs(mcsLock* lock, volatile uint64_t* next);
+void lockMcs(mcsLock* lock, uint64_t node_id);
+void unlockMcs(mcsLock* lock);
 spinLock* buildSpinLock();
 ticketLock* buildTicketLock();
 mcsLock* buildMcsLock();
