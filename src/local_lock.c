@@ -67,7 +67,7 @@ void unlockMcs(mcsLock *lock) {
         return;
     }
     lock->owner = lock->next->owner;
-    struct mcsQmember* trash = lock->next;
+    struct mcsQMember* trash = lock->next;
     lock->next = lock->next->next;
     free(trash);
     pthread_mutex_unlock(lock->lock_mutex);
