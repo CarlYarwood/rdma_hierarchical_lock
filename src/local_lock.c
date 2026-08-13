@@ -47,11 +47,11 @@ void lockMcs(mcsLock* lock, uint64_t node_id) {
         pthread_mutex_unlock(lock->lock_mutex);
         return;
     } else if (lock->next  == NULL) {
-        print("lock in elif 1\n");
+        printf("lock in elif 1\n");
         lock->next = last;
         lock->last = last;
     } else {
-        print("lock in elif 2\n");
+        printf("lock in elif 2\n");
         lock->last->next = last;
         lock->last = last;
     }
@@ -62,13 +62,13 @@ void lockMcs(mcsLock* lock, uint64_t node_id) {
 void unlockMcs(mcsLock *lock) {
     pthread_mutex_lock(lock->lock_mutex);
     if (lock->next == NULL) {
-        print("unlock in if\n");
+        printf("unlock in if\n");
         lock->owner = 0;
         lock->last = NULL;
         pthread_mutex_unlock(lock->lock_mutex);
         return;
     }
-    print("unlock in else\n");
+    printf("unlock in else\n");
     lock->owner = lock->next->owner;
     struct mcsQMember* trash = lock->next;
     lock->next = lock->next->next;
