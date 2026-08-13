@@ -48,11 +48,10 @@ void lockMcs(mcsLock* lock, uint64_t node_id) {
     } else if (lock->next  == NULL) {
         lock->next = last;
         lock->last = last;
-        pthread_mutex_unlock(lock->lock_mutex);
-        return;
+    } else {
+        lock->last->next = last;
+        lock->last = last;
     }
-    lock->last->next = last;
-    lock->last = last;
     pthread_mutex_unlock(lock->lock_mutex);
     do {} while(lock->owner != node_id);
 }
