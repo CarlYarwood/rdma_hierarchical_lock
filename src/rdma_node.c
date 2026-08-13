@@ -275,8 +275,8 @@ int main(int argc, char ** argv){
         printf("in server mcs\n");
         workers = (pthread_t *) malloc(sizeof(pthread_t));
         mcs_server_in * in = (mcs_server_in *)malloc(sizeof(mcs_server_in));
-        in->lock = calloc(2, sizeof(uint64_t))
-        (in->lock)[LOCK] = 0
+        in->lock = (volatile uint64_t *)malloc(sizeof(uint64_t) * 2);
+        (in->lock)[LOCK] = 0;
         (in->lock)[READY] = 0;
         in->num_children = peer_group_sizes[child_peer_group];
         pthread_create(workers, NULL, mcs_server, (void *)in);
