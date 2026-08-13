@@ -4,6 +4,7 @@
 
 typedef struct {
     int num_children;
+    uint64_t * lock;
 } spin_server_in; 
 
 typedef struct {

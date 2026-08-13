@@ -3,6 +3,7 @@
 #include "ticket.h"
 
 typedef struct {
+    uint64_t * lock;
     int num_children;
 } ticket_server_in;
 

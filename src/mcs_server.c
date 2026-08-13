@@ -276,7 +276,7 @@ void* mcs_server(void * in) {
 	struct sockaddr_in server_sockaddr;
     struct rdma_event_channel *cm_event_channel = NULL;
     struct rdma_cm_id *cm_server_id = NULL;
-    volatile uint64_t *lock = NULL;
+    volatile uint64_t *lock = ((mcs_server_in *)in)->lock;
     uint64_t *buffer = NULL;
     struct rdma_cm_id ** id_arr;
     id_arr = (struct rdma_cm_id **)malloc(sizeof(struct rdma_cm_id *) * num_children);
@@ -287,9 +287,6 @@ void* mcs_server(void * in) {
     keepgoing = (int *)malloc(sizeof(int));
     *keepgoing = 1;
     buffer = (uint64_t *)malloc(sizeof(uint64_t));
-    lock = calloc(2, sizeof(uint64_t));
-    lock[LOCK] = 0;
-    lock[READY] = 0;
     *buffer = 0;
 	bzero(&server_sockaddr, sizeof server_sockaddr);
 	server_sockaddr.sin_family = AF_INET; /* standard IP NET address */

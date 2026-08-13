@@ -275,9 +275,13 @@ int main(int argc, char ** argv){
         printf("in server mcs\n");
         workers = (pthread_t *) malloc(sizeof(pthread_t));
         mcs_server_in * in = (mcs_server_in *)malloc(sizeof(mcs_server_in));
+        in->lock = calloc(2, sizeof(uint64_t))
+        (in->lock)[LOCK] = 0
+        (in->lock)[READY] = 0;
         in->num_children = peer_group_sizes[child_peer_group];
         pthread_create(workers, NULL, mcs_server, (void *)in);
         pthread_join(*workers, NULL);
+        free((void *)in->lock);
         free(in);
         free(workers);
         return 0;
@@ -285,9 +289,13 @@ int main(int argc, char ** argv){
         printf("in server ticket\n");
         workers = (pthread_t *) malloc(sizeof(pthread_t));
         ticket_server_in * in = (ticket_server_in *)malloc(sizeof(ticket_server_in));
+        in->lock = (uint64_t *)malloc(sizeof(uint64_t) * 2);
+        (in->lock)[NEXT] = 0;
+        (in->lock)[NOW] = 0;
         in->num_children = peer_group_sizes[child_peer_group];
         pthread_create(workers, NULL, ticket_server, (void *)in);
         pthread_join(*workers, NULL);
+        free(in->lock);
         free(in);
         free(workers);
         return 0;
@@ -295,9 +303,12 @@ int main(int argc, char ** argv){
         printf("in server spin\n");
         workers = (pthread_t *) malloc(sizeof(pthread_t));
         spin_server_in * in = (spin_server_in *)malloc(sizeof(spin_server_in));
+        in->lock = (uint64_t *)malloc(sizeof(uint64_t));
+        *(in->lock) = 0;
         in->num_children = peer_group_sizes[child_peer_group];
         pthread_create(workers, NULL, spin_server, (void *)in);
         pthread_join(*workers, NULL);
+        free(in->lock);
         free(in);
         free(workers);
         return 0;

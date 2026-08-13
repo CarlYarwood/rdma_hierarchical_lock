@@ -4,6 +4,7 @@
 
 typedef struct {
     int num_children;
+    volatile uint64_t *lock;
 } mcs_server_in;
 
 struct s_mcs_ctx {

@@ -270,7 +270,7 @@ int notify_ticket_clients(struct rdma_cm_id ** id_arr, uint64_t *buffer, int num
 }
 
 void * ticket_server(void * in) {
-    uint64_t *lock = NULL;
+    uint64_t* lock = ((ticket_server_in *)in)->lock;
     uint64_t *buffer = NULL;
     int * keepgoing = NULL;
     int num_children = ((ticket_server_in *)in)->num_children;
@@ -288,9 +288,6 @@ void * ticket_server(void * in) {
     }
 
     buffer = (uint64_t *)malloc(sizeof(uint64_t));
-    lock = calloc(2, sizeof(uint64_t));
-    lock[NEXT] = 0;
-    lock[NOW] = 0;
     *buffer = 0;
 	bzero(&server_sockaddr, sizeof server_sockaddr);
 	server_sockaddr.sin_family = AF_INET; /* standard IP NET address */
