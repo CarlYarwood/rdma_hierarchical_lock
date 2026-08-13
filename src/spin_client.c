@@ -411,11 +411,11 @@ void * spin_client(void * in) {
 	*sync = 0;
 	clock_t start, end;
 	if(strcmp(machine_lock_type, "none") != 0) {
-        if (strcmp(machine_lock_type, "mcs")){
+        if (strcmp(machine_lock_type, "mcs") == 0){
             mcs = ((spin_client_in *)in)->machine_lock.mcs;
-        } else if (strcmp(machine_lock_type, "ticket")){
+        } else if (strcmp(machine_lock_type, "ticket") == 0){
             ticket = ((spin_client_in *)in)->machine_lock.ticket;
-        } else if (strcmp(machine_lock_type, "spin")) {
+        } else if (strcmp(machine_lock_type, "spin") == 0) {
             spin = ((spin_client_in *)in)->machine_lock.spin;
         }
     }

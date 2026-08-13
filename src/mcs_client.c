@@ -474,11 +474,11 @@ void* mcs_client(void *in) {
     struct rdma_cm_id ** id_arr;
 	clock_t start, end;
     if(strcmp(machine_lock_type, "none") != 0) {
-        if (strcmp(machine_lock_type, "mcs")){
+        if (strcmp(machine_lock_type, "mcs") == 0){
             mcs = ((mcs_client_in *)in)->machine_lock.mcs;
-        } else if (strcmp(machine_lock_type, "ticket")){
+        } else if (strcmp(machine_lock_type, "ticket") == 0){
             ticket = ((mcs_client_in *)in)->machine_lock.ticket;
-        } else if (strcmp(machine_lock_type, "spin")) {
+        } else if (strcmp(machine_lock_type, "spin") == 0) {
             spin = ((mcs_client_in *)in)->machine_lock.spin;
         }
     }
@@ -651,11 +651,11 @@ void* mcs_client(void *in) {
 		release_mcs_lock(id_arr, node_id, buffer, metadata);
         if(strcmp(machine_lock_type, "none") != 0) {
 
-            if (strcmp(machine_lock_type, "mcs")){
+            if (strcmp(machine_lock_type, "mcs") == 0){
                 unlockMcs(mcs);
-            } else if (strcmp(machine_lock_type, "ticket")){
+            } else if (strcmp(machine_lock_type, "ticket") == 0){
                 unlockTicket(ticket);
-            } else if (strcmp(machine_lock_type, "spin")) {
+            } else if (strcmp(machine_lock_type, "spin") == 0) {
                 unlockSpin(spin);
             }
         }

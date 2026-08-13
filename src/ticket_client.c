@@ -471,11 +471,11 @@ void * ticket_client(void * in) {
     server_sockaddr.sin_port = htons(parent_port);
 
 	if(strcmp(machine_lock_type, "none") != 0) {
-        if (strcmp(machine_lock_type, "mcs")){
+        if (strcmp(machine_lock_type, "mcs") == 0){
             mcs = ((ticket_client_in *)in)->machine_lock.mcs;
-        } else if (strcmp(machine_lock_type, "ticket")){
+        } else if (strcmp(machine_lock_type, "ticket") == 0){
             ticket = ((ticket_client_in *)in)->machine_lock.ticket;
-        } else if (strcmp(machine_lock_type, "spin")) {
+        } else if (strcmp(machine_lock_type, "spin") == 0) {
             spin = ((ticket_client_in *)in)->machine_lock.spin;
         }
     }
