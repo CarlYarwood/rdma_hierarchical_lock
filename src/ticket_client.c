@@ -328,7 +328,6 @@ int release_ticket_lock(c_ticket_ctx* ctx, uint64_t ticket, uint64_t *response) 
         perror("de-latch failed\n");
         return -1;
     }
-    // printf("de-latch successful\n");
 	return 0;
 }
 
