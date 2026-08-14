@@ -278,14 +278,10 @@ void * ticket_server(void * in) {
 	struct sockaddr_in server_sockaddr;
     struct rdma_event_channel *cm_event_channel = NULL;
     struct rdma_cm_id *cm_server_id = NULL;
-    struct rdma_cm_id ** id_arr;
+    struct rdma_cm_id ** id_arr = ((ticket_server_in *)in)->id_arr;
 
     keepgoing = (int *)malloc(sizeof(int));
     *keepgoing = 1;
-    id_arr = (struct rdma_cm_id **)malloc(sizeof(struct rdma_cm_id *) * num_children);
-    for (int i = 0; i < num_children; i++) {
-        id_arr[i] = NULL;
-    }
 
     buffer = (uint64_t *)malloc(sizeof(uint64_t));
     *buffer = 0;

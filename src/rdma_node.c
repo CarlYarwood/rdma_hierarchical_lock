@@ -278,6 +278,10 @@ int main(int argc, char ** argv){
         in->lock = (volatile uint64_t *)malloc(sizeof(uint64_t) * 2);
         (in->lock)[LOCK] = 0;
         (in->lock)[READY] = 0;
+        (in->id_arr) = (struct rdma_cm_id **)malloc(sizeof(struct rdma_cm_id *) * peer_group_sizes[child_peer_group]);
+        for (int i = 0; i < peer_group_sizes[child_peer_group]; i++) {
+            (in->id_arr)[i] = NULL;
+        }
         in->num_children = peer_group_sizes[child_peer_group];
         pthread_create(workers, NULL, mcs_server, (void *)in);
         pthread_join(*workers, NULL);
@@ -292,6 +296,10 @@ int main(int argc, char ** argv){
         in->lock = (uint64_t *)malloc(sizeof(uint64_t) * 2);
         (in->lock)[NEXT] = 0;
         (in->lock)[NOW] = 0;
+        (in->id_arr) = (struct rdma_cm_id **)malloc(sizeof(struct rdma_cm_id *) * peer_group_sizes[child_peer_group]);
+        for (int i = 0; i < peer_group_sizes[child_peer_group]; i++) {
+            (in->id_arr)[i] = NULL;
+        }
         in->num_children = peer_group_sizes[child_peer_group];
         pthread_create(workers, NULL, ticket_server, (void *)in);
         pthread_join(*workers, NULL);
@@ -305,6 +313,10 @@ int main(int argc, char ** argv){
         spin_server_in * in = (spin_server_in *)malloc(sizeof(spin_server_in));
         in->lock = (uint64_t *)malloc(sizeof(uint64_t));
         *(in->lock) = 0;
+        (in->id_arr) = (struct rdma_cm_id **)malloc(sizeof(struct rdma_cm_id *) * peer_group_sizes[child_peer_group]);
+        for (int i = 0; i < peer_group_sizes[child_peer_group]; i++) {
+            (in->id_arr)[i] = NULL;
+        }
         in->num_children = peer_group_sizes[child_peer_group];
         pthread_create(workers, NULL, spin_server, (void *)in);
         pthread_join(*workers, NULL);

@@ -5,6 +5,7 @@
 typedef struct {
     uint64_t * lock;
     int num_children;
+    struct rdma_cm_id ** id_arr;
 } ticket_server_in;
 
 typedef struct {

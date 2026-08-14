@@ -278,11 +278,7 @@ void* mcs_server(void * in) {
     struct rdma_cm_id *cm_server_id = NULL;
     volatile uint64_t *lock = ((mcs_server_in *)in)->lock;
     uint64_t *buffer = NULL;
-    struct rdma_cm_id ** id_arr;
-    id_arr = (struct rdma_cm_id **)malloc(sizeof(struct rdma_cm_id *) * num_children);
-    for (int i = 0; i < num_children; i++) {
-        id_arr[i] = NULL;
-    }
+    struct rdma_cm_id ** id_arr = ((mcs_server_in *)in)->id_arr;
 
     keepgoing = (int *)malloc(sizeof(int));
     *keepgoing = 1;
