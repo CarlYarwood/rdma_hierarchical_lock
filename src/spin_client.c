@@ -267,7 +267,7 @@ int copmare_and_swap(c_spin_ctx* ctx, uint64_t cmp, uint64_t swap) {
 }
 
 int acquire_spin_lock(c_spin_ctx * ctx,uint64_t *node_id, uint64_t *response) {
-	*response = 1
+	*response = 1;
 	do {
         copmare_and_swap(ctx, 0, *node_id);
     } while(*response != 0);
@@ -275,7 +275,7 @@ int acquire_spin_lock(c_spin_ctx * ctx,uint64_t *node_id, uint64_t *response) {
 }
 
 int release_spin_lock(c_spin_ctx *ctx, uint64_t* node_id, uint64_t *response) {
-	*response = 0
+	*response = 0;
 	copmare_and_swap(ctx, *node_id, 0);
     if(*response != *node_id) {
         perror("lock release failed\n");
