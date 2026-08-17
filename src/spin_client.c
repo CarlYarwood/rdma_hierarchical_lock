@@ -285,7 +285,7 @@ int release_spin_lock(c_spin_ctx *ctx, uint64_t* node_id, uint64_t *response) {
 	return 0;
 }
 
-c_spin_ctx* connect_to_spin_server(struct rdma_event_channel* cm_event_channel, struct sockaddr_in* server_sockaddr, uint64_t *response, volatile uint64_t *sync) {
+c_spin_ctx* connect_to_spin_server(struct rdma_event_channel* cm_event_channel, struct sockaddr_in* server_sockaddr,uint64_t* node_id, uint64_t *response, volatile uint64_t *sync) {
 	c_spin_ctx *ctx = NULL;
 	struct rdma_cm_id *cm_client_id = NULL;
 	struct rdma_cm_event *cm_event = NULL;
@@ -340,6 +340,8 @@ c_spin_ctx* connect_to_spin_server(struct rdma_event_channel* cm_event_channel, 
 	conn_param.initiator_depth = 3;
 	conn_param.responder_resources = 3;
 	conn_param.retry_count = 3;
+	conn_param.private_data = (void *) node_id;
+    conn_param.private_data_len = sizeof(uint64_t);
 	if (rdma_connect(ctx->client_id, &conn_param)) {
 		rdma_error("Failed to connect to remote host , errno: %d\n", -errno);
 		return NULL;
@@ -438,7 +440,7 @@ void * spin_client(void * in) {
 		return NULL;
 	}
 	
-	ctx = connect_to_spin_server(cm_event_channel, &server_sockaddr, response, sync);
+	ctx = connect_to_spin_server(cm_event_channel, &server_sockaddr, node_id, response, sync);
 
 	wait_on_sync(sync);
 

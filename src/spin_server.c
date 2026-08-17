@@ -1,6 +1,6 @@
 #include "spin_server.h"
 
-s_spin_ctx* build_server_spin_context(struct rdma_cm_id* client_id, uint64_t *lock, uint64_t *buffer) {
+s_spin_ctx* build_server_spin_context(struct rdma_cm_id* client_id, uint64_t *lock, uint64_t *buffer, uint64_t * node_id) {
     s_spin_ctx* ctx;
     struct ibv_pd* pd = NULL;
     struct ibv_comp_channel* comp = NULL;
@@ -150,6 +150,7 @@ s_spin_ctx* build_server_spin_context(struct rdma_cm_id* client_id, uint64_t *lo
         return NULL;
     }
 
+    (*ctx).node_id = node_id;
     (*ctx).pd = pd;
     (*ctx).comp = comp;
     (*ctx).cq = cq;  
@@ -220,6 +221,7 @@ int clean_up_spin_context(struct rdma_cm_id* client_id) {
         printf("Failed to destroy client protection domain cleanly, %d \n", -errno);
         return -errno;
     }
+    free(ctx->node_id);
     free(ctx->server_metadata_attr);
     free(ctx->client_metadata_attr);
     free(ctx);
@@ -333,10 +335,14 @@ void *spin_server(void * in) {
             case RDMA_CM_EVENT_CONNECT_REQUEST :
                 s_spin_ctx* ctx = NULL;
                 struct rdma_conn_param conn_param;
+                uint64_t * node_id;
+
+                node_id = (uint64_t *)malloc(sizeof(uint64_t));
                 
                 client_id = cm_event->id;
+                *node_id = *((uint64_t *) cm_event->param.conn.private_data);
 
-                ctx = build_server_spin_context(client_id, lock, buffer);
+                ctx = build_server_spin_context(client_id, lock, buffer, node_id);
                 if(!ctx) {
                     rdma_ack_cm_event(cm_event);
                     perror("Failed to build client Context\n");
@@ -344,6 +350,7 @@ void *spin_server(void * in) {
                 }
 
                 (client_id)->context = (void *)ctx;
+                id_arr[*node_id - 1] = client_id;
 
                 if (rdma_ack_cm_event(cm_event)) {
                     rdma_error("Failed to acknowledge the cm event errno: %d \n", -errno);
@@ -371,7 +378,6 @@ void *spin_server(void * in) {
                      perror("Failed to send server metadata \n");
                      return NULL;
                 }
-                id_arr[num_conn] = client_id;
                 num_conn++;
                 *keepgoing = 0;
                 break;
@@ -383,6 +389,8 @@ void *spin_server(void * in) {
 		            rdma_error("Failed to acknowledge the cm event %d\n", -errno);
 		            return NULL;
 	            }
+
+                id_arr[(*((s_spin_ctx *)(client_id->context))->node_id) - 1] = NULL;
 
                 if (clean_up_spin_context(client_id)) {
                     perror("failed to cleanup client context");
@@ -397,10 +405,6 @@ void *spin_server(void * in) {
 		        return NULL;
         }
     } while(num_conn > 0 || *keepgoing == 1);
-
-    for (int i = 0; i < num_children; i++) {
-        id_arr[i] = NULL;
-    }
 
     free(id_arr);
     free(buffer);

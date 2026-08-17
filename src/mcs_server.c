@@ -393,6 +393,7 @@ void* mcs_server(void * in) {
 		            rdma_error("Failed to acknowledge the cm event %d\n", -errno);
 		            return NULL;
 	            }
+
                 id_arr[(*((s_mcs_ctx *)(client_id->context))->node_id) - 1] = NULL;
 
                 if (clean_up_mcs_context(client_id)) {
