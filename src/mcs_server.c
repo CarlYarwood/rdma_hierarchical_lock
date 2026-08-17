@@ -1,6 +1,6 @@
 #include "mcs_server.h"
 
-struct s_mcs_ctx* build_server_mcs_context(struct rdma_cm_id* client_id, volatile uint64_t *lock, uint64_t *buffer, uint64_t * node_id) {
+struct s_mcs_ctx* build_server_mcs_context(struct rdma_cm_id* client_id, volatile uint64_t *lock, uint64_t *buffer, uint64_t *node_id) {
     struct s_mcs_ctx* ctx;
     struct ibv_pd* pd = NULL;
     struct ibv_comp_channel* comp = NULL;
