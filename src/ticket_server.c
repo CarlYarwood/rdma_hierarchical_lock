@@ -391,7 +391,7 @@ void * ticket_server(void * in) {
 		            return NULL;
 	            }
 
-                id_arr[(*((s_spin_ctx *)(client_id->context))->node_id) - 1] = NULL;
+                id_arr[(*((s_ticket_ctx *)(client_id->context))->node_id) - 1] = NULL;
 
                 if (clean_up_ticket_context(client_id)) {
                     perror("failed to cleanup client context");
