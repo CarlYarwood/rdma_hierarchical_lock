@@ -1,7 +1,7 @@
 #include "mcs_server.h"
 
-struct s_mcs_ctx* build_server_mcs_context(struct rdma_cm_id* client_id, volatile uint64_t *lock, uint64_t *buffer, uint64_t *node_id) {
-    struct s_mcs_ctx* ctx;
+s_mcs_ctx* build_server_mcs_context(struct rdma_cm_id* client_id, volatile uint64_t *lock, uint64_t *buffer, uint64_t *node_id) {
+    s_mcs_ctx* ctx;
     struct ibv_pd* pd = NULL;
     struct ibv_comp_channel* comp = NULL;
     struct ibv_cq* cq = NULL;
@@ -16,7 +16,7 @@ struct s_mcs_ctx* build_server_mcs_context(struct rdma_cm_id* client_id, volatil
     struct ibv_sge server_recv_sge;
 	struct ibv_recv_wr server_recv_wr, *bad_server_recv_wr = NULL;
     
-    ctx = (struct s_mcs_ctx*)malloc(sizeof(struct s_mcs_ctx));
+    ctx = (s_mcs_ctx*)malloc(sizeof(s_mcs_ctx));
     server_metadata_attr = (struct rdma_buffer_attr *)malloc(sizeof(struct rdma_buffer_attr));
     client_metadata_attr = (struct rdma_buffer_attr *)malloc(sizeof(struct rdma_buffer_attr));
 
@@ -165,7 +165,7 @@ struct s_mcs_ctx* build_server_mcs_context(struct rdma_cm_id* client_id, volatil
 }
 
 int send_server_mcs_metadata(struct rdma_cm_id* client_id) {
-    struct s_mcs_ctx * ctx = (struct s_mcs_ctx *) client_id->context;
+    s_mcs_ctx * ctx = (s_mcs_ctx *) client_id->context;
     struct ibv_wc wc;
     struct ibv_sge server_send_sge;
     struct ibv_send_wr server_send_wr, *bad_server_send_wr = NULL;
@@ -195,7 +195,7 @@ int send_server_mcs_metadata(struct rdma_cm_id* client_id) {
 }
 
 int clean_up_mcs_context(struct rdma_cm_id* client_id) {
-    struct s_mcs_ctx *ctx = (struct s_mcs_ctx *)client_id->context;
+    s_mcs_ctx *ctx = (s_mcs_ctx *)client_id->context;
     rdma_destroy_qp(client_id);
 
     if (rdma_destroy_id(client_id)) {
@@ -221,7 +221,7 @@ int clean_up_mcs_context(struct rdma_cm_id* client_id) {
         printf("Failed to destroy client protection domain cleanly, %d \n", -errno);
         return -errno;
     }
-    free(ctx->node_id)
+    free(ctx->node_id);
     free(ctx->server_metadata_attr);
     free(ctx->client_metadata_attr);
     free(ctx);
@@ -230,7 +230,7 @@ int clean_up_mcs_context(struct rdma_cm_id* client_id) {
 }
 
 int rdma_mcs_write(struct rdma_cm_id *client_id, int offset) {
-    struct s_mcs_ctx* ctx = (struct s_mcs_ctx *) (client_id->context);
+    s_mcs_ctx* ctx = (s_mcs_ctx *) (client_id->context);
     struct ibv_send_wr write_wr, *bad_write_wr = NULL;
     struct ibv_wc write_wc;
     struct ibv_sge write_sge;
@@ -335,7 +335,7 @@ void* mcs_server(void * in) {
 
         switch (cm_event->event){
             case RDMA_CM_EVENT_CONNECT_REQUEST :
-                struct s_mcs_ctx* ctx = NULL;
+                s_mcs_ctx* ctx = NULL;
                 struct rdma_conn_param conn_param;
                 uint64_t* node_id;
 

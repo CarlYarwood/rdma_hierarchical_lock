@@ -8,7 +8,7 @@ typedef struct {
     struct rdma_cm_id ** id_arr;
 } mcs_server_in;
 
-struct s_mcs_ctx {
+typedef struct {
     uint64_t * node_id;
     struct ibv_pd* pd;
     struct ibv_comp_channel* comp;
@@ -19,7 +19,7 @@ struct s_mcs_ctx {
     struct ibv_mr* client_metadata_mr;
     struct rdma_buffer_attr* server_metadata_attr;
     struct rdma_buffer_attr* client_metadata_attr;
-};
+} s_mcs_ctx;
 
 void* mcs_server(void *);
 #endif
