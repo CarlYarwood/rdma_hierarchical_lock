@@ -9,6 +9,7 @@ typedef struct {
 } ticket_server_in;
 
 typedef struct {
+    uint64_t * node_id;
     struct ibv_pd* pd;
     struct ibv_comp_channel* comp;
     struct ibv_cq* cq;

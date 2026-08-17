@@ -331,7 +331,7 @@ int release_ticket_lock(c_ticket_ctx* ctx, uint64_t ticket, uint64_t *response) 
 	return 0;
 }
 
-c_ticket_ctx* connect_to_ticket_server(struct rdma_event_channel* cm_event_channel, struct sockaddr_in* server_sockaddr, uint64_t *response, volatile uint64_t* sync) {
+c_ticket_ctx* connect_to_ticket_server(struct rdma_event_channel* cm_event_channel, struct sockaddr_in* server_sockaddr, uint64_t *node_id, uint64_t *response, volatile uint64_t* sync) {
 	c_ticket_ctx *ctx = NULL;
 	struct rdma_cm_id *cm_client_id = NULL;
 	struct rdma_cm_event *cm_event = NULL;
@@ -386,6 +386,8 @@ c_ticket_ctx* connect_to_ticket_server(struct rdma_event_channel* cm_event_chann
 	conn_param.initiator_depth = 3;
 	conn_param.responder_resources = 3;
 	conn_param.retry_count = 3;
+	conn_param.private_data = (void *) node_id;
+    conn_param.private_data_len = sizeof(uint64_t);
 	if (rdma_connect(ctx->client_id, &conn_param)) {
 		rdma_error("Failed to connect to remote host , errno: %d\n", -errno);
 		return NULL;
@@ -485,7 +487,7 @@ void * ticket_client(void * in) {
 		return NULL;
 	}
 
-	ctx = connect_to_ticket_server(cm_event_channel, &server_sockaddr, response, sync);
+	ctx = connect_to_ticket_server(cm_event_channel, &server_sockaddr, node_id, response, sync);
 
 	wait_on_sync(sync);
 
