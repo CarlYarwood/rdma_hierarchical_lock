@@ -315,6 +315,7 @@ void *spin_server(void * in) {
 
     do {
         if(num_conn == num_children) {
+            printf("All Clients Connected\n");
             notify_spin_clients(id_arr, buffer, num_children);
         }
         struct rdma_cm_event *cm_event = NULL;
