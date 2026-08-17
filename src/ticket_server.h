@@ -1,9 +1,10 @@
-#ifndef TICKET_LOCK_SERVER_H
-#define TICKET_LOCK_SERVER_H
+#ifndef TICKET_SERVER_H
+#define TICKET_SERVER_H
 #include "ticket.h"
 
 typedef struct {
     uint64_t * lock;
+    volatile int * ready;
     int num_children;
     struct rdma_cm_id ** id_arr;
 } ticket_server_in;

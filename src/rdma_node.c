@@ -279,6 +279,8 @@ int main(int argc, char ** argv){
         (in->lock)[LOCK] = 0;
         (in->lock)[READY] = 0;
         (in->id_arr) = (struct rdma_cm_id **)malloc(sizeof(struct rdma_cm_id *) * peer_group_sizes[child_peer_group]);
+        (in->ready) = (volatile int *)malloc(sizeof(int));
+        *(in->ready) = 1;
         for (int i = 0; i < peer_group_sizes[child_peer_group]; i++) {
             (in->id_arr)[i] = NULL;
         }
@@ -286,6 +288,8 @@ int main(int argc, char ** argv){
         pthread_create(workers, NULL, mcs_server, (void *)in);
         pthread_join(*workers, NULL);
         free((void *)in->lock);
+        free(in->id_arr);
+        free((void *)in->ready);
         free(in);
         free(workers);
         return 0;
@@ -297,6 +301,8 @@ int main(int argc, char ** argv){
         (in->lock)[NEXT] = 0;
         (in->lock)[NOW] = 0;
         (in->id_arr) = (struct rdma_cm_id **)malloc(sizeof(struct rdma_cm_id *) * peer_group_sizes[child_peer_group]);
+        (in->ready) = (volatile int *)malloc(sizeof(int));
+        *(in->ready) = 1;
         for (int i = 0; i < peer_group_sizes[child_peer_group]; i++) {
             (in->id_arr)[i] = NULL;
         }
@@ -304,6 +310,8 @@ int main(int argc, char ** argv){
         pthread_create(workers, NULL, ticket_server, (void *)in);
         pthread_join(*workers, NULL);
         free(in->lock);
+        free(in->id_arr);
+        free((void *)in->ready);
         free(in);
         free(workers);
         return 0;
@@ -314,6 +322,8 @@ int main(int argc, char ** argv){
         in->lock = (uint64_t *)malloc(sizeof(uint64_t));
         *(in->lock) = 0;
         (in->id_arr) = (struct rdma_cm_id **)malloc(sizeof(struct rdma_cm_id *) * peer_group_sizes[child_peer_group]);
+        (in->ready) = (volatile int *)malloc(sizeof(int));
+        *(in->ready) = 1;
         for (int i = 0; i < peer_group_sizes[child_peer_group]; i++) {
             (in->id_arr)[i] = NULL;
         }
@@ -321,6 +331,8 @@ int main(int argc, char ** argv){
         pthread_create(workers, NULL, spin_server, (void *)in);
         pthread_join(*workers, NULL);
         free(in->lock);
+        free(in->id_arr);
+        free((void *) in->ready);
         free(in);
         free(workers);
         return 0;

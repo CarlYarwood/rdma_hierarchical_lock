@@ -275,6 +275,7 @@ void *spin_server(void * in) {
     uint64_t *lock = ((spin_server_in *)in)->lock;
     uint64_t *buffer = NULL;
     int num_children = ((spin_server_in *)in)->num_children;
+    volatile int * ready = ((spin_server_in *)in)->ready;
     int num_conn = 0;
     int *keepgoing = NULL;
 	struct sockaddr_in server_sockaddr;
@@ -316,6 +317,8 @@ void *spin_server(void * in) {
     do {
         if(num_conn == num_children) {
             printf("All Clients Connected\n");
+            do {} while (*ready != 1);
+            printf("Server Ready\n");
             notify_spin_clients(id_arr, buffer, num_children);
         }
         struct rdma_cm_event *cm_event = NULL;
@@ -407,9 +410,7 @@ void *spin_server(void * in) {
         }
     } while(num_conn > 0 || *keepgoing == 1);
 
-    free(id_arr);
     free(buffer);
-    free(lock);
     free(keepgoing);
 	if (rdma_destroy_id(cm_server_id)) {
 		rdma_error("Failed to destroy server id cleanly, %d \n", -errno);

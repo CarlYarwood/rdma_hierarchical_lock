@@ -1,9 +1,10 @@
-#ifndef SPIN_LOCK_SERVER_H
-#define SPIN_LOCK_SERVER_H
+#ifndef SPIN_SERVER_H
+#define SPIN_SERVER_H
 #include "spin.h"
 
 typedef struct {
     int num_children;
+    volatile int * ready;
     uint64_t * lock;
     struct rdma_cm_id ** id_arr;
 } spin_server_in; 

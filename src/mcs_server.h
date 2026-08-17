@@ -4,6 +4,7 @@
 
 typedef struct {
     int num_children;
+    volatile int * ready;
     volatile uint64_t *lock;
     struct rdma_cm_id ** id_arr;
 } mcs_server_in;

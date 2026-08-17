@@ -278,6 +278,7 @@ void* mcs_server(void * in) {
 	struct sockaddr_in server_sockaddr;
     struct rdma_event_channel *cm_event_channel = NULL;
     struct rdma_cm_id *cm_server_id = NULL;
+    volatile int * ready = ((mcs_server_in *)in)->ready;
     volatile uint64_t *lock = ((mcs_server_in *)in)->lock;
     uint64_t *buffer = NULL;
     struct rdma_cm_id ** id_arr = ((mcs_server_in *)in)->id_arr;
@@ -315,6 +316,8 @@ void* mcs_server(void * in) {
     do {
         if(num_conn == num_children) {
             printf("All Clients Connected\n");
+            do {} while (*ready != 1);
+            printf("Server Ready\n");
             notify_mcs_clients(id_arr, buffer, 1, MCS_SYNC, num_children);
             do {} while (lock[READY] != num_conn);
             printf("All Clients Ready\n");
@@ -410,9 +413,8 @@ void* mcs_server(void * in) {
         }
     } while(num_conn > 0 || *keepgoing == 1);
 
-    free(id_arr);
     free(buffer);
-    free((void *)lock);
+    free(keepgoing);
 	if (rdma_destroy_id(cm_server_id)) {
 		rdma_error("Failed to destroy server id cleanly, %d \n", -errno);
 	}

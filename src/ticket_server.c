@@ -276,6 +276,7 @@ void * ticket_server(void * in) {
     uint64_t *buffer = NULL;
     int * keepgoing = NULL;
     int num_children = ((ticket_server_in *)in)->num_children;
+    volatile int * ready = ((ticket_server_in *)in)->ready;
     int num_conn = 0;
 	struct sockaddr_in server_sockaddr;
     struct rdma_event_channel *cm_event_channel = NULL;
@@ -316,6 +317,8 @@ void * ticket_server(void * in) {
     do {
         if(num_conn == num_children) {
             printf("All Clients Connected\n");
+            do {} while (*ready != 1);
+            printf("Server Ready\n");
             notify_ticket_clients(id_arr, buffer, num_children);
         }
         struct rdma_cm_event *cm_event = NULL;
@@ -407,9 +410,7 @@ void * ticket_server(void * in) {
         }
     } while(num_conn > 0 || *keepgoing == 1);
 
-    free(id_arr);
     free(buffer);
-    free(lock);
     free(keepgoing);
 
 	if (rdma_destroy_id(cm_server_id)) {
