@@ -314,8 +314,10 @@ void* mcs_server(void * in) {
 
     do {
         if(num_conn == num_children) {
+            printf("All Clients Connected\n");
             notify_mcs_clients(id_arr, buffer, 1, MCS_SYNC, num_children);
             do {} while (lock[READY] != num_conn);
+            printf("All Clients Ready\n");
             notify_mcs_clients(id_arr, buffer, 2, MCS_SYNC, num_children);
             lock[READY] = 0;
         }
@@ -352,7 +354,7 @@ void* mcs_server(void * in) {
                 }
 
                 (client_id)->context = (void *)ctx;
-                id_arr[*node_id] = client_id;
+                id_arr[*node_id - 1] = client_id;
 
                 if (rdma_ack_cm_event(cm_event)) {
                     rdma_error("Failed to acknowledge the cm event errno: %d \n", -errno);
@@ -391,7 +393,7 @@ void* mcs_server(void * in) {
 		            rdma_error("Failed to acknowledge the cm event %d\n", -errno);
 		            return NULL;
 	            }
-                id_arr[(*((s_mcs_ctx *)(client_id->context))->node_id)] = NULL;
+                id_arr[(*((s_mcs_ctx *)(client_id->context))->node_id) - 1] = NULL;
 
                 if (clean_up_mcs_context(client_id)) {
                     perror("failed to cleanup client context");
