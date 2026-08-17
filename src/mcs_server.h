@@ -9,6 +9,7 @@ typedef struct {
 } mcs_server_in;
 
 struct s_mcs_ctx {
+    uint64_t * node_id
     struct ibv_pd* pd;
     struct ibv_comp_channel* comp;
     struct ibv_cq* cq;
