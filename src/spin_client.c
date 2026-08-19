@@ -405,23 +405,26 @@ void * spin_client(void * in) {
 	char * machine_lock_type = ((spin_client_in *)in)->machine_lock_type;
 	char * parent_address = ((spin_client_in *)in)->parent_address;
 	long parent_port = ((spin_client_in *)in)->parent_port;
+	char * gated = ((spin_client_in *)in)->gated;
 	uint64_t *response = calloc(1, sizeof(uint64_t));
 	uint64_t *node_id = calloc(1, sizeof(uint64_t));
 	int critical_section = ((spin_client_in *) in)->critical_section;
 	int noncritical_section = ((spin_client_in *) in)->noncritical_section;
 	int num_aquire = ((spin_client_in *) in)->num_aquire;
-	volatile uint64_t *sync = NULL;
-	sync = (uint64_t *)malloc(sizeof(uint64_t));
-	*sync = 0;
+	volatile uint64_t *sync = ((spin_client_in *) in)->sync;
 	clock_t start, end;
-	if(strcmp(machine_lock_type, "none") != 0) {
-        if (strcmp(machine_lock_type, "mcs") == 0){
-            mcs = ((spin_client_in *)in)->machine_lock.mcs;
-        } else if (strcmp(machine_lock_type, "ticket") == 0){
-            ticket = ((spin_client_in *)in)->machine_lock.ticket;
-        } else if (strcmp(machine_lock_type, "spin") == 0) {
-            spin = ((spin_client_in *)in)->machine_lock.spin;
-        }
+	switch(*machine_lock_type) {
+        case 'm':
+            mcs = ((mcs_client_in *) in)->machine_lock.mcs;
+            break;
+        case 't':
+            ticket = ((mcs_cleint_in *)in)->machine_lock.ticket;
+            break;
+        case 's':
+            spin = ((mcs_client_in *)in)->machine_lock.spin;
+            break;
+        default:
+            //Nothing
     }
 
 	*node_id = ((spin_client_in *) in)->node_id;
@@ -443,37 +446,51 @@ void * spin_client(void * in) {
 	ctx = connect_to_spin_server(cm_event_channel, &server_sockaddr, node_id, response, sync);
 
 	wait_on_sync(sync);
+	*sync = 0;
 
 	start = clock();
 	for (int i = 0; i < num_aquire; i++) {
-		for (int i = 0; i < noncritical_section; i++) {
-			noop(&i);
+		for (int n = 0; n < noncritical_section; n++) {
+			noop(&n);
 		}
 		//lock
-        if(strcmp(machine_lock_type, "none") != 0) {
-            if (strcmp(machine_lock_type, "mcs") == 0){
-            	lockMcs(mcs, *node_id);
-            } else if (strcmp(machine_lock_type, "ticket") == 0){
-                lockTicket(ticket, *node_id);
-            } else if (strcmp(machine_lock_type, "spin") == 0) {
+        switch(*machine_lock_type) {
+            case 'm':
+                lockMcs(mcs, *node_id);
+                break;
+            case 't':
+                lockTicket(ticket , *node_id);
+                break;
+            case 's':
                 lockSpin(spin, *node_id);
-            }
+                break;
+            default:
+                //Nothing
         }
 		acquire_spin_lock(ctx, node_id, response);
+
+		if(*gated == 'y') {
+			wait_on_sync(sync);
+			*sync = 0;
+		}
 		//work
-		for (int i=0; i < critical_section; i++) {
-			noop(&i);
+		for (int c = 0; c < critical_section; c++) {
+			noop(&c);
 		}
 		//unlock
 		release_spin_lock(ctx, node_id, response);
-		if(strcmp(machine_lock_type, "none") != 0) {
-            if (strcmp(machine_lock_type, "mcs") == 0){
+		switch(*machine_lock_type) {
+            case 'm':
                 unlockMcs(mcs);
-            } else if (strcmp(machine_lock_type, "ticket") == 0){
+                break;
+            case 't':
                 unlockTicket(ticket);
-            } else if (strcmp(machine_lock_type, "spin") == 0) {
+                break;
+            case 's':
                 unlockSpin(spin);
-            }
+                break;
+            default:
+                //Nothing
         }
 	}
 	end = clock();
@@ -482,7 +499,6 @@ void * spin_client(void * in) {
 	/* We free the buffers */
 	free(node_id);
 	free(response);
-	free((uint64_t *)sync);
 
 	rdma_destroy_event_channel(cm_event_channel);
 

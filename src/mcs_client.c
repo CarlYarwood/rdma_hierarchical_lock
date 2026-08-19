@@ -452,7 +452,7 @@ void wait_on_data(volatile uint64_t *data, uint64_t val) {
 }
 
 void* mcs_client(void *in) {
-    volatile uint64_t *metadata = NULL;
+    volatile uint64_t *metadata = ((mcs_client_in *)in)->metadata;
 	uint64_t *buffer = NULL;
 	uint64_t *node_id = calloc(1, sizeof(uint64_t));
     spinLock * spin = NULL;
@@ -460,6 +460,7 @@ void* mcs_client(void *in) {
     mcsLock * mcs = NULL;
     char * machine_lock_type = ((mcs_client_in *)in)->machine_lock_type;
     char * parent_address = ((mcs_client_in *)in)->parent_address;
+    char * gated = ((mcs_client_in *)in)->gated;
     long parent_port = ((mcs_client_in *)in)->parent_port;
     char ** peer_addresses = ((mcs_client_in *)in)->peer_addresses;
     long * peer_ports = ((mcs_client_in *)in)->peer_ports;
@@ -473,14 +474,19 @@ void* mcs_client(void *in) {
     struct rdma_cm_id *cm_server_id = NULL;
     struct rdma_cm_id ** id_arr;
 	clock_t start, end;
-    if(strcmp(machine_lock_type, "none") != 0) {
-        if (strcmp(machine_lock_type, "mcs") == 0){
-            mcs = ((mcs_client_in *)in)->machine_lock.mcs;
-        } else if (strcmp(machine_lock_type, "ticket") == 0){
-            ticket = ((mcs_client_in *)in)->machine_lock.ticket;
-        } else if (strcmp(machine_lock_type, "spin") == 0) {
+
+    switch(*machine_lock_type) {
+        case 'm':
+            mcs = ((mcs_client_in *) in)->machine_lock.mcs;
+            break;
+        case 't':
+            ticket = ((mcs_cleint_in *)in)->machine_lock.ticket;
+            break;
+        case 's':
             spin = ((mcs_client_in *)in)->machine_lock.spin;
-        }
+            break;
+        default:
+            //Nothing
     }
 
 	*node_id = ((mcs_client_in *) in)->node_id;
@@ -490,11 +496,7 @@ void* mcs_client(void *in) {
         id_arr[i] = NULL;
     }
 
-    metadata = calloc(3, sizeof(uint64_t));
     buffer = calloc(1, sizeof(uint64_t));
-    metadata[NEXT] = 0;
-    metadata[NOTIFY] = 0;
-	metadata[MCS_SYNC] = 0;
 	bzero(&client_server_sockaddr, sizeof client_server_sockaddr);
 	client_server_sockaddr.sin_family = AF_INET; /* standard IP NET address */
 	client_server_sockaddr.sin_addr.s_addr = htonl(INADDR_ANY); /* passed address */
@@ -622,6 +624,7 @@ void* mcs_client(void *in) {
     mcs_fetch_and_add(id_arr[SERVER], READY);
 
 	wait_on_data(&metadata[MCS_SYNC], 2);
+    metadata[MCS_SYNC] = 0;
 
 	
 
@@ -629,35 +632,47 @@ void* mcs_client(void *in) {
 
 	for (int i = 0; i < num_aquire; i++) {
 		// pre work
-		for (int i = 0; i < noncritical_section; i++) {
-			noop(&i);
+		for (int n = 0; n < noncritical_section; n++) {
+			noop(&n);
 		}
 		// lock
-        if(strcmp(machine_lock_type, "none") != 0) {
-            if (strcmp(machine_lock_type, "mcs") == 0){
+        switch(*machine_lock_type) {
+            case 'm':
                 lockMcs(mcs, *node_id);
-            } else if (strcmp(machine_lock_type, "ticket") == 0){
-                lockTicket(ticket, *node_id);
-            } else if (strcmp(machine_lock_type, "spin") == 0) {
+                break;
+            case 't':
+                lockTicket(ticket , *node_id);
+                break;
+            case 's':
                 lockSpin(spin, *node_id);
-            }
+                break;
+            default:
+                //Nothing
         }
+        
 		acquire_mcs_lock(id_arr, node_id, buffer, metadata);
+        if(*gated == 'y'){
+            wait_on_data(&metadata[MCS_SYNC], 1);
+            metadata[MCS_SYNC] = 0;
+        }
 		// work
-		for (int i=0; i < critical_section; i++) {
-			noop(&i);
+		for (int c = 0; c < critical_section; c++) {
+			noop(&c);
 		}
 		// unlock
 		release_mcs_lock(id_arr, node_id, buffer, metadata);
-        if(strcmp(machine_lock_type, "none") != 0) {
-
-            if (strcmp(machine_lock_type, "mcs") == 0){
+        switch(*machine_lock_type) {
+            case 'm':
                 unlockMcs(mcs);
-            } else if (strcmp(machine_lock_type, "ticket") == 0){
+                break;
+            case 't':
                 unlockTicket(ticket);
-            } else if (strcmp(machine_lock_type, "spin") == 0) {
+                break;
+            case 's':
                 unlockSpin(spin);
-            }
+                break;
+            default:
+                //Nothing
         }
 	}
 
@@ -711,7 +726,6 @@ void* mcs_client(void *in) {
 
 	free(node_id);
     free(buffer);
-    free((void *)metadata);
     free(id_arr);
 
 	if (rdma_destroy_id(cm_server_id)) {

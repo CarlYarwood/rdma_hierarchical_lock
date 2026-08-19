@@ -117,10 +117,11 @@ int main(int argc, char ** argv){
     uint64_t node_id_start = 0;
     char * parent_lock_type = "none";
     char * local_lock_type = "none";
-    char * machine_lock_type = "none";
+    char * machine_lock_type = "n";
+    char * gated = "n";
     pthread_t * workers;
 
-    while ((option = getopt(argc, argv, "p:n:P:N:l:L:w:c:i:m:")) != -1) {
+    while ((option = getopt(argc, argv, "p:n:P:N:l:L:w:c:i:m:g:")) != -1) {
 		switch (option) {
             case 'p':
                 parent_peer_group = atoi(optarg);
@@ -152,6 +153,9 @@ int main(int argc, char ** argv){
             case 'm':
                 machine_lock_type = optarg;
                 break;
+            case 'g':
+                gated = optarg;
+                break;
             default:
                 printf("invalid option detected\n");
                 return -1;
@@ -166,6 +170,10 @@ int main(int argc, char ** argv){
         workers = (pthread_t *) malloc(sizeof(pthread_t) * num_workers);
         mcs_client_in * in = (mcs_client_in *)malloc(sizeof(mcs_client_in) * num_workers);
         for (int i = 0; i < num_workers; i++) {
+            in[i].metadata = (volatile uint64_t *)malloc(sizeof(uint64_t) * 3);
+            in[i].metadata[NEXT] = 0;
+            in[i].metadata[NOTIFY] = 0;
+            in[i].metadata[MCS_SYNC] = 0;
             in[i].node_id = node_id_start + (uint64_t) i;
             in[i].critical_section = critical_section;
             in[i].noncritical_section = noncritical_section;
@@ -176,6 +184,7 @@ int main(int argc, char ** argv){
             in[i].peer_ports = ports[node_peer_group];
             in[i].num_peers = peer_group_sizes[node_peer_group];
             in[i].machine_lock_type = machine_lock_type;
+            in[i].gated = gated;
             if(strcmp(machine_lock_type, "none") != 0) {
                 if(strcmp(machine_lock_type, "mcs") == 0) {
                     in[i].machine_lock.mcs = mcs;
@@ -190,6 +199,7 @@ int main(int argc, char ** argv){
 
         for(int i = 0; i < num_workers; i++) {
             pthread_join(workers[i], NULL);
+            free((void *)in[i]->metadata);
         }
         destroyMcsLock(mcs);
         destroyTicketLock(ticket);
@@ -205,6 +215,8 @@ int main(int argc, char ** argv){
         workers = (pthread_t *) malloc(sizeof(pthread_t) * num_workers);
         ticket_client_in * in = (ticket_client_in *)malloc(sizeof(ticket_client_in) * num_workers);
         for(int i = 0; i < num_workers; i++) {
+            in[i].sync = (volatile uint64_t *)malloc(sizeof(uint64_t));
+            *in[i].sync = 0;
             in[i].node_id = node_id_start + (uint64_t) i;
             in[i].parent_address = addresses[parent_peer_group][parent_id];
             in[i].parent_port = ports[parent_peer_group][parent_id];
@@ -212,6 +224,7 @@ int main(int argc, char ** argv){
             in[i].noncritical_section = noncritical_section;
             in[i].num_aquire = num_aquire;
             in[i].machine_lock_type = machine_lock_type;
+            in[i].gated = gated;
             if(strcmp(machine_lock_type, "none") != 0) {
                 if(strcmp(machine_lock_type, "mcs") == 0) {
                     in[i].machine_lock.mcs = mcs;
@@ -226,6 +239,7 @@ int main(int argc, char ** argv){
 
         for(int i = 0; i < num_workers; i++) {
             pthread_join(workers[i], NULL);
+            free((void *)in[i].sync);
         }
         destroyMcsLock(mcs);
         destroyTicketLock(ticket);
@@ -241,6 +255,8 @@ int main(int argc, char ** argv){
         workers = (pthread_t *) malloc(sizeof(pthread_t) * num_workers);
         spin_client_in * in = (spin_client_in *)malloc(sizeof(spin_client_in) * num_workers);
         for (int i = 0; i < num_workers ; i++) {
+            in[i].sync = (volatile uint64_t *)malloc(sizeof(uint64_t));
+            *in[i].sync = 0;
             in[i].machine_lock_type = machine_lock_type;
             in[i].parent_address = addresses[parent_peer_group][parent_id];
             in[i].parent_port = ports[parent_peer_group][parent_id];
@@ -248,6 +264,7 @@ int main(int argc, char ** argv){
             in[i].critical_section = critical_section;
             in[i].noncritical_section = noncritical_section;
             in[i].num_aquire = num_aquire;
+            in[i].gated = gated;
             if(strcmp(machine_lock_type, "none") != 0) {
                 if(strcmp(machine_lock_type, "mcs") == 0) {
                     in[i].machine_lock.mcs = mcs;
@@ -262,6 +279,7 @@ int main(int argc, char ** argv){
 
         for(int i = 0; i < num_workers; i++) {
             pthread_join(workers[i], NULL);
+            free((void *)in[i].sync);
         }
         destroyMcsLock(mcs);
         destroyTicketLock(ticket);

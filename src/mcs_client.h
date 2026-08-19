@@ -1,5 +1,5 @@
-#ifndef MCS_LOCK_CLIENT_H
-#define MCS_LOCK_CLIENT_H
+#ifndef MCS_CLIENT_H
+#define MCS_CLIENT_H
 #include <time.h>
 #include "mcs.h"
 #include "local_lock.h"
@@ -10,6 +10,8 @@
 #define SERVER (0)
 
 typedef struct {
+    volatile uint64_t * metadata;
+    char * gated;
 	uint64_t node_id;
 	int critical_section;
 	int noncritical_section;

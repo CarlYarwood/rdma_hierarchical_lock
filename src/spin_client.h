@@ -1,10 +1,12 @@
-#ifndef SPIN_LOCK_CLIENT_H
-#define SPIN_LOCK_CLIENT_H
+#ifndef SPIN_CLIENT_H
+#define SPIN_CLIENT_H
 #include <time.h>
 #include "spin.h"
 #include "local_lock.h"
 
 typedef struct {
+	volatile uint64_t * sync;
+	char * gated;
 	char * machine_lock_type;
 	char * parent_address;
 	long parent_port;

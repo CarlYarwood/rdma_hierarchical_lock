@@ -1,10 +1,12 @@
-#ifndef TICKET_LOCK_CLIENT_H
-#define TICKET_LOCK_CLIENT_H
+#ifndef TICKET_CLIENT_H
+#define TICKET_CLIENT_H
 #include <time.h>
 #include "ticket.h"
 #include "local_lock.h"
 
 typedef struct {
+	volatile uint64_t * sync;
+	char * gated;
 	uint64_t node_id;
 	char * machine_lock_type;
 	char * parent_address;
