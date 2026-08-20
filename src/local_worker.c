@@ -12,13 +12,13 @@ void* local_worker(void * in) {
 
     switch(*machine_lock_type) {
         case 'm':
-            mcs = ((mcs_client_in *) in)->machine_lock.mcs;
+            mcs = ((local_worker_in *) in)->machine_lock.mcs;
             break;
         case 't':
-            ticket = ((mcs_cleint_in *)in)->machine_lock.ticket;
+            ticket = ((local_worker_in *)in)->machine_lock.ticket;
             break;
         case 's':
-            spin = ((mcs_client_in *)in)->machine_lock.spin;
+            spin = ((local_worker_in *)in)->machine_lock.spin;
             break;
         default:
             //Nothing

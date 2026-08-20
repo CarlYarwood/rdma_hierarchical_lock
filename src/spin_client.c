@@ -415,13 +415,13 @@ void * spin_client(void * in) {
 	clock_t start, end;
 	switch(*machine_lock_type) {
         case 'm':
-            mcs = ((mcs_client_in *) in)->machine_lock.mcs;
+            mcs = ((spin_client_in *) in)->machine_lock.mcs;
             break;
         case 't':
-            ticket = ((mcs_cleint_in *)in)->machine_lock.ticket;
+            ticket = ((spin_client_in *)in)->machine_lock.ticket;
             break;
         case 's':
-            spin = ((mcs_client_in *)in)->machine_lock.spin;
+            spin = ((spin_client_in *)in)->machine_lock.spin;
             break;
         default:
             //Nothing

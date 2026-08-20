@@ -473,13 +473,13 @@ void * ticket_client(void * in) {
 
 	switch(*machine_lock_type) {
         case 'm':
-            mcs = ((mcs_client_in *) in)->machine_lock.mcs;
+            mcs = ((ticket_client_in *) in)->machine_lock.mcs;
             break;
         case 't':
-            ticket = ((mcs_cleint_in *)in)->machine_lock.ticket;
+            ticket = ((ticket_client_in *)in)->machine_lock.ticket;
             break;
         case 's':
-            spin = ((mcs_client_in *)in)->machine_lock.spin;
+            spin = ((ticket_client_in *)in)->machine_lock.spin;
             break;
         default:
             //Nothing
