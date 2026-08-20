@@ -185,14 +185,18 @@ int main(int argc, char ** argv){
             in[i].num_peers = peer_group_sizes[node_peer_group];
             in[i].machine_lock_type = machine_lock_type;
             in[i].gated = gated;
-            if(strcmp(machine_lock_type, "none") != 0) {
-                if(strcmp(machine_lock_type, "mcs") == 0) {
+            switch (*machine_lock_type) {
+                case 'm':
                     in[i].machine_lock.mcs = mcs;
-                }else if(strcmp(machine_lock_type, "ticket") == 0) {
+                    break;
+                case 't':
                     in[i].machine_lock.ticket = ticket;
-                }else if(strcmp(machine_lock_type, "spin") == 0) {
+                    break;
+                case 's':
                     in[i].machine_lock.spin = spin;
-                }
+                    break;
+                default:
+                    // do nothing
             }
             pthread_create(&workers[i], NULL, mcs_client, (void *)&in[i]);
         }
@@ -225,14 +229,18 @@ int main(int argc, char ** argv){
             in[i].num_aquire = num_aquire;
             in[i].machine_lock_type = machine_lock_type;
             in[i].gated = gated;
-            if(strcmp(machine_lock_type, "none") != 0) {
-                if(strcmp(machine_lock_type, "mcs") == 0) {
+            switch (*machine_lock_type) {
+                case 'm':
                     in[i].machine_lock.mcs = mcs;
-                }else if(strcmp(machine_lock_type, "ticket") == 0) {
+                    break;
+                case 't':
                     in[i].machine_lock.ticket = ticket;
-                }else if(strcmp(machine_lock_type, "spin") == 0) {
+                    break;
+                case 's':
                     in[i].machine_lock.spin = spin;
-                }
+                    break;
+                default:
+                    // do nothing
             }
             pthread_create(&workers[i], NULL, ticket_client, (void *)&in[i]);
         }
@@ -265,14 +273,18 @@ int main(int argc, char ** argv){
             in[i].noncritical_section = noncritical_section;
             in[i].num_aquire = num_aquire;
             in[i].gated = gated;
-            if(strcmp(machine_lock_type, "none") != 0) {
-                if(strcmp(machine_lock_type, "mcs") == 0) {
+            switch (*machine_lock_type) {
+                case 'm':
                     in[i].machine_lock.mcs = mcs;
-                }else if(strcmp(machine_lock_type, "ticket") == 0) {
+                    break;
+                case 't':
                     in[i].machine_lock.ticket = ticket;
-                }else if(strcmp(machine_lock_type, "spin") == 0) {
+                    break;
+                case 's':
                     in[i].machine_lock.spin = spin;
-                }
+                    break;
+                default:
+                    // do nothing
             }
             pthread_create(&workers[i], NULL, spin_client, (void *)&in[i]);
         }
