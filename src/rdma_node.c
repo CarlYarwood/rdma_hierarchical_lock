@@ -199,7 +199,7 @@ int main(int argc, char ** argv){
 
         for(int i = 0; i < num_workers; i++) {
             pthread_join(workers[i], NULL);
-            free((void *)in[i]->metadata);
+            free((void *)in[i].metadata);
         }
         destroyMcsLock(mcs);
         destroyTicketLock(ticket);
