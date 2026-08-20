@@ -24,9 +24,9 @@ void lockTicket(ticketLock *lock, uint64_t node_id) {
     lock->next ++;
     pthread_mutex_unlock(lock->lock_mutex);
     do {} while(lock->now != ticket);
-    pthread_mutex_lock(lock->lock_mutex);
-    lock->owner = node_id;
-    pthread_mutex_unlock(lock->lock_mutex);
+    // pthread_mutex_lock(lock->lock_mutex);
+    // lock->owner = node_id;
+    // pthread_mutex_unlock(lock->lock_mutex);
 }
 
 void unlockTicket(ticketLock *lock) {
