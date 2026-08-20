@@ -480,7 +480,7 @@ void* mcs_client(void *in) {
             mcs = ((mcs_client_in *) in)->machine_lock.mcs;
             break;
         case 't':
-            ticket = ((mcs_cleint_in *)in)->machine_lock.ticket;
+            ticket = ((mcs_client_in *)in)->machine_lock.ticket;
             break;
         case 's':
             spin = ((mcs_client_in *)in)->machine_lock.spin;
