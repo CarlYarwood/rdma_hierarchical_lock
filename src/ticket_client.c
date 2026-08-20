@@ -520,7 +520,7 @@ void * ticket_client(void * in) {
         }
 		place = acquire_ticket_lock(ctx, response);
 		if(*gated == 'y'){
-			wait_on_sync(sync)
+			wait_on_sync(sync);
 			*sync = 0;
 		}
 		//work
