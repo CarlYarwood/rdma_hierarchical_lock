@@ -42,11 +42,11 @@ void lockMcs(mcsLock* lock, uint64_t node_id) {
         lock->owner = node_id;
         pthread_mutex_unlock(lock->lock_mutex);
         return;
-    } else {
-        last = (struct mcsQMember *)malloc(sizeof(struct mcsQMember));
-        last->owner = node_id;
-        last->next = NULL;
     }
+    last = (struct mcsQMember *)malloc(sizeof(struct mcsQMember));
+    last->owner = node_id;
+    last->next = NULL;
+
     if (lock->next  == NULL) {
         lock->next = last;
         lock->last = last;
