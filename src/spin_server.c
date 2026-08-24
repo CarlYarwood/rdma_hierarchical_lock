@@ -273,21 +273,16 @@ int notify_spin_clients(struct rdma_cm_id ** id_arr, uint64_t *buffer, int num_c
 
 void *spin_server(void * in) {
     uint64_t *lock = ((spin_server_in *)in)->lock;
-    uint64_t *buffer = NULL;
+    uint64_t *buffer = ((spin_server_in *)in)->buffer;
     int num_children = ((spin_server_in *)in)->num_children;
     volatile int * ready = ((spin_server_in *)in)->ready;
-    int num_conn = 0;
-    int *keepgoing = NULL;
+    int *num_conn = ((spin_server_in *)in)->num_conn;
+    int keepgoing = 1;
 	struct sockaddr_in server_sockaddr;
     struct rdma_event_channel *cm_event_channel = NULL;
     struct rdma_cm_id *cm_server_id = NULL;
     struct rdma_cm_id ** id_arr = ((spin_server_in *)in)->id_arr;
 
-    keepgoing = (int *)malloc(sizeof(int));
-    *keepgoing = 1;
-
-    buffer = (uint64_t *)malloc(sizeof(uint64_t));
-    *buffer = 0;
 	bzero(&server_sockaddr, sizeof server_sockaddr);
 	server_sockaddr.sin_family = AF_INET; /* standard IP NET address */
 	server_sockaddr.sin_addr.s_addr = htonl(INADDR_ANY); /* passed address */
@@ -315,7 +310,7 @@ void *spin_server(void * in) {
 	}
 
     do {
-        if(num_conn == num_children) {
+        if(*num_conn == num_children) {
             printf("All Clients Connected\n");
             do {} while (*ready != 1);
             printf("Server Ready\n");
@@ -382,8 +377,8 @@ void *spin_server(void * in) {
                      perror("Failed to send server metadata \n");
                      return NULL;
                 }
-                num_conn++;
-                *keepgoing = 0;
+                *num_conn++;
+                keepgoing = 0;
                 break;
 
             case RDMA_CM_EVENT_DISCONNECTED :
@@ -401,17 +396,15 @@ void *spin_server(void * in) {
                     return NULL;
                 }
 
-                num_conn--;
+                *num_conn--;
                 break;
             default:
                 rdma_error("Unexpected event received: %s", rdma_event_str(cm_event->event));
 		        rdma_ack_cm_event(cm_event);
 		        return NULL;
         }
-    } while(num_conn > 0 || *keepgoing == 1);
+    } while(*num_conn > 0 || keepgoing == 1);
 
-    free(buffer);
-    free(keepgoing);
 	if (rdma_destroy_id(cm_server_id)) {
 		rdma_error("Failed to destroy server id cleanly, %d \n", -errno);
 	}

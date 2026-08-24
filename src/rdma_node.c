@@ -351,6 +351,10 @@ int main(int argc, char ** argv){
         spin_server_in * in = (spin_server_in *)malloc(sizeof(spin_server_in));
         in->lock = (uint64_t *)malloc(sizeof(uint64_t));
         *(in->lock) = 0;
+        in->buffer = (uint64_t *)malloc(sizeof(uint64_t));
+        *(in->buffer) = 0;
+        in->num_conn = (int *)malloc(sizleof(int *));
+        *(in->num_conn) = 0;
         (in->id_arr) = (struct rdma_cm_id **)malloc(sizeof(struct rdma_cm_id *) * peer_group_sizes[child_peer_group]);
         (in->ready) = (volatile int *)malloc(sizeof(int));
         *(in->ready) = 1;
@@ -361,6 +365,8 @@ int main(int argc, char ** argv){
         pthread_create(workers, NULL, spin_server, (void *)in);
         pthread_join(*workers, NULL);
         free(in->lock);
+        free(in->buffer);
+        free(in->num_conn);
         free(in->id_arr);
         free((void *) in->ready);
         free(in);

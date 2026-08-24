@@ -31,4 +31,12 @@ typedef struct {
 } c_spin_ctx;
 
 void* spin_client(void* in);
+c_spin_ctx* build_client_spin_context(struct rdma_cm_id* client_id, uint64_t *response, volatile uint64_t* sync);
+int destroy_spin_context(c_spin_ctx* ctx);
+int send_client_spin_metadata(c_spin_ctx* ctx);
+int copmare_and_swap(c_spin_ctx* ctx, uint64_t cmp, uint64_t swap);
+int acquire_spin_lock(c_spin_ctx * ctx,uint64_t *node_id, uint64_t *response);
+int release_spin_lock(c_spin_ctx *ctx, uint64_t* node_id, uint64_t *response);
+c_spin_ctx* connect_to_spin_server(struct rdma_event_channel* cm_event_channel, struct sockaddr_in* server_sockaddr,uint64_t* node_id, uint64_t *response, volatile uint64_t *sync);
+int disconnect_from_spin_server(struct rdma_event_channel* cm_event_channel, c_spin_ctx* ctx);
 #endif
