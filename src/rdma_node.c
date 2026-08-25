@@ -136,7 +136,7 @@ int main(int argc, char ** argv){
         spin_cluster_client_in * client_in = (spin_cluster_client_in *)malloc(sizeof(spin_cluster_client_in));
         spin_server_in * server_in = (spin_server_in *)malloc(sizeof(spin_server_in));
 
-        workers = malloc(sizeof(pthread_t) * 2)
+        workers = malloc(sizeof(pthread_t) * 2);
 
         volatile uint64_t * lock = (volatile uint64_t *)malloc(sizeof(uint64_t));
         *lock = 0;
