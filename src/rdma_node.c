@@ -145,7 +145,7 @@ int main(int argc, char ** argv){
         *buffer = 0;
         volatile int * num_conn = (volatile int *)malloc(sizeof(int));
         *num_conn = 0;
-        volatile struct rdma_cm_id ** id_arr = (volatile struct rdma_cm_id **)malloc(sizeof(struct rdma_cm_id *) * peer_group_sizes[child_peer_group]);
+        struct rdma_cm_id ** id_arr = (struct rdma_cm_id **)malloc(sizeof(struct rdma_cm_id *) * peer_group_sizes[child_peer_group]);
         for (int i = 0; i < peer_group_sizes[child_peer_group]; i++) {
             (server_in->id_arr)[i] = NULL;
         }
@@ -178,8 +178,8 @@ int main(int argc, char ** argv){
         free((void *)lock);
         free((void *)buffer);
         free((void *)num_conn);
-        free((void *)id_arr);
         free((void *)ready);
+        free(id_arr);
         free(server_in);
         free(client_in);
         free(server);
@@ -380,7 +380,7 @@ int main(int argc, char ** argv){
         *(in->buffer) = 0;
         in->num_conn = (volatile int *)malloc(sizeof(int));
         *(in->num_conn) = 0;
-        (in->id_arr) = (volatile struct rdma_cm_id **)malloc(sizeof(struct rdma_cm_id *) * peer_group_sizes[child_peer_group]);
+        (in->id_arr) = (struct rdma_cm_id **)malloc(sizeof(struct rdma_cm_id *) * peer_group_sizes[child_peer_group]);
         (in->ready) = (volatile int *)malloc(sizeof(int));
         *(in->ready) = 1;
         for (int i = 0; i < peer_group_sizes[child_peer_group]; i++) {
@@ -392,7 +392,7 @@ int main(int argc, char ** argv){
         free((void *)in->lock);
         free((void *)in->buffer);
         free((void *)in->num_conn);
-        free((void *)in->id_arr);
+        free(in->id_arr);
         free((void *)in->ready);
         free(in);
         free(workers);

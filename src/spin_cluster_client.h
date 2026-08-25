@@ -9,7 +9,7 @@ typedef struct {
 	char * parent_address;
 	long parent_port;
 	uint64_t node_id;
-    volatile struct rdma_cm_id ** id_arr;
+    struct rdma_cm_id ** id_arr;
     volatile uint64_t * lock;
     volatile uint64_t * buffer;
     volatile int * num_conn;

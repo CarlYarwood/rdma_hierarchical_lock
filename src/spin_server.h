@@ -8,7 +8,7 @@ typedef struct {
     volatile int * ready;
     volatile uint64_t * lock;
     volatile uint64_t * buffer;
-    volatile struct rdma_cm_id ** id_arr;
+    struct rdma_cm_id ** id_arr;
 } spin_server_in; 
 
 typedef struct {
