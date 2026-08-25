@@ -188,11 +188,11 @@ int main(int argc, char ** argv){
         pthread_join(*server, NULL);
         pthread_join(*client, NULL);
 
-        free(lock);
-        free(buffer);
-        free(num_conn);
-        free(id_arr);
-        free(ready);
+        free((void *)lock);
+        free((void *)buffer);
+        free((void *)num_conn);
+        free((void *)id_arr);
+        free((void *)ready);
         free(server_in);
         free(client_in);
         free(server);
