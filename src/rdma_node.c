@@ -171,7 +171,7 @@ int main(int argc, char ** argv){
         client_in->handover = handover;
 
         pthread_create(server, NULL, spin_server, (void *)server_in);
-        pthread_create(client, NULL, spin_cluster_client, (void *)client_in);
+        // pthread_create(client, NULL, spin_cluster_client, (void *)client_in);
         pthread_join(*server, NULL);
         pthread_join(*client, NULL);
 
