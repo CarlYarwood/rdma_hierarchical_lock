@@ -262,12 +262,14 @@ int rdma_spin_write(struct rdma_cm_id *client_id, int offset) {
 }
 
 int notify_spin_clients(struct rdma_cm_id ** id_arr, volatile uint64_t *buffer, int num_children) {
+    printf("in notify\n");
     *buffer = 1;
     for (int i = 0; i < num_children ; i++) {
         if(rdma_spin_write(id_arr[i], SPIN_SYNC)){
             printf("Failed to send sync");
         }
     }
+    printf("after notify\n");
     return 0;
 }
 
