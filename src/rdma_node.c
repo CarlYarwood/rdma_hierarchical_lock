@@ -133,18 +133,6 @@ int main(int argc, char ** argv){
 		}
 	}
 
-    typedef struct {
-	    volatile uint64_t * sync;
-	    char * parent_address;
-	    long parent_port;
-	    uint64_t node_id;
-        struct rdma_cm_id ** id_arr;
-        uint64_t * lock;
-        uint64_t * buffer;
-        int * num_conn;
-        int handover;
-    } spin_cluster_client_in;
-
     if(strcmp(is_cluster, "y") == 0){
         spin_cluster_client_in * client_in = (spin_cluster_client_in *)malloc(sizeof(spin_cluster_client_in));
         spin_server_in * server_in = (spin_server_in *)malloc(sizeof(spin_server_in));
@@ -176,7 +164,7 @@ int main(int argc, char ** argv){
         client_in->sync = (volatile uint64_t *)malloc(sizeof(uint64_t));
         *(client_in->sync) = 0;
         client_in->node_id = node_id_start;
-        client_in->parent_address = adresses[parent_peer_group][parent_id];
+        client_in->parent_address = addresses[parent_peer_group][parent_id];
         client_in->parent_port = ports[parent_peer_group][parent_id];
         client_in->lock = lock;
         client_in->buffer = buffer;
