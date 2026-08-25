@@ -50,6 +50,7 @@ void * spin_cluster_client(void * in) {
         }
         if(*lock != last ) {
             last = *lock;
+            printf("%lu\n" last);
             if(*lock != 0) {
                 if(is_locked == 0){
                     acquire_spin_lock(ctx, node_id, response);
