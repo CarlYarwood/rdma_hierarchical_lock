@@ -377,7 +377,7 @@ void *spin_server(void * in) {
                      perror("Failed to send server metadata \n");
                      return NULL;
                 }
-                *num_conn++;
+                (*num_conn)++;
                 keepgoing = 0;
                 break;
 
@@ -396,7 +396,7 @@ void *spin_server(void * in) {
                     return NULL;
                 }
 
-                *num_conn--;
+                (*num_conn)--;
                 break;
             default:
                 rdma_error("Unexpected event received: %s", rdma_event_str(cm_event->event));
