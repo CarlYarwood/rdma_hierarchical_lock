@@ -353,7 +353,7 @@ int main(int argc, char ** argv){
         *(in->lock) = 0;
         in->buffer = (uint64_t *)malloc(sizeof(uint64_t));
         *(in->buffer) = 0;
-        in->num_conn = (int *)malloc(sizleof(int));
+        in->num_conn = (int *)malloc(sizeof(int));
         *(in->num_conn) = 0;
         (in->id_arr) = (struct rdma_cm_id **)malloc(sizeof(struct rdma_cm_id *) * peer_group_sizes[child_peer_group]);
         (in->ready) = (volatile int *)malloc(sizeof(int));
