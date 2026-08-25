@@ -272,11 +272,11 @@ int notify_spin_clients(struct rdma_cm_id ** id_arr, uint64_t *buffer, int num_c
 }
 
 void *spin_server(void * in) {
-    uint64_t *lock = ((spin_server_in *)in)->lock;
-    uint64_t *buffer = ((spin_server_in *)in)->buffer;
+    volatile uint64_t *lock = ((spin_server_in *)in)->lock;
+    volatile uint64_t *buffer = ((spin_server_in *)in)->buffer;
     int num_children = ((spin_server_in *)in)->num_children;
     volatile int * ready = ((spin_server_in *)in)->ready;
-    int *num_conn = ((spin_server_in *)in)->num_conn;
+    volatile int *num_conn = ((spin_server_in *)in)->num_conn;
     int keepgoing = 1;
 	struct sockaddr_in server_sockaddr;
     struct rdma_event_channel *cm_event_channel = NULL;
