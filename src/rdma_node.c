@@ -136,8 +136,7 @@ int main(int argc, char ** argv){
         spin_cluster_client_in * client_in = (spin_cluster_client_in *)malloc(sizeof(spin_cluster_client_in));
         spin_server_in * server_in = (spin_server_in *)malloc(sizeof(spin_server_in));
 
-        pthread_t * server = (pthread_t *)malloc(sizeof(pthread_t));
-        pthread_t * client = (pthread_t *)malloc(sizeof(pthread_t));
+        workers = malloc(sizeof(pthread_t) * 2)
 
         volatile uint64_t * lock = (volatile uint64_t *)malloc(sizeof(uint64_t));
         *lock = 0;
@@ -147,7 +146,7 @@ int main(int argc, char ** argv){
         *num_conn = 0;
         struct rdma_cm_id ** id_arr = (struct rdma_cm_id **)malloc(sizeof(struct rdma_cm_id *) * peer_group_sizes[child_peer_group]);
         for (int i = 0; i < peer_group_sizes[child_peer_group]; i++) {
-            (server_in->id_arr)[i] = NULL;
+            id_arr[i] = NULL;
         }
 
         volatile int * ready = malloc(sizeof(int));
@@ -171,10 +170,10 @@ int main(int argc, char ** argv){
         client_in->handover = handover;
         client_in->ready = ready;
 
-        pthread_create(server, NULL, spin_server, (void *)server_in);
-        // pthread_create(client, NULL, spin_cluster_client, (void *)client_in);
-        pthread_join(*server, NULL);
-        pthread_join(*client, NULL);
+        pthread_create(&workers[0], NULL, spin_server, (void *)server_in);
+        pthread_create(&workers[1], NULL, spin_cluster_client, (void *)client_in);
+        pthread_join(workers[0], NULL);
+        pthread_join(workers[1], NULL);
 
         free((void *)lock);
         free((void *)buffer);
@@ -183,8 +182,7 @@ int main(int argc, char ** argv){
         free(id_arr);
         free(server_in);
         free(client_in);
-        free(server);
-        free(client);
+        free(workers);
         return 0;
     }
 
