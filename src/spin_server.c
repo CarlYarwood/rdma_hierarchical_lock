@@ -77,7 +77,7 @@ s_spin_ctx* build_server_spin_context(struct rdma_cm_id* client_id, volatile uin
         return NULL;
     }
 
-    lock_mr = rdma_buffer_register(pd, lock, sizeof(*lock), (IBV_ACCESS_LOCAL_WRITE|IBV_ACCESS_REMOTE_READ|IBV_ACCESS_REMOTE_WRITE|IBV_ACCESS_REMOTE_ATOMIC));
+    lock_mr = rdma_buffer_register(pd, (uint64_t *)lock, sizeof(*lock), (IBV_ACCESS_LOCAL_WRITE|IBV_ACCESS_REMOTE_READ|IBV_ACCESS_REMOTE_WRITE|IBV_ACCESS_REMOTE_ATOMIC));
     if(!lock_mr){
         rdma_error("Server failed to create lock memory region \n");
         ibv_destroy_cq(cq);
@@ -136,7 +136,7 @@ s_spin_ctx* build_server_spin_context(struct rdma_cm_id* client_id, volatile uin
         return NULL;
     }
 
-    buffer_mr = rdma_buffer_register(pd, buffer, sizeof(uint64_t), (IBV_ACCESS_LOCAL_WRITE));
+    buffer_mr = rdma_buffer_register(pd, (uint64_t *)buffer, sizeof(uint64_t), (IBV_ACCESS_LOCAL_WRITE));
     if(!buffer_mr) {
         rdma_error("Server failed create buffer mr \n");
         rdma_buffer_deregister(lock_mr);
@@ -261,7 +261,7 @@ int rdma_spin_write(struct rdma_cm_id *client_id, int offset) {
 
 }
 
-int notify_spin_clients(struct rdma_cm_id ** id_arr, volatile uint64_t *buffer, int num_children) {
+int notify_spin_clients(volatile struct rdma_cm_id ** id_arr, volatile uint64_t *buffer, int num_children) {
     *buffer = 1;
     for (int i = 0; i < num_children ; i++) {
         if(rdma_spin_write(id_arr[i], SPIN_SYNC)){
