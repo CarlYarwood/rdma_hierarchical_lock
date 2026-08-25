@@ -1,9 +1,8 @@
 #include "mcs_client.h"
 #include "mcs_server.h"
-#include "spin_client.h"
-#include "spin_server.h"
 #include "ticket_client.h"
 #include "ticket_server.h"
+#include "spin_cluster_client.h"
 
 int critical_section = 1;
 int noncritical_section = 1;
