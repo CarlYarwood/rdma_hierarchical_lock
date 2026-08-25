@@ -21,7 +21,7 @@ void * spin_cluster_client(void * in) {
 	clock_t start, end;
     
 
-	*node_id = ((spin_client_in *) in)->node_id;
+	*node_id = ((spin_cluster_client_in *) in)->node_id;
     printf("node id %lu", *node_id);
 
 	bzero(&server_sockaddr, sizeof server_sockaddr);
