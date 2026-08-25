@@ -22,7 +22,6 @@ void * spin_cluster_client(void * in) {
     
 
 	*node_id = ((spin_cluster_client_in *) in)->node_id;
-    printf("node id %lu", *node_id);
 
 	bzero(&server_sockaddr, sizeof server_sockaddr);
     server_sockaddr.sin_family = AF_INET;    
@@ -46,7 +45,7 @@ void * spin_cluster_client(void * in) {
     
     uint64_t last = 0;
     do {
-        if(num_conn > 0) {
+        if(*num_conn > 0) {
             keepgoing = 0;
         }
         if(*lock != last ) {

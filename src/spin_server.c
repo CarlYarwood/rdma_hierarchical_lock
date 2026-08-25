@@ -230,9 +230,7 @@ int clean_up_spin_context(struct rdma_cm_id* client_id) {
 }
 
 int rdma_spin_write(struct rdma_cm_id *client_id, int offset) {
-    printf("in write\n");
     s_spin_ctx* ctx = (s_spin_ctx *) (client_id->context);
-    printf("context aquired\n");
     struct ibv_send_wr write_wr, *bad_write_wr = NULL;
     struct ibv_wc write_wc;
     struct ibv_sge write_sge;
@@ -264,16 +262,12 @@ int rdma_spin_write(struct rdma_cm_id *client_id, int offset) {
 }
 
 int notify_spin_clients(struct rdma_cm_id ** id_arr, volatile uint64_t *buffer, int num_children) {
-    printf("in notify\n");
-    printf("%d\n", num_children);
     *buffer = 1;
     for (int i = 0; i < num_children ; i++) {
-        printf("%d\n", i);
         if(rdma_spin_write(id_arr[i], SPIN_SYNC)){
             printf("Failed to send sync");
         }
     }
-    printf("after notify\n");
     return 0;
 }
 
@@ -317,7 +311,6 @@ void *spin_server(void * in) {
 
     do {
         if(*num_conn == num_children) {
-            printf("%d\n", *num_conn);
             printf("All Clients Connected\n");
             do {} while (*ready != 1);
             printf("Server Ready\n");
