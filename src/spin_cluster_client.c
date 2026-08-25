@@ -65,7 +65,7 @@ void * spin_cluster_client(void * in) {
                 }
             }
         }
-    } while(*num_conn > 0 || keepgoing = 1;)
+    } while(*num_conn > 0 || keepgoing == 1);
     if(is_locked == 1) {
         release_spin_lock(ctx, node_id, response);
     }

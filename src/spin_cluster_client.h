@@ -11,6 +11,7 @@ typedef struct {
     struct rdma_cm_id ** id_arr;
     uint64_t * lock;
     uint64_t * buffer;
+    int * num_conn;
     int handover;
 } spin_cluster_client_in;
 
