@@ -133,6 +133,7 @@ int main(int argc, char ** argv){
 	}
 
     if(strcmp(is_cluster, "y") == 0){
+        printf("%lu", node_id_start);
         spin_cluster_client_in * client_in = (spin_cluster_client_in *)malloc(sizeof(spin_cluster_client_in));
         spin_server_in * server_in = (spin_server_in *)malloc(sizeof(spin_server_in));
 
