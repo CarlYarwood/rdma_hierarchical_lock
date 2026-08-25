@@ -230,6 +230,7 @@ int clean_up_spin_context(struct rdma_cm_id* client_id) {
 }
 
 int rdma_spin_write(struct rdma_cm_id *client_id, int offset) {
+    printf("in write\n");
     s_spin_ctx* ctx = (s_spin_ctx *) (client_id->context);
     struct ibv_send_wr write_wr, *bad_write_wr = NULL;
     struct ibv_wc write_wc;
