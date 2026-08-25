@@ -19,9 +19,6 @@ void * spin_cluster_client(void * in) {
     int is_locked = 0;
     volatile int * ready = ((spin_cluster_client_in *)in)->ready;
 	clock_t start, end;
-    pthread_mutex_t * flush_lock = malloc(sizeof(pthread_mutex_t));
-    pthread_mutex_init(flush_lock, NULL);
-    
 
 	*node_id = ((spin_cluster_client_in *) in)->node_id;
 
@@ -61,12 +58,10 @@ void * spin_cluster_client(void * in) {
                     is_locked = 1;
                 }
                 printf("notifying client %lu\n", *lock);
-                pthread_mutex_lock(flush_lock);
                 *buffer = 1;
                 if(rdma_spin_write(id_arr[*lock - 1], SPIN_SYNC)){
                     printf("Failed to send sync");
                 }
-                pthread_mutex_unlock(flush_lock);
                 if(handover != 0) {
                     handover --;
                 }
@@ -90,7 +85,6 @@ void * spin_cluster_client(void * in) {
 	/* We free the buffers */
 	free(node_id);
 	free(response);
-    pthread_mutex_destroy(flush_lock);
 
 	rdma_destroy_event_channel(cm_event_channel);
     return NULL;

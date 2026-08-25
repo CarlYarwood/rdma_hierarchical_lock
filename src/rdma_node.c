@@ -170,6 +170,7 @@ int main(int argc, char ** argv){
         client_in->num_conn = num_conn;
         client_in->handover = handover;
         client_in->ready = ready;
+        client_in->id_arr = id_arr;
 
         pthread_create(&workers[0], NULL, spin_server, (void *)server_in);
         pthread_create(&workers[1], NULL, spin_cluster_client, (void *)client_in);
