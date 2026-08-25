@@ -317,6 +317,7 @@ void *spin_server(void * in) {
 
     do {
         if(*num_conn == num_children) {
+            printf("%d\n", *num_conn);
             printf("All Clients Connected\n");
             do {} while (*ready != 1);
             printf("Server Ready\n");
