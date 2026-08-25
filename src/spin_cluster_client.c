@@ -19,7 +19,7 @@ void * spin_cluster_client(void * in) {
     int is_locked = 0;
     volatile int * ready = ((spin_cluster_client_in *)in)->ready;
 	clock_t start, end;
-    pthread_mutext_t * lock = malloc(sizeof(pthread_mutext_t));
+    pthread_mutex_t * lock = malloc(sizeof(pthread_mutex_t));
     pthread_mutext_init(lock, NULL);
     
 
@@ -70,7 +70,7 @@ void * spin_cluster_client(void * in) {
                 if(handover != 0) {
                     handover --;
                 }
-                if(handover == 0) {
+                if(handover == 0) {how to initialize a mutex in c
                     printf("releasing lock\n");
                     release_spin_lock(ctx, node_id, response);
                     is_locked = 0;
