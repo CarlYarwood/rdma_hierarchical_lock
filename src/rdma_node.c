@@ -389,11 +389,11 @@ int main(int argc, char ** argv){
         in->num_children = peer_group_sizes[child_peer_group];
         pthread_create(workers, NULL, spin_server, (void *)in);
         pthread_join(*workers, NULL);
-        free(in->lock);
-        free(in->buffer);
-        free(in->num_conn);
-        free(in->id_arr);
-        free((void *) in->ready);
+        free((void *)in->lock);
+        free((void *)in->buffer);
+        free((void *)in->num_conn);
+        free((void *)in->id_arr);
+        free((void *)in->ready);
         free(in);
         free(workers);
         return 0;
