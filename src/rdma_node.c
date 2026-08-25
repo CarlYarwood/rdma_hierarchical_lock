@@ -8,65 +8,64 @@ int critical_section = 1;
 int noncritical_section = 1;
 int num_aquire = 1000;
 
-char * addresses[2][1] = {
+char * addresses[3][1] = {
     {"10.10.1.1"},
-    // {"10.10.1.2"},
+    {"10.10.1.2"},
     {
         "10.10.1.3"
-        // "10.10.1.3",
-        // "10.10.1.3",
-        // "10.10.1.3",
-        // "10.10.1.3",
-        // "10.10.1.3",
-        // "10.10.1.3",
-        // "10.10.1.3",
-        // "10.10.1.3",
-        // "10.10.1.3",
-        // "10.10.1.3",
-        // "10.10.1.3",
-        // "10.10.1.3",
-        // "10.10.1.3",
-        // "10.10.1.3",
-        // "10.10.1.3",
-        // "10.10.1.3",
-        // "10.10.1.3",
-        // "10.10.1.3",
-        // "10.10.1.3"
+        "10.10.1.3",
+        "10.10.1.3",
+        "10.10.1.3",
+        "10.10.1.3",
+        "10.10.1.3",
+        "10.10.1.3",
+        "10.10.1.3",
+        "10.10.1.3",
+        "10.10.1.3",
+        "10.10.1.3",
+        "10.10.1.3",
+        "10.10.1.3",
+        "10.10.1.3",
+        "10.10.1.3",
+        "10.10.1.3",
+        "10.10.1.3",
+        "10.10.1.3",
+        "10.10.1.3",
+        "10.10.1.3"
     }
 };
 
-long ports[2][1] = {
+long ports[3][20] = {
     {DEFAULT_RDMA_PORT},
-    // {DEFAULT_RDMA_PORT},
+    {DEFAULT_RDMA_PORT},
     {
-        DEFAULT_RDMA_PORT
-        // DEFAULT_RDMA_PORT + 1,
-        // DEFAULT_RDMA_PORT + 2,
-        // DEFAULT_RDMA_PORT + 3,
-        // DEFAULT_RDMA_PORT + 4,
-        // DEFAULT_RDMA_PORT + 5,
-        // DEFAULT_RDMA_PORT + 6,
-        // DEFAULT_RDMA_PORT + 7,
-        // DEFAULT_RDMA_PORT + 8,
-        // DEFAULT_RDMA_PORT + 9,
-        // DEFAULT_RDMA_PORT + 10,
-        // DEFAULT_RDMA_PORT + 11,
-        // DEFAULT_RDMA_PORT + 12,
-        // DEFAULT_RDMA_PORT + 13,
-        // DEFAULT_RDMA_PORT + 14,
-        // DEFAULT_RDMA_PORT + 15,
-        // DEFAULT_RDMA_PORT + 16,
-        // DEFAULT_RDMA_PORT + 17,
-        // DEFAULT_RDMA_PORT + 18,
-        // DEFAULT_RDMA_PORT + 19
+        DEFAULT_RDMA_PORT,
+        DEFAULT_RDMA_PORT + 1,
+        DEFAULT_RDMA_PORT + 2,
+        DEFAULT_RDMA_PORT + 3,
+        DEFAULT_RDMA_PORT + 4,
+        DEFAULT_RDMA_PORT + 5,
+        DEFAULT_RDMA_PORT + 6,
+        DEFAULT_RDMA_PORT + 7,
+        DEFAULT_RDMA_PORT + 8,
+        DEFAULT_RDMA_PORT + 9,
+        DEFAULT_RDMA_PORT + 10,
+        DEFAULT_RDMA_PORT + 11,
+        DEFAULT_RDMA_PORT + 12,
+        DEFAULT_RDMA_PORT + 13,
+        DEFAULT_RDMA_PORT + 14,
+        DEFAULT_RDMA_PORT + 15,
+        DEFAULT_RDMA_PORT + 16,
+        DEFAULT_RDMA_PORT + 17,
+        DEFAULT_RDMA_PORT + 18,
+        DEFAULT_RDMA_PORT + 19
     }
 };
 
-int peer_group_sizes[2] = {
+int peer_group_sizes[3] = {
     1,
-    // 1,
-    // 20
-    1
+    1,
+    20
 };
 
 int main(int argc, char ** argv){
