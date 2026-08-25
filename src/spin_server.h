@@ -25,9 +25,9 @@ typedef struct {
 } s_spin_ctx;
 
 void *spin_server(void *);
-s_spin_ctx* build_server_spin_context(struct rdma_cm_id* client_id, uint64_t *lock, uint64_t *buffer, uint64_t * node_id);
+s_spin_ctx* build_server_spin_context(struct rdma_cm_id* client_id, volatile uint64_t *lock, volatile uint64_t *buffer, uint64_t * node_id);
 int send_server_spin_metadata(struct rdma_cm_id* client_id);
 int clean_up_spin_context(struct rdma_cm_id* client_id);
 int rdma_spin_write(struct rdma_cm_id *client_id, int offset);
-int notify_spin_clients(struct rdma_cm_id ** id_arr, uint64_t *buffer, int num_children);
+int notify_spin_clients(struct rdma_cm_id ** id_arr, volatile uint64_t *buffer, int num_children);
 #endif

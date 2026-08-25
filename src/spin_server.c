@@ -1,6 +1,6 @@
 #include "spin_server.h"
 
-s_spin_ctx* build_server_spin_context(struct rdma_cm_id* client_id, uint64_t *lock, uint64_t *buffer, uint64_t * node_id) {
+s_spin_ctx* build_server_spin_context(struct rdma_cm_id* client_id, volatile uint64_t *lock, volatile uint64_t *buffer, uint64_t * node_id) {
     s_spin_ctx* ctx;
     struct ibv_pd* pd = NULL;
     struct ibv_comp_channel* comp = NULL;
@@ -261,7 +261,7 @@ int rdma_spin_write(struct rdma_cm_id *client_id, int offset) {
 
 }
 
-int notify_spin_clients(struct rdma_cm_id ** id_arr, uint64_t *buffer, int num_children) {
+int notify_spin_clients(struct rdma_cm_id ** id_arr, volatile uint64_t *buffer, int num_children) {
     *buffer = 1;
     for (int i = 0; i < num_children ; i++) {
         if(rdma_spin_write(id_arr[i], SPIN_SYNC)){
@@ -281,7 +281,7 @@ void *spin_server(void * in) {
 	struct sockaddr_in server_sockaddr;
     struct rdma_event_channel *cm_event_channel = NULL;
     struct rdma_cm_id *cm_server_id = NULL;
-    struct rdma_cm_id ** id_arr = ((spin_server_in *)in)->id_arr;
+    volatile struct rdma_cm_id ** id_arr = ((spin_server_in *)in)->id_arr;
 
 	bzero(&server_sockaddr, sizeof server_sockaddr);
 	server_sockaddr.sin_family = AF_INET; /* standard IP NET address */
