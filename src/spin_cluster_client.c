@@ -17,6 +17,7 @@ void * spin_cluster_client(void * in) {
     int handover = ((spin_cluster_client_in *)in)->handover;
     int initial_handover_val = handover;
     int is_locked = 0;
+    volatile int * ready = ((spin_cluster_client_in *)in)->ready;
 	clock_t start, end;
     
 
@@ -40,6 +41,7 @@ void * spin_cluster_client(void * in) {
 
     wait_on_sync(sync);
 	*sync = 0;
+    *ready = 1;
     
     uint64_t last = 0;
     do {

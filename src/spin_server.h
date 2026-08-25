@@ -4,11 +4,11 @@
 
 typedef struct {
     int num_children;
-    int *num_conn;
+    volatile int *num_conn;
     volatile int * ready;
-    uint64_t * lock;
-    uint64_t * buffer;
-    struct rdma_cm_id ** id_arr;
+    volatile uint64_t * lock;
+    volatile uint64_t * buffer;
+    volatile struct rdma_cm_id ** id_arr;
 } spin_server_in; 
 
 typedef struct {

@@ -5,13 +5,14 @@
 
 typedef struct {
 	volatile uint64_t * sync;
+    volatile int * ready;
 	char * parent_address;
 	long parent_port;
 	uint64_t node_id;
-    struct rdma_cm_id ** id_arr;
-    uint64_t * lock;
-    uint64_t * buffer;
-    int * num_conn;
+    volatile struct rdma_cm_id ** id_arr;
+    volatile uint64_t * lock;
+    volatile uint64_t * buffer;
+    volatile int * num_conn;
     int handover;
 } spin_cluster_client_in;
 
