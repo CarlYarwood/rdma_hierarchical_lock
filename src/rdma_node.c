@@ -154,7 +154,7 @@ int main(int argc, char ** argv){
 
         volatile uint64_t * lock = (volatile uint64_t *)malloc(sizeof(uint64_t));
         *lock = 0;
-        volatile uint64_t * buffer = (volatile uint64_t *)malloc(sizoef(uint64_t));
+        volatile uint64_t * buffer = (volatile uint64_t *)malloc(sizeof(uint64_t));
         *buffer = 0;
         volatile int * num_conn = (volatile int *)malloc(sizeof(int));
         *num_conn = 0;
