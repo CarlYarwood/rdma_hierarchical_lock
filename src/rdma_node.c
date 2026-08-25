@@ -8,7 +8,7 @@ int critical_section = 1;
 int noncritical_section = 1;
 int num_aquire = 1000;
 
-char * addresses[3][1] = {
+char * addresses[3][20] = {
     {"10.10.1.1"},
     {"10.10.1.2"},
     {
