@@ -85,7 +85,7 @@ int main(int argc, char ** argv){
     char * is_cluster = "n";
     pthread_t * workers;
 
-    while ((option = getopt(argc, argv, "p:n:P:N:l:L:w:c:i:m:g:")) != -1) {
+    while ((option = getopt(argc, argv, "p:n:P:N:l:L:w:c:C:i:m:g:h:")) != -1) {
 		switch (option) {
             case 'p':
                 parent_peer_group = atoi(optarg);
