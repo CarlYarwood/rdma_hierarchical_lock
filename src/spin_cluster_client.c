@@ -90,7 +90,7 @@ void * spin_cluster_client(void * in) {
 	/* We free the buffers */
 	free(node_id);
 	free(response);
-    pthread_mutext_destroy(flush_lock);
+    pthread_mutex_destroy(flush_lock);
 
 	rdma_destroy_event_channel(cm_event_channel);
     return NULL;
