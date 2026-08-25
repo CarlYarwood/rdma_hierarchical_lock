@@ -470,7 +470,6 @@ void * spin_client(void * in) {
 		acquire_spin_lock(ctx, node_id, response);
 
 		if(*gated == 'y') {
-			printf("in gated\n");
 			wait_on_sync(sync);
 			*sync = 0;
 		}
