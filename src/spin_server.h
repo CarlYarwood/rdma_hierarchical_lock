@@ -29,5 +29,5 @@ s_spin_ctx* build_server_spin_context(struct rdma_cm_id* client_id, volatile uin
 int send_server_spin_metadata(struct rdma_cm_id* client_id);
 int clean_up_spin_context(struct rdma_cm_id* client_id);
 int rdma_spin_write(struct rdma_cm_id *client_id, int offset);
-int notify_spin_clients(volatile struct rdma_cm_id ** id_arr, volatile uint64_t *buffer, int num_children);
+int notify_spin_clients(struct rdma_cm_id ** id_arr, volatile uint64_t *buffer, int num_children);
 #endif
