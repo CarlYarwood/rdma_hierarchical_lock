@@ -10,9 +10,9 @@ void * spin_cluster_client(void * in) {
 	uint64_t *node_id = calloc(1, sizeof(uint64_t));
 	volatile uint64_t *sync = ((spin_cluster_client_in *) in)->sync;
     struct rdma_cm_id ** id_arr = ((spin_cluster_client_in *)in)->id_arr;
-    uint64_t * lock = ((spin_cluster_client_in *)in)->lock;
-    uint64_t * buffer = ((spin_cluster_client_in *)in)->buffer;
-    int * num_conn = ((spin_cluster_client_in *)in)->num_conn;
+    volatile uint64_t * lock = ((spin_cluster_client_in *)in)->lock;
+    volatile uint64_t * buffer = ((spin_cluster_client_in *)in)->buffer;
+    volatile int * num_conn = ((spin_cluster_client_in *)in)->num_conn;
     int keepgoing = 1;
     int handover = ((spin_cluster_client_in *)in)->handover;
     int initial_handover_val = handover;
