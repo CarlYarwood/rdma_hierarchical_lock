@@ -50,18 +50,24 @@ void * spin_cluster_client(void * in) {
         }
         if(*lock != last ) {
             last = *lock;
-            printf("%lu\n", last);
+            printf("lock updated to%lu\n", last);
             if(*lock != 0) {
+                printf("lock aquired by %lu\n", *lock);
                 if(is_locked == 0){
+                    printf("aquiring global lock\n");
                     acquire_spin_lock(ctx, node_id, response);
                     is_locked = 1;
                 }
+                printf("notifying client\n");
                 *buffer = 1;
                 if(rdma_spin_write(id_arr[*lock - 1], SPIN_SYNC)){
                     printf("Failed to send sync");
                 }
-                handover --;
+                if(handover != 0) {
+                    handover --;
+                }
                 if(handover == 0) {
+                    printf("releasing lock\n");
                     release_spin_lock(ctx, node_id, response);
                     is_locked = 0;
                     handover = initial_handover_val;
