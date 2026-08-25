@@ -345,6 +345,7 @@ void *spin_server(void * in) {
                 
                 client_id = cm_event->id;
                 *node_id = *((uint64_t *) cm_event->param.conn.private_data);
+                printf("%lu\n", *node_id);
 
                 ctx = build_server_spin_context(client_id, lock, buffer, node_id);
                 if(!ctx) {
