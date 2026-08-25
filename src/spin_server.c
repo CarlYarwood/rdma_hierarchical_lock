@@ -22,7 +22,7 @@ s_spin_ctx* build_server_spin_context(struct rdma_cm_id* client_id, volatile uin
 
     pd = ibv_alloc_pd(client_id->verbs);
     if (!pd) {
-        rdma_error("Failed to allocate a protection domain errno: %d\n", -errno);
+        printf("Failed to allocate a protection domain errno\n");
         free(ctx);
         free(server_metadata_attr);
         return NULL;
@@ -30,7 +30,7 @@ s_spin_ctx* build_server_spin_context(struct rdma_cm_id* client_id, volatile uin
 
     comp = ibv_create_comp_channel(client_id->verbs);
     if(!comp) {
-        rdma_error("Failed to create an I/O completion event channel, %d\n", -errno);
+        printf("Failed to create an I/O completion event channel\n");
         ibv_dealloc_pd(pd);
         free(ctx);
         free(server_metadata_attr);
@@ -39,7 +39,7 @@ s_spin_ctx* build_server_spin_context(struct rdma_cm_id* client_id, volatile uin
 
     cq = ibv_create_cq(client_id->verbs, CQ_CAPACITY, NULL, comp, 0);
     if (!cq) {
-        rdma_error("Failed to create a completion queue (cq), errno: %d\n", -errno);
+        printf("Failed to create a completion queue (cq), errno\n");
         ibv_destroy_comp_channel(comp);
         ibv_dealloc_pd(pd);
         free(ctx);
@@ -48,7 +48,7 @@ s_spin_ctx* build_server_spin_context(struct rdma_cm_id* client_id, volatile uin
     }
 
     if (ibv_req_notify_cq(cq,0)) {
-        rdma_error("Failed to request notifications on CQ errno: %d \n", -errno);
+        printf("Failed to request notifications on CQ errno\n");
         ibv_destroy_cq(cq);
         ibv_destroy_comp_channel(comp);
         ibv_dealloc_pd(pd);
@@ -68,7 +68,7 @@ s_spin_ctx* build_server_spin_context(struct rdma_cm_id* client_id, volatile uin
     qp_init_attr.send_cq = cq;
 
     if (rdma_create_qp(client_id, pd, &qp_init_attr)) {
-        rdma_error("Failed to create QP due to errno: %d\n", -errno);
+        printf("Failed to create QP due to errno\n");
         ibv_destroy_cq(cq);
         ibv_destroy_comp_channel(comp);
         ibv_dealloc_pd(pd);
@@ -79,7 +79,7 @@ s_spin_ctx* build_server_spin_context(struct rdma_cm_id* client_id, volatile uin
 
     lock_mr = rdma_buffer_register(pd, (uint64_t *)lock, sizeof(*lock), (IBV_ACCESS_LOCAL_WRITE|IBV_ACCESS_REMOTE_READ|IBV_ACCESS_REMOTE_WRITE|IBV_ACCESS_REMOTE_ATOMIC));
     if(!lock_mr){
-        rdma_error("Server failed to create lock memory region \n");
+        printf("Server failed to create lock memory region \n");
         ibv_destroy_cq(cq);
         ibv_destroy_comp_channel(comp);
         ibv_dealloc_pd(pd);
@@ -93,7 +93,7 @@ s_spin_ctx* build_server_spin_context(struct rdma_cm_id* client_id, volatile uin
     (*server_metadata_attr).stag.remote_stag = (uint32_t)lock_mr->rkey;
     server_metadata_mr = rdma_buffer_register(pd, server_metadata_attr, sizeof(*server_metadata_attr), (IBV_ACCESS_LOCAL_WRITE));
     if(!server_metadata_mr){
-        rdma_error("Server failed to create server metadata \n");
+        printf("Server failed to create server metadata \n");
         rdma_buffer_deregister(lock_mr);
         ibv_destroy_cq(cq);
         ibv_destroy_comp_channel(comp);
@@ -105,7 +105,7 @@ s_spin_ctx* build_server_spin_context(struct rdma_cm_id* client_id, volatile uin
 
     client_metadata_mr = rdma_buffer_register(pd, client_metadata_attr, sizeof(struct rdma_buffer_attr), (IBV_ACCESS_LOCAL_WRITE));
     if(!client_metadata_mr){
-        rdma_error("Server failed to create client metadata \n");
+        printf("Server failed to create client metadata \n");
         rdma_buffer_deregister(lock_mr);
         rdma_buffer_deregister(server_metadata_mr);
         ibv_destroy_cq(cq);
@@ -124,7 +124,7 @@ s_spin_ctx* build_server_spin_context(struct rdma_cm_id* client_id, volatile uin
     server_recv_wr.sg_list = &server_recv_sge;
     server_recv_wr.num_sge = 1;
     if(ibv_post_recv(client_id->qp, &server_recv_wr, &bad_server_recv_wr)) {
-        rdma_error("Server failed to prepost recv buffer \n");
+        printf("Server failed to prepost recv buffer \n");
         rdma_buffer_deregister(lock_mr);
         rdma_buffer_deregister(server_metadata_mr);
         rdma_buffer_deregister(client_metadata_mr);
@@ -138,7 +138,7 @@ s_spin_ctx* build_server_spin_context(struct rdma_cm_id* client_id, volatile uin
 
     buffer_mr = rdma_buffer_register(pd, (uint64_t *)buffer, sizeof(uint64_t), (IBV_ACCESS_LOCAL_WRITE));
     if(!buffer_mr) {
-        rdma_error("Server failed create buffer mr \n");
+        printf("Server failed create buffer mr \n");
         rdma_buffer_deregister(lock_mr);
         rdma_buffer_deregister(server_metadata_mr);
         rdma_buffer_deregister(client_metadata_mr);
