@@ -1,12 +1,12 @@
 #include "ticket_client.h"
 
-c_ticket_ctx* build_client_ticket_context(struct rdma_cm_id* client_id, uint64_t *response, volatile uint64_t* sync) {
-	c_ticket_ctx *ctx = NULL;
+client_ctx* build_client_ticket_context(struct rdma_cm_id* client_id, volatile uint64_t* metadata, uint64_t *buffer, uint64_t* node_id) {
+	client_ctx *ctx = NULL;
 	struct ibv_pd* pd = NULL;
     struct ibv_comp_channel* comp = NULL;
     struct ibv_cq* cq = NULL;
-	struct ibv_mr *sync_mr = NULL;
-    struct ibv_mr *response_mr = NULL;
+	struct ibv_mr *metadata_mr = NULL;
+    struct ibv_mr *buffer_mr = NULL;
     struct ibv_mr *server_metadata_mr = NULL;
 	struct ibv_mr *client_metadata_mr = NULL;
     struct ibv_qp_init_attr qp_init_attr;
@@ -15,7 +15,7 @@ c_ticket_ctx* build_client_ticket_context(struct rdma_cm_id* client_id, uint64_t
 	struct ibv_sge server_recv_sge;
 	struct ibv_recv_wr server_recv_wr, *bad_server_recv_wr = NULL;
 
-	ctx = (c_ticket_ctx*)malloc(sizeof(c_ticket_ctx));
+	ctx = (client_ctx*)malloc(sizeof(client_ctx));
     server_metadata_attr = (struct rdma_buffer_attr *)malloc(sizeof(struct rdma_buffer_attr));
 	client_metadata_attr = (struct rdma_buffer_attr *)malloc(sizeof(struct rdma_buffer_attr));
 
@@ -79,9 +79,9 @@ c_ticket_ctx* build_client_ticket_context(struct rdma_cm_id* client_id, uint64_t
 	    return NULL;
 	}
 
-    response_mr = rdma_buffer_register(pd, response, sizeof(*response), (IBV_ACCESS_LOCAL_WRITE));
-	if(!response_mr){
-		perror("Failed to setup response mr\n");
+    buffer_mr = rdma_buffer_register(pd, buffer, sizeof(*buffer), (IBV_ACCESS_LOCAL_WRITE));
+	if(!buffer_mr){
+		perror("Failed to setup buffer mr\n");
 		rdma_destroy_qp(client_id);
 		ibv_destroy_cq(cq);
         ibv_destroy_comp_channel(comp);
@@ -96,7 +96,7 @@ c_ticket_ctx* build_client_ticket_context(struct rdma_cm_id* client_id, uint64_t
 	if(!server_metadata_mr){
 		rdma_error("Failed to setup the server metadata mr , -ENOMEM\n");
 		rdma_destroy_qp(client_id);
-		rdma_buffer_deregister(response_mr);
+		rdma_buffer_deregister(buffer_mr);
         ibv_destroy_cq(cq);
         ibv_destroy_comp_channel(comp);
         ibv_dealloc_pd(pd);
@@ -117,7 +117,7 @@ c_ticket_ctx* build_client_ticket_context(struct rdma_cm_id* client_id, uint64_t
 		perror("Failed to pre-post the receive buffer, errno: %d \n");
 		rdma_destroy_qp(client_id);
 		rdma_buffer_deregister(server_metadata_mr);
-		rdma_buffer_deregister(response_mr);
+		rdma_buffer_deregister(buffer_mr);
         ibv_destroy_cq(cq);
         ibv_destroy_comp_channel(comp);
         ibv_dealloc_pd(pd);
@@ -128,12 +128,12 @@ c_ticket_ctx* build_client_ticket_context(struct rdma_cm_id* client_id, uint64_t
 	}
 	debug("Receive buffer pre-posting is successful \n");
 
-	sync_mr = rdma_buffer_register(pd, (void *) sync, sizeof(uint64_t), (IBV_ACCESS_LOCAL_WRITE | IBV_ACCESS_REMOTE_READ | IBV_ACCESS_REMOTE_WRITE | IBV_ACCESS_REMOTE_ATOMIC));
-	if(!sync_mr) {
-		perror("Failed to register sync, errno: %d \n");
+	metadata_mr = rdma_buffer_register(pd, (void *) metadata, sizeof(uint64_t), (IBV_ACCESS_LOCAL_WRITE | IBV_ACCESS_REMOTE_READ | IBV_ACCESS_REMOTE_WRITE | IBV_ACCESS_REMOTE_ATOMIC));
+	if(!metadata_mr) {
+		perror("Failed to register metadata, errno: \n");
 		rdma_destroy_qp(client_id);
 		rdma_buffer_deregister(server_metadata_mr);
-		rdma_buffer_deregister(response_mr);
+		rdma_buffer_deregister(buffer_mr);
         ibv_destroy_cq(cq);
         ibv_destroy_comp_channel(comp);
         ibv_dealloc_pd(pd);
@@ -143,16 +143,16 @@ c_ticket_ctx* build_client_ticket_context(struct rdma_cm_id* client_id, uint64_t
 		return NULL;
 	}
 
-	client_metadata_attr->address = (uint64_t)sync_mr->addr;
-	client_metadata_attr->length = (uint32_t)sync_mr->length;
-	client_metadata_attr->stag.remote_stag = (uint32_t)sync_mr->rkey;
+	client_metadata_attr->address = (uint64_t)metadata_mr->addr;
+	client_metadata_attr->length = (uint32_t)metadata_mr->length;
+	client_metadata_attr->stag.remote_stag = (uint32_t)metadata_mr->rkey;
 	client_metadata_mr = rdma_buffer_register(pd, client_metadata_attr, sizeof(struct rdma_buffer_attr), (IBV_ACCESS_LOCAL_WRITE));
 	if(!client_metadata_mr) {
-		perror("Failed to register client metadata, errno: %d \n");
+		perror("Failed to register client metadata, errno:\n");
 		rdma_destroy_qp(client_id);
-		rdma_buffer_deregister(client_metadata_mr);
+		rdma_buffer_deregister(metadata_mr);
 		rdma_buffer_deregister(server_metadata_mr);
-		rdma_buffer_deregister(response_mr);
+		rdma_buffer_deregister(buffer_mr);
         ibv_destroy_cq(cq);
         ibv_destroy_comp_channel(comp);
         ibv_dealloc_pd(pd);
@@ -162,12 +162,13 @@ c_ticket_ctx* build_client_ticket_context(struct rdma_cm_id* client_id, uint64_t
 		return NULL;
 	}
 
+	ctx->node_id = node_id;
 	ctx->client_id = client_id;
 	ctx->pd = pd;
 	ctx->comp = comp;
 	ctx->cq = cq;
-	ctx->sync_mr = sync_mr;
-	ctx->response_mr = response_mr;
+	ctx->metadata_mr = metadata_mr;
+	ctx->buffer_mr = buffer_mr;
 	ctx->server_metadata_mr = server_metadata_mr;
 	ctx->client_metadata_mr = client_metadata_mr;
 	ctx->server_metadata_attr = server_metadata_attr;
@@ -176,163 +177,33 @@ c_ticket_ctx* build_client_ticket_context(struct rdma_cm_id* client_id, uint64_t
 	return ctx;
 }
 
-int destroy_ticket_context(c_ticket_ctx* ctx){
-	int ret = 0;
-	rdma_destroy_qp(ctx->client_id);
-
-	if (rdma_destroy_id(ctx->client_id)) {
-		rdma_error("Failed to destroy client id cleanly, %d \n", -errno);
-		ret = -1;
-	}
-
-	if (ibv_destroy_cq(ctx->cq)) {
-		rdma_error("Failed to destroy completion queue cleanly, %d \n", -errno);
-		ret = -1;
-	}
-
-	if (ibv_destroy_comp_channel(ctx->comp)) {
-		rdma_error("Failed to destroy completion channel cleanly, %d \n", -errno);
-		ret = -1;
-		// we continue anyways;
-	}
-
-	/* Destroy memory buffers */
-	rdma_buffer_deregister(ctx->server_metadata_mr);
-	rdma_buffer_deregister(ctx->client_metadata_mr);
-	rdma_buffer_deregister(ctx->response_mr);
-	rdma_buffer_deregister(ctx->sync_mr);
-
-	if (ibv_dealloc_pd(ctx->pd)) {
-		rdma_error("Failed to destroy client protection domain cleanly, %d \n", -errno);
-		ret = -1;
-		// we continue anyways;
-	}
-
-	free(ctx->server_metadata_attr);
-	free(ctx->client_metadata_attr);
-
-	return ret;
-}
-
-int send_client_ticket_metadata(c_ticket_ctx* ctx) {
-	struct ibv_wc wc;
-	struct ibv_sge client_send_sge;
-	struct ibv_send_wr client_send_wr, *bad_client_send_wr = NULL;
-
-	client_send_sge.addr = (uint64_t)(ctx->client_metadata_attr);
-	client_send_sge.length = (uint32_t) sizeof(struct rdma_buffer_attr);
-	client_send_sge.lkey = (uint32_t) (ctx->client_metadata_mr)->lkey;
-
-	bzero(&client_send_wr, sizeof(client_send_wr));
-	client_send_wr.sg_list = &client_send_sge;
-	client_send_wr.num_sge = 1;
-	client_send_wr.opcode = IBV_WR_SEND;
-	client_send_wr.send_flags = IBV_SEND_SIGNALED;
-
-	if(ibv_post_send((ctx->client_id)->qp, &client_send_wr, &bad_client_send_wr)){
-		rdma_error("Posting of client metdata failed, errno: %d \n", -errno);
-	    return -errno;
-	}
-
-	if ( process_work_completion_events(ctx->cq, &wc, 2) != 2) {
-	    perror("Failed to send client metadata, ret = %d \n");
-	    return -1;
-    }
-	return 0;
-}
-
-int ticket_fetch_and_add(c_ticket_ctx* ctx, int offset) {
-    int ret = -1;
-    struct ibv_send_wr cas_wr, *bad_cas_wr = NULL;
-    struct ibv_wc cas_wc;
-    struct ibv_sge cas_sge;
-
-    cas_sge.addr = (uint64_t) (ctx->response_mr)->addr;
-    cas_sge.length = (uint64_t) (ctx->response_mr)->length;
-    cas_sge.lkey = (uint64_t) (ctx->response_mr)->lkey;
-    
-    bzero(&cas_wr, sizeof(cas_wr));
-    cas_wr.sg_list = &cas_sge;
-    cas_wr.num_sge = 1;
-    cas_wr.opcode = IBV_WR_ATOMIC_FETCH_AND_ADD;
-    cas_wr.wr.atomic.rkey = (ctx->server_metadata_attr)->stag.remote_stag;
-    cas_wr.wr.atomic.remote_addr = (ctx->server_metadata_attr)->address + sizeof(uint64_t) * offset;
-    cas_wr.wr.atomic.compare_add = 1;
-    cas_wr.send_flags = IBV_SEND_SIGNALED;
-
-    ret = ibv_post_send((ctx->client_id)->qp, &cas_wr, &bad_cas_wr);
-    if(ret) {
-        perror("Failed to send cas\n");
-        return 1;
-    }
-    ret = process_work_completion_events(ctx->cq, &cas_wc, 1);
-    if (ret != 1) {
-        perror("We failed to get 1 work completions\n");
-        return 1;
-    }
-    return 0;
-}
-
-int rdma_read(c_ticket_ctx *ctx, int offset) {
-	int ret = -1;
-    struct ibv_send_wr read_wr, *bad_read_wr = NULL;
-    struct ibv_wc read_wc;
-    struct ibv_sge read_sge;
-
-    read_sge.addr = (uint64_t) (ctx->response_mr)->addr;
-    read_sge.length = (uint64_t) (ctx->response_mr)->length;
-    read_sge.lkey = (uint64_t)(ctx->response_mr)->lkey;
-
-	bzero(&read_wr, sizeof(read_wr));
-    read_wr.sg_list = &read_sge;
-    read_wr.num_sge = 1;
-    read_wr.opcode = IBV_WR_RDMA_READ;
-	read_wr.send_flags = IBV_SEND_SIGNALED;
-
-	read_wr.wr.rdma.rkey = (ctx->server_metadata_attr)->stag.remote_stag;
-    read_wr.wr.rdma.remote_addr = (ctx->server_metadata_attr)->address + sizeof(uint64_t) * offset;
-
-	ret = ibv_post_send((ctx->client_id)->qp, &read_wr, &bad_read_wr);
-    if(ret) {
-        perror("Failed to send read\n");
-        return 1;
-    }
-    ret = process_work_completion_events(ctx->cq, &read_wc, 1);
-    if (ret != 1) {
-        perror("We failed to get 1 work completions\n");
-        return 1;
-    }
-    return 0;
-
-}
-
-uint64_t acquire_ticket_lock(c_ticket_ctx*  ctx, uint64_t *response) {
+uint64_t acquire_ticket_lock(struct rdma_cm_id*  ic, uint64_t *buffer) {
 	int test = 1;
 	uint64_t ticket;
 	do {
-		test = ticket_fetch_and_add(ctx, NEXT);
+		test = fetch_and_add(id, NEXT);
 	} while(test != 0);
-	ticket = *response;
+	ticket = *buffer;
 	do {
-		if(rdma_read(ctx, NOW) != 0) {
+		if(rdma_read(id, NOW) != 0) {
 			printf("read fail\n");
 		}
-	} while(ticket != *response);
+	} while(ticket != *buffer);
 
 	return ticket;
 }
 
-int release_ticket_lock(c_ticket_ctx* ctx, uint64_t ticket, uint64_t *response) {
-	ticket_fetch_and_add(ctx, NOW);
-    if(*response != ticket) {
+int release_ticket_lock(struct rdma_cm_id* id, uint64_t ticket, uint64_t *buffer) {
+	fetch_and_add(id, NOW);
+    if(*buffer != ticket) {
         perror("de-latch failed\n");
         return -1;
     }
 	return 0;
 }
 
-c_ticket_ctx* connect_to_ticket_server(struct rdma_event_channel* cm_event_channel, struct sockaddr_in* server_sockaddr, uint64_t *node_id, uint64_t *response, volatile uint64_t* sync) {
-	c_ticket_ctx *ctx = NULL;
+struct rdma_cm_id* connect_to_ticket_server(struct rdma_event_channel* cm_event_channel, struct sockaddr_in* server_sockaddr, uint64_t *node_id, uint64_t *buffer, volatile uint64_t* metadata) {
+	client_ctx *ctx = NULL;
 	struct rdma_cm_id *cm_client_id = NULL;
 	struct rdma_cm_event *cm_event = NULL;
 	struct rdma_conn_param conn_param;
@@ -364,11 +235,13 @@ c_ticket_ctx* connect_to_ticket_server(struct rdma_event_channel* cm_event_chann
 	}
 	debug("waiting for cm event: RDMA_CM_EVENT_ROUTE_RESOLVED\n");
 
-	ctx = build_client_ticket_context(cm_client_id, response, sync);
+	ctx = build_client_ticket_context(cm_client_id, metadata,  buffer, node_id);
 	if (!ctx) {
 		perror("Failed to build context\n");
 		return NULL;
 	}
+
+	cm_client_id->context = (void *)ctx;
 
 	if (process_rdma_cm_event(cm_event_channel, RDMA_CM_EVENT_ROUTE_RESOLVED, &cm_event)) {
 		perror("Failed to receive a valid event, ret = %d \n");
@@ -388,7 +261,7 @@ c_ticket_ctx* connect_to_ticket_server(struct rdma_event_channel* cm_event_chann
 	conn_param.retry_count = 3;
 	conn_param.private_data = (void *) node_id;
     conn_param.private_data_len = sizeof(uint64_t);
-	if (rdma_connect(ctx->client_id, &conn_param)) {
+	if (rdma_connect(cm_client_id, &conn_param)) {
 		rdma_error("Failed to connect to remote host , errno: %d\n", -errno);
 		return NULL;
 	}
@@ -404,72 +277,37 @@ c_ticket_ctx* connect_to_ticket_server(struct rdma_event_channel* cm_event_chann
 		return NULL;
 	}
 
-	if(send_client_ticket_metadata(ctx)) {
+	if(send_client_metadata(cm_client_id)) {
 		perror("Failed to send client metadata.\n");
 		return NULL;
 	}
 
-	return ctx;
-}
-
-int disconnect_from_ticket_server(struct rdma_event_channel* cm_event_channel, c_ticket_ctx* ctx){
-	struct rdma_cm_event *cm_event = NULL;
-	int ret = 0;
-	if (rdma_disconnect(ctx->client_id)) {
-		rdma_error("Failed to disconnect, errno: %d \n", -errno);
-		ret = -1;
-		//continuing anyways
-	}
-	if (process_rdma_cm_event(cm_event_channel, RDMA_CM_EVENT_DISCONNECTED, &cm_event)) {
-		perror("Failed to get RDMA_CM_EVENT_DISCONNECTED event, ret = %d\n");
-		ret = -1;
-		//continuing anyways 
-	}
-	if (rdma_ack_cm_event(cm_event)) {
-		rdma_error("Failed to acknowledge cm event, errno: %d\n", -errno);
-		ret = -1;
-		//continuing anyways
-	}
-			
-	if(destroy_ticket_context(ctx)) {
-		perror("Failed to detroy context fully");
-		ret = -1;
-	}
-
-	free(ctx);
-
-	return ret;
+	return cm_client_id;
 }
 
 void * ticket_client(void * in) {
 	struct sockaddr_in server_sockaddr;
-	c_ticket_ctx *ctx = NULL;
+	client_ctx *ctx = NULL;
 	spinLock * spin = NULL;
     ticketLock * ticket = NULL;
     mcsLock * mcs = NULL;
-	uint64_t * node_id = NULL;
+	uint64_t * node_id = (uint64_t *)malloc(sizeof(uint64_t));
 	struct rdma_event_channel *cm_event_channel = NULL;
 	char * machine_lock_type = ((ticket_client_in *)in)->machine_lock_type;
 	char * parent_address = ((ticket_client_in *)in)->parent_address;
-	char * gated = ((ticket_client_in *)in)->gated;
 	long parent_port = ((ticket_client_in *)in)->parent_port;
-	uint64_t *response = calloc(1, sizeof(uint64_t));
-	volatile uint64_t *sync = ((ticket_client_in *)in)->sync;
+	uint64_t *buffer = (uint64_t *)malloc(sizeof(uint64_t));
+	volatile uint64_t *metadata = (volatile uint64_t *)malloc(sizeof(uint64_t));
 	int critical_section = ((ticket_client_in *) in)->critical_section;
 	int noncritical_section = ((ticket_client_in *) in)->noncritical_section;
 	int num_aquire = ((ticket_client_in *) in)->num_aquire;
 	clock_t start, end;
 
-	node_id = (uint64_t *)malloc(sizeof(uint64_t));
 	*node_id = ((ticket_client_in *)in)->node_id;
 
-	bzero(&server_sockaddr, sizeof server_sockaddr);
-    server_sockaddr.sin_family = AF_INET;    
-    if (get_addr(parent_address, (struct sockaddr*) &server_sockaddr)) {
-		rdma_error("Invalid IP \n");
-		return NULL;
-	}
-    server_sockaddr.sin_port = htons(parent_port);
+	*metadata = 0;
+
+	server_sockaddr = build_sockaddr(parent_address, parent_port);
 
 	switch(*machine_lock_type) {
         case 'm':
@@ -491,10 +329,10 @@ void * ticket_client(void * in) {
 		return NULL;
 	}
 
-	ctx = connect_to_ticket_server(cm_event_channel, &server_sockaddr, node_id, response, sync);
+	ctx = connect_to_ticket_server(cm_event_channel, &server_sockaddr, node_id, buffer, metadata);
 
-	wait_on_sync(sync);
-	*sync = 0;
+	wait_on_data(metadata, 1);
+	*metadata = 0;
 
 	
 	start = clock();
@@ -518,17 +356,14 @@ void * ticket_client(void * in) {
             default:
                 //Nothing
         }
-		place = acquire_ticket_lock(ctx, response);
-		if(*gated == 'y'){
-			wait_on_sync(sync);
-			*sync = 0;
-		}
+		place = acquire_ticket_lock(ctx, buffer);
+
 		//work
 		for (int c = 0; c < critical_section; c++) {
 			noop(&c);
 		}
 		//unlock
-		release_ticket_lock(ctx, place, response);
+		release_ticket_lock(ctx, place, buffer);
 		switch(*machine_lock_type) {
             case 'm':
                 unlockMcs(mcs);
@@ -545,10 +380,12 @@ void * ticket_client(void * in) {
 	}
 	end = clock();
 
-	disconnect_from_ticket_server(cm_event_channel, ctx);
+	disconnect_client(cm_event_channel, ctx);
 	rdma_destroy_event_channel(cm_event_channel);
 	/* We free the buffers */
-	free(response);
+	free(metadata);
+	free(buffer);
+	free(node_id);
 
 	printf("%f\n",((double)(num_aquire * critical_section))/((double)(end-start)/CLOCKS_PER_SEC));
 	return NULL;

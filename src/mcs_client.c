@@ -1,7 +1,7 @@
 #include "mcs_client.h"
 
-c_mcs_ctx* build_mcs_context(struct rdma_cm_id* client_id, volatile uint64_t *metadata, uint64_t *buffer, uint64_t* node_id) {
-    c_mcs_ctx* ctx;
+client_ctx* build_mcs_context(struct rdma_cm_id* client_id, volatile uint64_t *metadata, uint64_t *buffer, uint64_t* node_id) {
+    client_ctx* ctx;
     struct ibv_pd* pd = NULL;
     struct ibv_comp_channel* comp = NULL;
     struct ibv_cq* cq = NULL;
@@ -16,7 +16,7 @@ c_mcs_ctx* build_mcs_context(struct rdma_cm_id* client_id, volatile uint64_t *me
     struct ibv_sge server_recv_sge;
     struct ibv_recv_wr server_recv_wr, *bad_server_recv_wr = NULL;
     
-    ctx = (c_mcs_ctx*)malloc(sizeof(c_mcs_ctx));
+    ctx = (client_ctx*)malloc(sizeof(client_ctx));
     server_metadata_attr = (struct rdma_buffer_attr *)malloc(sizeof(struct rdma_buffer_attr));
     client_metadata_attr = (struct rdma_buffer_attr *) malloc(sizeof(struct rdma_buffer_attr));
 
@@ -174,101 +174,6 @@ c_mcs_ctx* build_mcs_context(struct rdma_cm_id* client_id, volatile uint64_t *me
     return ctx;
 }
 
-int send_client_mcs_metadata(struct rdma_cm_id* client_id) {
-    c_mcs_ctx * ctx = (c_mcs_ctx *) client_id->context;
-    struct ibv_wc wc;
-    struct ibv_sge server_send_sge;
-    struct ibv_send_wr server_send_wr, *bad_server_send_wr = NULL;
-
-    server_send_sge.addr = (uint64_t)(ctx->client_metadata_attr);
-    server_send_sge.length = sizeof(*(ctx->client_metadata_attr));
-    server_send_sge.lkey = (ctx->client_metadata_mr)->lkey;
-
-    bzero(&server_send_wr, sizeof(server_send_wr));
-    server_send_wr.sg_list = &server_send_sge;
-    server_send_wr.num_sge = 1;
-    server_send_wr.opcode = IBV_WR_SEND;
-    server_send_wr.send_flags = IBV_SEND_SIGNALED;
-
-    if (ibv_post_send(client_id->qp, &server_send_wr, &bad_server_send_wr)) {
-	    rdma_error("Posting of server metdata failed, errno: %d \n", -errno);
-	    return -errno;
-    }
-
-    if (process_work_completion_events(ctx->cq, &wc, 2) != 2) {
-	    perror("Failed to send server metadata, ret = %d \n");
-	    return -1;
-    }
-    return 0;
-}
-
-int compare_and_swap(struct rdma_cm_id* client_id, uint64_t cmp, uint64_t swap, int offset) {
-	c_mcs_ctx* ctx = (c_mcs_ctx *)client_id->context;
-    uint64_t ret = -1;
-    struct ibv_send_wr cas_wr, *bad_cas_wr = NULL;
-    struct ibv_wc cas_wc;
-    struct ibv_sge cas_sge;
-
-    cas_sge.addr = (uint64_t) (ctx->buffer_mr)->addr;
-    cas_sge.length = (uint64_t) (ctx->buffer_mr)->length;
-    cas_sge.lkey = (uint64_t)(ctx->buffer_mr)->lkey;
-    
-    bzero(&cas_wr, sizeof(cas_wr));
-    cas_wr.sg_list = &cas_sge;
-    cas_wr.num_sge = 1;
-    cas_wr.opcode = IBV_WR_ATOMIC_CMP_AND_SWP;
-    cas_wr.wr.atomic.rkey = (ctx->server_metadata_attr)->stag.remote_stag;
-    cas_wr.wr.atomic.remote_addr = (ctx->server_metadata_attr)->address + (sizeof(uint64_t) * offset);
-    cas_wr.wr.atomic.compare_add = cmp;
-    cas_wr.wr.atomic.swap = swap;
-    cas_wr.send_flags = IBV_SEND_SIGNALED;
-
-    ret = ibv_post_send(client_id->qp, &cas_wr, &bad_cas_wr);
-    if(ret) {
-        perror("Failed to send cas\n");
-        return 1;
-    }
-
-    if (process_work_completion_events(ctx->cq, &cas_wc, 1) != 1) {
-        perror("We failed to get 1 work completions\n");
-        return 1;
-    }
-    return 0;
-}
-
-int mcs_fetch_and_add(struct rdma_cm_id* client_id, int offset) {
-	c_mcs_ctx* ctx = (c_mcs_ctx *)client_id->context;
-    int ret = -1;
-    struct ibv_send_wr cas_wr, *bad_cas_wr = NULL;
-    struct ibv_wc cas_wc;
-    struct ibv_sge cas_sge;
-
-    cas_sge.addr = (uint64_t) (ctx->buffer_mr)->addr;
-    cas_sge.length = (uint64_t) (ctx->buffer_mr)->length;
-    cas_sge.lkey = (uint64_t) (ctx->buffer_mr)->lkey;
-    
-    bzero(&cas_wr, sizeof(cas_wr));
-    cas_wr.sg_list = &cas_sge;
-    cas_wr.num_sge = 1;
-    cas_wr.opcode = IBV_WR_ATOMIC_FETCH_AND_ADD;
-    cas_wr.wr.atomic.rkey = (ctx->server_metadata_attr)->stag.remote_stag;
-    cas_wr.wr.atomic.remote_addr = (ctx->server_metadata_attr)->address + (sizeof(uint64_t) * offset);
-    cas_wr.wr.atomic.compare_add = 1;
-    cas_wr.send_flags = IBV_SEND_SIGNALED;
-
-    ret = ibv_post_send(client_id->qp, &cas_wr, &bad_cas_wr);
-    if(ret) {
-        perror("Failed to send cas\n");
-        return 1;
-    }
-    ret = process_work_completion_events(ctx->cq, &cas_wc, 1);
-    if (ret != 1) {
-        perror("We failed to get 1 work completions\n");
-        return 1;
-    }
-    return 0;
-}
-
 int acquire_mcs_lock(struct rdma_cm_id ** id_arr, uint64_t *node_id, uint64_t *buffer, volatile uint64_t* metadata) {
     metadata[NEXT] = 0;
     metadata[NOTIFY] = 0;
@@ -301,14 +206,14 @@ int release_mcs_lock(struct rdma_cm_id** id_arr, uint64_t* node_id, uint64_t *bu
     return 0;
 }
 
-struct rdma_cm_id* mcs_connect(struct sockaddr_in* server_sockaddr, struct rdma_event_channel* cm_event_channel, uint64_t *node_id, uint64_t client_node_id, uint64_t *buffer, volatile uint64_t *metadata) {
-	c_mcs_ctx *ctx = NULL;
+struct rdma_cm_id* connect_to_peer(struct sockaddr_in* server_sockaddr, struct rdma_event_channel* cm_event_channel, uint64_t *node_id, uint64_t peer_id, uint64_t *buffer, volatile uint64_t *metadata) {
+	client_ctx *ctx = NULL;
 	struct rdma_cm_id *cm_client_id = NULL;
 	struct rdma_cm_event *cm_event = NULL;
 	struct rdma_conn_param conn_param;
 	struct ibv_wc wc;
-	uint64_t* c_node_id = (uint64_t *)malloc(sizeof(uint64_t));
-	*c_node_id = client_node_id;
+	uint64_t* p_node_id = (uint64_t *)malloc(sizeof(uint64_t));
+	*p_node_id = peer_id;
 	
 	if (rdma_create_id(cm_event_channel, &cm_client_id, NULL, RDMA_PS_TCP)) {
 		rdma_error("Creating cm id failed with errno: %d \n", -errno); 
@@ -325,7 +230,7 @@ struct rdma_cm_id* mcs_connect(struct sockaddr_in* server_sockaddr, struct rdma_
 		return NULL;
 	}
 
-	ctx = build_mcs_context(cm_client_id, metadata, buffer, c_node_id);
+	ctx = build_mcs_context(cm_client_id, metadata, buffer, p_node_id);
 	if (!ctx) {
 		perror("Failed to build context\n");
 		return NULL;
@@ -375,7 +280,7 @@ struct rdma_cm_id* mcs_connect(struct sockaddr_in* server_sockaddr, struct rdma_
 		return NULL;
 	}
 
-    if(send_client_mcs_metadata(cm_client_id)) {
+    if(send_client_metadata(cm_client_id)) {
         perror("Failed to send client metadata\n");
         return NULL;
     }
@@ -383,84 +288,15 @@ struct rdma_cm_id* mcs_connect(struct sockaddr_in* server_sockaddr, struct rdma_
 	return cm_client_id;
 }
 
-int clean_up_context(struct rdma_cm_id* client_id) {
-    c_mcs_ctx *ctx = (c_mcs_ctx *)client_id->context;
-    rdma_destroy_qp(client_id);
-
-    if (rdma_destroy_id(client_id)) {
-	    printf("Failed to destroy client id cleanly, %d \n", -errno);
-        return -errno;
-	}
-
-    if (ibv_destroy_cq(ctx->cq)) {
-        printf("Failed to destroy completion queue cleanly, %d \n", -errno);
-        return -errno;
-    }
-
-    if (ibv_destroy_comp_channel(ctx->comp)) {
-        printf("Failed to destroy completion channel cleanly, %d \n", -errno);
-        return -errno;
-    }
-
-    rdma_buffer_deregister(ctx->buffer_mr);
-    rdma_buffer_deregister(ctx->metadata_mr);
-    rdma_buffer_deregister(ctx->server_metadata_mr);
-    rdma_buffer_deregister(ctx->client_metadata_mr);
-
-
-    if (ibv_dealloc_pd(ctx->pd)) {
-        printf("Failed to destroy client protection domain cleanly, %d \n", -errno);
-        return -errno;
-    }
-    free(ctx->node_id);
-    free(ctx->server_metadata_attr);
-    free(ctx->client_metadata_attr);
-    free(ctx);
-    return 0;
-}
-
-int mcs_disconnect(struct rdma_cm_id* client_id, struct rdma_event_channel* cm_event_channel){
-	struct rdma_cm_event *cm_event = NULL;
-	int ret = 0;
-	if (rdma_disconnect(client_id)) {
-		rdma_error("Failed to disconnect, errno: %d \n", -errno);
-		ret = -1;
-		//continuing anyways
-	}
-
-	if (process_rdma_cm_event(cm_event_channel, RDMA_CM_EVENT_DISCONNECTED, &cm_event)) {
-		perror("Failed to get RDMA_CM_EVENT_DISCONNECTED event, ret = %d\n");
-		ret = -1;
-		//continuing anyways 
-	}
-	if (rdma_ack_cm_event(cm_event)) {
-		rdma_error("Failed to acknowledge cm event, errno: %d\n", -errno);
-		ret = -1;
-		//continuing anyways
-	}
-			
-	if(clean_up_context(client_id)) {
-		perror("Failed to detroy context fully");
-		ret = -1;
-	}
-
-	return ret;
-}
-
-void wait_on_data(volatile uint64_t *data, uint64_t val) {
-	do {} while(*data != val);
-}
-
 void* mcs_client(void *in) {
-    volatile uint64_t *metadata = ((mcs_client_in *)in)->metadata;
+    volatile uint64_t *metadata = (volatile uint64_t *)malloc(sizeof(uint64_t) * 3);
 	uint64_t *buffer = NULL;
-	uint64_t *node_id = calloc(1, sizeof(uint64_t));
+	uint64_t *node_id = (uint64_t *)malloc(sizeof(uint64_t));
     spinLock * spin = NULL;
     ticketLock * ticket = NULL;
     mcsLock * mcs = NULL;
     char * machine_lock_type = ((mcs_client_in *)in)->machine_lock_type;
     char * parent_address = ((mcs_client_in *)in)->parent_address;
-    char * gated = ((mcs_client_in *)in)->gated;
     long parent_port = ((mcs_client_in *)in)->parent_port;
     char ** peer_addresses = ((mcs_client_in *)in)->peer_addresses;
     long * peer_ports = ((mcs_client_in *)in)->peer_ports;
@@ -475,6 +311,9 @@ void* mcs_client(void *in) {
     struct rdma_cm_id ** id_arr;
 	clock_t start, end;
 
+    metadata[NEXT] = 0;
+    metadata[NOTIFY] = 0;
+    metadata[MCS_SYNC] = 0;
     switch(*machine_lock_type) {
         case 'm':
             mcs = ((mcs_client_in *) in)->machine_lock.mcs;
@@ -522,15 +361,10 @@ void* mcs_client(void *in) {
 		rdma_error("rdma_listen failed to listen on server address, errno: %d ", -errno);
 		return NULL;
 	}
+
+    server_sockaddr = build_sockaddr(parent_address, parent_port);
 	
-    bzero(&server_sockaddr, sizeof server_sockaddr);
-    server_sockaddr.sin_family = AF_INET;    
-    if (get_addr(parent_address, (struct sockaddr*) &server_sockaddr)) {
-		rdma_error("Invalid IP \n");
-		return NULL;
-	}
-    server_sockaddr.sin_port = htons(parent_port);
-	id_arr[SERVER] = mcs_connect(&server_sockaddr, cm_event_channel, node_id, SERVER, buffer, metadata);
+	id_arr[SERVER] = connect_to_peer(&server_sockaddr, cm_event_channel, node_id, SERVER, buffer, metadata);
 
     wait_on_data(&metadata[MCS_SYNC], 1);
 
@@ -551,16 +385,15 @@ void* mcs_client(void *in) {
 
         switch (cm_event->event){
             case RDMA_CM_EVENT_CONNECT_REQUEST :
-                c_mcs_ctx* ctx = NULL;
+                client_ctx* ctx = NULL;
                 struct rdma_conn_param conn_param;
-                uint64_t* client_node_id;
+                uint64_t* peer_id = (uint64_t *) malloc(sizeof(uint64_t));
 
-                client_node_id = (uint64_t *) malloc(sizeof(uint64_t));
                 
                 client_id = cm_event->id;
-                *client_node_id = *((uint64_t *) cm_event->param.conn.private_data);
+                *peer_id = *((uint64_t *) cm_event->param.conn.private_data);
 
-                ctx = build_mcs_context(client_id, metadata, buffer, client_node_id);
+                ctx = build_mcs_context(client_id, metadata, buffer, peer_id);
                 if(!ctx) {
                     rdma_ack_cm_event(cm_event);
                     perror("Failed to build client Context\n");
@@ -569,7 +402,7 @@ void* mcs_client(void *in) {
 
                 (client_id)->context = (void *)ctx;
 
-                id_arr[*client_node_id] = client_id;
+                id_arr[*peer_id] = client_id;
 
                 if (rdma_ack_cm_event(cm_event)) {
                     rdma_error("Failed to acknowledge the cm event errno: %d \n", -errno);
@@ -594,7 +427,7 @@ void* mcs_client(void *in) {
 		            return NULL;
 	            }
 
-                if(send_client_mcs_metadata(client_id)) {
+                if(send_client_metadata(client_id)) {
                      perror("Failed to send server metadata \n");
                      return NULL;
                 }
@@ -610,18 +443,12 @@ void* mcs_client(void *in) {
 
 	for (int i = (*node_id) + 1; i < num_peers + 1; i++) {
         struct sockaddr_in client_sockaddr;
-        bzero(&client_sockaddr, sizeof client_sockaddr);
-        client_sockaddr.sin_family = AF_INET;
-        if(get_addr(peer_addresses[i - 1], (struct sockaddr*) &client_sockaddr)) {
-            rdma_error("Invalid IP \n");
-            return NULL;
-        }
-        client_sockaddr.sin_port = htons(peer_ports[i - 1]);
+        client_sockaddr = build_sockaddr(peer_addresses[i-1], peer_ports[i-1]);
 
-        id_arr[i] = mcs_connect(&client_sockaddr, cm_event_channel, node_id, i, buffer, metadata);
+        id_arr[i] = connect_to_peer(&client_sockaddr, cm_event_channel, node_id, i, buffer, metadata);
     }
 
-    mcs_fetch_and_add(id_arr[SERVER], READY);
+    fetch_and_add(id_arr[SERVER], READY);
 
 	wait_on_data(&metadata[MCS_SYNC], 2);
     metadata[MCS_SYNC] = 0;
@@ -651,10 +478,6 @@ void* mcs_client(void *in) {
         }
         
 		acquire_mcs_lock(id_arr, node_id, buffer, metadata);
-        if(*gated == 'y'){
-            wait_on_data(&metadata[MCS_SYNC], 1);
-            metadata[MCS_SYNC] = 0;
-        }
 		// work
 		for (int c = 0; c < critical_section; c++) {
 			noop(&c);
@@ -703,9 +526,9 @@ void* mcs_client(void *in) {
 		            rdma_error("Failed to acknowledge the cm event %d\n", -errno);
 		            return NULL;
 	            }
-                id_arr[(*((c_mcs_ctx *)(client_id->context))->node_id)] = NULL;
+                id_arr[(*((client_ctx *)(client_id->context))->node_id)] = NULL;
 
-                if (clean_up_context(client_id)) {
+                if (clean_up_mcs(client_id)) {
                     perror("failed to cleanup client context");
                     return NULL;
                 }
@@ -720,7 +543,7 @@ void* mcs_client(void *in) {
 	} while (num_conn > (*node_id));
 
 	for (int i = (*node_id) - 1; i<=0 + 1; i--) {
-        mcs_disconnect(id_arr[i], cm_event_channel);
+        disconnect_client(id_arr[i], cm_event_channel);
 		id_arr[i] = NULL;
     }
 

@@ -1,7 +1,7 @@
 #include "ticket_server.h"
 
-s_ticket_ctx* build_server_ticket_context(struct rdma_cm_id* client_id, uint64_t *lock, uint64_t *buffer, uint64_t *node_id) {
-    s_ticket_ctx* ctx;
+server_ctx* build_server_ticket_context(struct rdma_cm_id* client_id, uint64_t *lock, uint64_t *buffer, uint64_t *node_id) {
+    server_ctx* ctx;
     struct ibv_pd* pd = NULL;
     struct ibv_comp_channel* comp = NULL;
     struct ibv_cq* cq = NULL;
@@ -16,7 +16,7 @@ s_ticket_ctx* build_server_ticket_context(struct rdma_cm_id* client_id, uint64_t
     struct ibv_sge server_recv_sge;
 	struct ibv_recv_wr server_recv_wr, *bad_server_recv_wr = NULL;
     
-    ctx = (s_ticket_ctx*)malloc(sizeof(s_ticket_ctx));
+    ctx = (server_ctx*)malloc(sizeof(server_ctx));
     server_metadata_attr = (struct rdma_buffer_attr *)malloc(sizeof(struct rdma_buffer_attr));
     client_metadata_attr = (struct rdma_buffer_attr *)malloc(sizeof(struct rdma_buffer_attr));
 
@@ -165,7 +165,7 @@ s_ticket_ctx* build_server_ticket_context(struct rdma_cm_id* client_id, uint64_t
 }
 
 int send_server_ticket_metadata(struct rdma_cm_id* client_id) {
-    s_ticket_ctx * ctx = (s_ticket_ctx *) client_id->context;
+    server_ctx * ctx = (server_ctx *) client_id->context;
     struct ibv_wc wc;
     struct ibv_sge server_send_sge;
     struct ibv_send_wr server_send_wr, *bad_server_send_wr = NULL;
@@ -195,7 +195,7 @@ int send_server_ticket_metadata(struct rdma_cm_id* client_id) {
 }
 
 int clean_up_ticket_context(struct rdma_cm_id* client_id) {
-    s_ticket_ctx *ctx = (s_ticket_ctx *)client_id->context;
+    server_ctx *ctx = (server_ctx *)client_id->context;
     rdma_destroy_qp(client_id);
 
     if (rdma_destroy_id(client_id)) {
@@ -230,7 +230,7 @@ int clean_up_ticket_context(struct rdma_cm_id* client_id) {
 }
 
 int rdma_ticket_write(struct rdma_cm_id *client_id, int offset) {
-    s_ticket_ctx* ctx = (s_ticket_ctx *) (client_id->context);
+    server_ctx* ctx = (server_ctx *) (client_id->context);
     struct ibv_send_wr write_wr, *bad_write_wr = NULL;
     struct ibv_wc write_wc;
     struct ibv_sge write_sge;
@@ -272,21 +272,23 @@ int notify_ticket_clients(struct rdma_cm_id ** id_arr, uint64_t *buffer, int num
 }
 
 void * ticket_server(void * in) {
-    uint64_t* lock = ((ticket_server_in *)in)->lock;
-    uint64_t *buffer = NULL;
-    int * keepgoing = NULL;
-    int num_children = ((ticket_server_in *)in)->num_children;
-    volatile int * ready = ((ticket_server_in *)in)->ready;
+    uint64_t* lock = (uint64_t *)malloc(sizeof(uint64_t) * 2);
+    uint64_t *buffer = (uint64_t *)malloc(sizeof(uint64_t));
+    int keepgoing = 1;
+    int num_children = ((server_in *)in)->num_children;
     int num_conn = 0;
 	struct sockaddr_in server_sockaddr;
     struct rdma_event_channel *cm_event_channel = NULL;
     struct rdma_cm_id *cm_server_id = NULL;
-    struct rdma_cm_id ** id_arr = ((ticket_server_in *)in)->id_arr;
+    struct rdma_cm_id ** id_arr = (struct rdma_cm_id **)malloc(sizeof(struct rdma_cm_id *) * num_children);
 
-    keepgoing = (int *)malloc(sizeof(int));
-    *keepgoing = 1;
+    lock[NEXT] = 0;
+    lock[NOW] = 0;
 
-    buffer = (uint64_t *)malloc(sizeof(uint64_t));
+    for(int i = 0; i < num_children; i++){
+        id_arr[i] = NULL;
+    }
+
     *buffer = 0;
 	bzero(&server_sockaddr, sizeof server_sockaddr);
 	server_sockaddr.sin_family = AF_INET; /* standard IP NET address */
@@ -317,8 +319,6 @@ void * ticket_server(void * in) {
     do {
         if(num_conn == num_children) {
             printf("All Clients Connected\n");
-            do {} while (*ready != 1);
-            printf("Server Ready\n");
             notify_ticket_clients(id_arr, buffer, num_children);
         }
         struct rdma_cm_event *cm_event = NULL;
@@ -337,7 +337,7 @@ void * ticket_server(void * in) {
 
         switch (cm_event->event){
             case RDMA_CM_EVENT_CONNECT_REQUEST :
-                s_ticket_ctx* ctx = NULL;
+                server_ctx* ctx = NULL;
                 struct rdma_conn_param conn_param;
                 uint64_t * node_id;
 
@@ -383,7 +383,7 @@ void * ticket_server(void * in) {
                      return NULL;
                 }
                 num_conn++;
-                *keepgoing = 0;
+                keepgoing = 0;
                 break;
 
             case RDMA_CM_EVENT_DISCONNECTED :
@@ -394,7 +394,7 @@ void * ticket_server(void * in) {
 		            return NULL;
 	            }
 
-                id_arr[(*((s_ticket_ctx *)(client_id->context))->node_id) - 1] = NULL;
+                id_arr[(*((server_ctx *)(client_id->context))->node_id) - 1] = NULL;
 
                 if (clean_up_ticket_context(client_id)) {
                     perror("failed to cleanup client context");
@@ -408,10 +408,11 @@ void * ticket_server(void * in) {
 		        rdma_ack_cm_event(cm_event);
 		        return NULL;
         }
-    } while(num_conn > 0 || *keepgoing == 1);
+    } while(num_conn > 0 || keepgoing == 1);
 
+    free(lock);
     free(buffer);
-    free(keepgoing);
+    free(id_arr);
 
 	if (rdma_destroy_id(cm_server_id)) {
 		rdma_error("Failed to destroy server id cleanly, %d \n", -errno);

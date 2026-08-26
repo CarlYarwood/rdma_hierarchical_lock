@@ -26,6 +26,36 @@
 #include <rdma/rdma_cma.h>
 #include <infiniband/verbs.h>
 
+typedef struct {
+    uint64_t * node_id;
+    struct ibv_pd* pd;
+    struct ibv_comp_channel* comp;
+    struct ibv_cq* cq;
+    struct ibv_mr* lock_mr;
+    struct ibv_mr* buffer_mr;
+    struct ibv_mr* server_metadata_mr;
+    struct ibv_mr* client_metadata_mr;
+    struct rdma_buffer_attr* server_metadata_attr;
+    struct rdma_buffer_attr* client_metadata_attr;
+} server_ctx;
+
+typedef struct {
+    uint64_t* node_id;
+    struct ibv_pd* pd;
+    struct ibv_comp_channel* comp;
+    struct ibv_cq* cq;
+    struct ibv_mr* buffer_mr;
+    struct ibv_mr* metadata_mr;
+    struct ibv_mr* server_metadata_mr;
+    struct ibv_mr* client_metadata_mr;
+    struct rdma_buffer_attr* server_metadata_attr;
+    struct rdma_buffer_attr* client_metadata_attr;
+} client_ctx;
+
+typedef struct {
+    int num_children;
+} server_in;
+
 /* Error Macro*/
 #define rdma_error(msg, args...) do {\
 	fprintf(stderr, "%s : %d : ERROR : "msg, __FILE__, __LINE__, ## args);\
@@ -69,7 +99,14 @@ struct __attribute((packed)) rdma_buffer_attr {
   }stag;
 };
 
-void wait_on_sync(volatile uint64_t* sync);
+int fetch_and_add(struct rdma_cm_id* id, int offset);
+int rdma_read(struct rdma_cm_id* id, int offset);
+int disconnect_client(struct rdma_event_channel* cm_event_channel, struct rdma_cm_id* id);
+int clean_up_client(struct rdma_cm_id* id);
+int send_client_metadata(struct rdma_cm_id * id);
+int copmare_and_swap(struct rdma_cm_id* id , uint64_t cmp, uint64_t swap, int offset);
+struct sockaddr_in build_sockaddr(char * address, long port);
+void wait_on_data(volatile uint64_t *data, uint64_t val);
 void noop(volatile int *dummy);
 
 /* resolves a given destination name to sin_addr */

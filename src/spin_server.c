@@ -1,7 +1,7 @@
 #include "spin_server.h"
 
-s_spin_ctx* build_server_spin_context(struct rdma_cm_id* client_id, volatile uint64_t *lock, volatile uint64_t *buffer, uint64_t * node_id) {
-    s_spin_ctx* ctx;
+server_ctx* build_server_spin_context(struct rdma_cm_id* client_id, volatile uint64_t *lock, volatile uint64_t *buffer, uint64_t * node_id) {
+    server_ctx* ctx;
     struct ibv_pd* pd = NULL;
     struct ibv_comp_channel* comp = NULL;
     struct ibv_cq* cq = NULL;
@@ -16,7 +16,7 @@ s_spin_ctx* build_server_spin_context(struct rdma_cm_id* client_id, volatile uin
     struct ibv_sge server_recv_sge;
 	struct ibv_recv_wr server_recv_wr, *bad_server_recv_wr = NULL;
     
-    ctx = (s_spin_ctx*)malloc(sizeof(s_spin_ctx));
+    ctx = (server_ctx*)malloc(sizeof(server_ctx));
     server_metadata_attr = (struct rdma_buffer_attr *)malloc(sizeof(struct rdma_buffer_attr));
     client_metadata_attr = (struct rdma_buffer_attr *)malloc(sizeof(struct rdma_buffer_attr));
 
@@ -165,7 +165,7 @@ s_spin_ctx* build_server_spin_context(struct rdma_cm_id* client_id, volatile uin
 }
 
 int send_server_spin_metadata(struct rdma_cm_id* client_id) {
-    s_spin_ctx * ctx = (s_spin_ctx *) client_id->context;
+    server_ctx * ctx = (server_ctx *) client_id->context;
     struct ibv_wc wc;
     struct ibv_sge server_send_sge;
     struct ibv_send_wr server_send_wr, *bad_server_send_wr = NULL;
@@ -195,7 +195,7 @@ int send_server_spin_metadata(struct rdma_cm_id* client_id) {
 }
 
 int clean_up_spin_context(struct rdma_cm_id* client_id) {
-    s_spin_ctx *ctx = (s_spin_ctx *)client_id->context;
+    server_ctx *ctx = (server_ctx *)client_id->context;
     rdma_destroy_qp(client_id);
 
     if (rdma_destroy_id(client_id)) {
@@ -230,7 +230,7 @@ int clean_up_spin_context(struct rdma_cm_id* client_id) {
 }
 
 int rdma_spin_write(struct rdma_cm_id *client_id, int offset) {
-    s_spin_ctx* ctx = (s_spin_ctx *) (client_id->context);
+    server_ctx* ctx = (server_ctx *) (client_id->context);
     struct ibv_send_wr write_wr, *bad_write_wr = NULL;
     struct ibv_wc write_wc;
     struct ibv_sge write_sge;
@@ -272,16 +272,21 @@ int notify_spin_clients(struct rdma_cm_id ** id_arr, volatile uint64_t *buffer, 
 }
 
 void *spin_server(void * in) {
-    volatile uint64_t *lock = ((spin_server_in *)in)->lock;
-    volatile uint64_t *buffer = ((spin_server_in *)in)->buffer;
-    int num_children = ((spin_server_in *)in)->num_children;
-    volatile int * ready = ((spin_server_in *)in)->ready;
-    volatile int *num_conn = ((spin_server_in *)in)->num_conn;
+    uint64_t *lock = (uint64_t *)malloc(sizeof(uint64_t));
+    uint64_t *buffer = (uint64_t *)malloc(sizeof(uint64_t));
+    int num_children = ((server_in *)in)->num_children;
+    struct rdma_cm_id ** id_arr = (struct rdma_cm_id **)malloc(sizeof(struct rdma_cm_id *) * num_children);
+    int num_conn = 0;
     int keepgoing = 1;
 	struct sockaddr_in server_sockaddr;
     struct rdma_event_channel *cm_event_channel = NULL;
     struct rdma_cm_id *cm_server_id = NULL;
-    struct rdma_cm_id ** id_arr = ((spin_server_in *)in)->id_arr;
+
+    *lock = 0
+    *buffer = 0
+    for(int i = 0; i < num_children; i++) {
+        id_arr[i] = NULL;
+    }
 
 	bzero(&server_sockaddr, sizeof server_sockaddr);
 	server_sockaddr.sin_family = AF_INET; /* standard IP NET address */
@@ -310,10 +315,8 @@ void *spin_server(void * in) {
 	}
 
     do {
-        if(*num_conn == num_children) {
+        if(num_conn == num_children) {
             printf("All Clients Connected\n");
-            do {} while (*ready != 1);
-            printf("Server Ready\n");
             notify_spin_clients(id_arr, buffer, num_children);
         }
         struct rdma_cm_event *cm_event = NULL;
@@ -332,7 +335,7 @@ void *spin_server(void * in) {
 
         switch (cm_event->event){
             case RDMA_CM_EVENT_CONNECT_REQUEST :
-                s_spin_ctx* ctx = NULL;
+                server_ctx* ctx = NULL;
                 struct rdma_conn_param conn_param;
                 uint64_t * node_id;
 
@@ -377,7 +380,7 @@ void *spin_server(void * in) {
                      perror("Failed to send server metadata \n");
                      return NULL;
                 }
-                (*num_conn)++;
+                num_conn++;
                 keepgoing = 0;
                 break;
 
@@ -389,21 +392,25 @@ void *spin_server(void * in) {
 		            return NULL;
 	            }
 
-                id_arr[(*((s_spin_ctx *)(client_id->context))->node_id) - 1] = NULL;
+                id_arr[(*((server_ctx *)(client_id->context))->node_id) - 1] = NULL;
 
                 if (clean_up_spin_context(client_id)) {
                     perror("failed to cleanup client context");
                     return NULL;
                 }
 
-                (*num_conn)--;
+                num_conn--;
                 break;
             default:
                 rdma_error("Unexpected event received: %s", rdma_event_str(cm_event->event));
 		        rdma_ack_cm_event(cm_event);
 		        return NULL;
         }
-    } while(*num_conn > 0 || keepgoing == 1);
+    } while(num_conn > 0 || keepgoing == 1);
+
+    free(lock);
+    free(buffer);
+    free(id_arr);
 
 	if (rdma_destroy_id(cm_server_id)) {
 		rdma_error("Failed to destroy server id cleanly, %d \n", -errno);

@@ -5,30 +5,19 @@
 #include "local_lock.h"
 
 typedef struct {
-	volatile uint64_t * sync;
-	char * gated;
-	uint64_t node_id;
-	char * machine_lock_type;
 	char * parent_address;
 	long parent_port;
+	uint64_t node_id;
 	int critical_section;
 	int noncritical_section;
 	int num_aquire;
+	char * machine_lock_type;
 	union machine_lock machine_lock;
 } ticket_client_in;
 
-typedef struct {
-	struct rdma_cm_id* client_id;
-	struct ibv_pd* pd;
-    struct ibv_comp_channel* comp;
-	struct ibv_cq* cq;
-	struct ibv_mr* sync_mr;
-	struct ibv_mr* response_mr;
-	struct ibv_mr* server_metadata_mr;
-	struct ibv_mr* client_metadata_mr;
-	struct rdma_buffer_attr* server_metadata_attr;
-	struct rdma_buffer_attr* client_metadata_attr;
-} c_ticket_ctx;
-
+client_ctx* build_client_ticket_context(struct rdma_cm_id* client_id, volatile uint64_t* metadata, uint64_t *buffer, uint64_t* node_id);
+uint64_t acquire_ticket_lock(struct rdma_cm_id*  ic, uint64_t *buffer);
+int release_ticket_lock(struct rdma_cm_id* id, uint64_t ticket, uint64_t *buffer);
+struct rdma_cm_id* connect_to_ticket_server(struct rdma_event_channel* cm_event_channel, struct sockaddr_in* server_sockaddr, uint64_t *node_id, uint64_t *buffer, volatile uint64_t* metadata);
 void * ticket_client(void * in);
 #endif

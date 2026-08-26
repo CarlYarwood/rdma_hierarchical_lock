@@ -1,12 +1,12 @@
 #include "spin_client.h"
 
-c_spin_ctx* build_client_spin_context(struct rdma_cm_id* client_id, uint64_t *response, volatile uint64_t* sync) {
-	c_spin_ctx *ctx = NULL;
+client_ctx* build_client_spin_context(struct rdma_cm_id* client_id, volatile uint64_t* metadata, uint64_t *buffer, uint64_t* node_id) {
+	client_ctx *ctx = NULL;
 	struct ibv_pd* pd = NULL;
     struct ibv_comp_channel* comp = NULL;
     struct ibv_cq* cq = NULL;
-    struct ibv_mr *response_mr = NULL;
-	struct ibv_mr *sync_mr = NULL;
+    struct ibv_mr *buffer_mr = NULL;
+	struct ibv_mr *metadata_mr = NULL;
     struct ibv_mr *server_metadata_mr = NULL;
 	struct ibv_mr *client_metadata_mr = NULL;
     struct ibv_qp_init_attr qp_init_attr;
@@ -15,7 +15,7 @@ c_spin_ctx* build_client_spin_context(struct rdma_cm_id* client_id, uint64_t *re
 	struct ibv_sge client_recv_sge;
 	struct ibv_recv_wr client_recv_wr, *bad_client_recv_wr = NULL;
 
-	ctx = (c_spin_ctx*)malloc(sizeof(c_spin_ctx));
+	ctx = (client_ctx*)malloc(sizeof(client_ctx));
     server_metadata_attr = (struct rdma_buffer_attr *)malloc(sizeof(struct rdma_buffer_attr));
 	client_metadata_attr = (struct rdma_buffer_attr *)malloc(sizeof(struct rdma_buffer_attr));
 
@@ -74,9 +74,9 @@ c_spin_ctx* build_client_spin_context(struct rdma_cm_id* client_id, uint64_t *re
 	    return NULL;
 	}
 
-    response_mr = rdma_buffer_register(pd, response, sizeof(*response), (IBV_ACCESS_LOCAL_WRITE));
-	if(!response_mr){
-		perror("Failed to setup response mr\n");
+    buffer_mr = rdma_buffer_register(pd, buffer, sizeof(*buffer), (IBV_ACCESS_LOCAL_WRITE));
+	if(!buffer_mr){
+		perror("Failed to setup buffer mr\n");
 		rdma_destroy_qp(client_id);
 		ibv_destroy_cq(cq);
         ibv_destroy_comp_channel(comp);
@@ -90,7 +90,7 @@ c_spin_ctx* build_client_spin_context(struct rdma_cm_id* client_id, uint64_t *re
 	if(!server_metadata_mr){
 		rdma_error("Failed to setup the server metadata mr , -ENOMEM\n");
 		rdma_destroy_qp(client_id);
-		rdma_buffer_deregister(response_mr);
+		rdma_buffer_deregister(buffer_mr);
         ibv_destroy_cq(cq);
         ibv_destroy_comp_channel(comp);
         ibv_dealloc_pd(pd);
@@ -110,7 +110,7 @@ c_spin_ctx* build_client_spin_context(struct rdma_cm_id* client_id, uint64_t *re
 		perror("Failed to pre-post the receive buffer, errno: %d \n");
 		rdma_destroy_qp(client_id);
 		rdma_buffer_deregister(server_metadata_mr);
-		rdma_buffer_deregister(response_mr);
+		rdma_buffer_deregister(buffer_mr);
         ibv_destroy_cq(cq);
         ibv_destroy_comp_channel(comp);
         ibv_dealloc_pd(pd);
@@ -120,12 +120,12 @@ c_spin_ctx* build_client_spin_context(struct rdma_cm_id* client_id, uint64_t *re
 	}
 	debug("Receive buffer pre-posting is successful \n");
 
-	sync_mr = rdma_buffer_register(pd, (void *)sync, sizeof(uint64_t), (IBV_ACCESS_LOCAL_WRITE | IBV_ACCESS_REMOTE_READ | IBV_ACCESS_REMOTE_WRITE | IBV_ACCESS_REMOTE_ATOMIC));
-	if (!sync_mr) {
-		perror("Failed to setup sync mr: %d \n");
+	metadata_mr = rdma_buffer_register(pd, (void *)metadata, sizeof(uint64_t), (IBV_ACCESS_LOCAL_WRITE | IBV_ACCESS_REMOTE_READ | IBV_ACCESS_REMOTE_WRITE | IBV_ACCESS_REMOTE_ATOMIC));
+	if (!metadata_mr) {
+		perror("Failed to setup metadata mr: %d \n");
 		rdma_destroy_qp(client_id);
 		rdma_buffer_deregister(server_metadata_mr);
-		rdma_buffer_deregister(response_mr);
+		rdma_buffer_deregister(buffer_mr);
         ibv_destroy_cq(cq);
         ibv_destroy_comp_channel(comp);
         ibv_dealloc_pd(pd);
@@ -134,16 +134,16 @@ c_spin_ctx* build_client_spin_context(struct rdma_cm_id* client_id, uint64_t *re
 		return NULL;
 	}
 
-	client_metadata_attr->address = (uint64_t)sync_mr->addr;
-	client_metadata_attr->length = (uint32_t)sync_mr->length;
-	client_metadata_attr->stag.remote_stag = (uint32_t)sync_mr->rkey;
+	client_metadata_attr->address = (uint64_t)metadata_mr->addr;
+	client_metadata_attr->length = (uint32_t)metadata_mr->length;
+	client_metadata_attr->stag.remote_stag = (uint32_t)metadata_mr->rkey;
 	client_metadata_mr = rdma_buffer_register(pd, client_metadata_attr, sizeof(struct rdma_buffer_attr), (IBV_ACCESS_LOCAL_WRITE));
 	if(!client_metadata_mr) {
 		perror("Failed to setup client metadata mr: %d \n");
 		rdma_destroy_qp(client_id);
 		rdma_buffer_deregister(client_metadata_mr);
 		rdma_buffer_deregister(server_metadata_mr);
-		rdma_buffer_deregister(response_mr);
+		rdma_buffer_deregister(buffer_mr);
         ibv_destroy_cq(cq);
         ibv_destroy_comp_channel(comp);
         ibv_dealloc_pd(pd);
@@ -152,12 +152,12 @@ c_spin_ctx* build_client_spin_context(struct rdma_cm_id* client_id, uint64_t *re
 		return NULL;
 	}
 
-	ctx->client_id = client_id;
+	ctx->node_id = node_id;
 	ctx->pd = pd;
 	ctx->comp = comp;
 	ctx->cq = cq;
-	ctx->response_mr = response_mr;
-	ctx->sync_mr = sync_mr;
+	ctx->buffer_mr = buffer_mr;
+	ctx->metadata_mr = metadata_mr;
 	ctx->server_metadata_mr = server_metadata_mr;
 	ctx->client_metadata_mr = client_metadata_mr;
 	ctx->server_metadata_attr = server_metadata_attr;
@@ -166,127 +166,28 @@ c_spin_ctx* build_client_spin_context(struct rdma_cm_id* client_id, uint64_t *re
 	return ctx;
 }
 
-int destroy_spin_context(c_spin_ctx* ctx){
-	int ret = 0;
-	rdma_destroy_qp(ctx->client_id);
-
-	if (rdma_destroy_id(ctx->client_id)) {
-		rdma_error("Failed to destroy client id cleanly, %d \n", -errno);
-		ret = -1;
-	}
-
-	if (ibv_destroy_cq(ctx->cq)) {
-		rdma_error("Failed to destroy completion queue cleanly, %d \n", -errno);
-		ret = -1;
-	}
-
-	if (ibv_destroy_comp_channel(ctx->comp)) {
-		rdma_error("Failed to destroy completion channel cleanly, %d \n", -errno);
-		ret = -1;
-		// we continue anyways;
-	}
-
-	/* Destroy memory buffers */
-	rdma_buffer_deregister(ctx->client_metadata_mr);
-	rdma_buffer_deregister(ctx->sync_mr);
-	rdma_buffer_deregister(ctx->server_metadata_mr);
-	rdma_buffer_deregister(ctx->response_mr);
-
-	if (ibv_dealloc_pd(ctx->pd)) {
-		rdma_error("Failed to destroy client protection domain cleanly, %d \n", -errno);
-		ret = -1;
-		// we continue anyways;
-	}
-
-	free(ctx->client_metadata_attr);
-	free(ctx->server_metadata_attr);
-
-	return ret;
-}
-
-int send_client_spin_metadata(c_spin_ctx* ctx) {
-	struct ibv_wc wc;
-	struct ibv_sge client_send_sge;
-	struct ibv_send_wr client_send_wr, *bad_client_send_wr = NULL;
-
-	client_send_sge.addr = (uint64_t)(ctx->client_metadata_attr);
-	client_send_sge.length = (uint32_t) sizeof(struct rdma_buffer_attr);
-	client_send_sge.lkey = (uint32_t) (ctx->client_metadata_mr)->lkey;
-
-	bzero(&client_send_wr, sizeof(client_send_wr));
-	client_send_wr.sg_list = &client_send_sge;
-	client_send_wr.num_sge = 1;
-	client_send_wr.opcode = IBV_WR_SEND;
-	client_send_wr.send_flags = IBV_SEND_SIGNALED;
-
-	if(ibv_post_send((ctx->client_id)->qp, &client_send_wr, &bad_client_send_wr)){
-		rdma_error("Posting of client metdata failed, errno: %d \n", -errno);
-	    return -errno;
-	}
-
-	if ( process_work_completion_events(ctx->cq, &wc, 2) != 2) {
-	    perror("Failed to send client metadata, ret = %d \n");
-	    return -1;
-    }
-	return 0;
-}
-
-
-
-int copmare_and_swap(c_spin_ctx* ctx, uint64_t cmp, uint64_t swap) {
-    uint64_t ret = -1;
-    struct ibv_send_wr cas_wr, *bad_cas_wr = NULL;
-    struct ibv_wc cas_wc;
-    struct ibv_sge cas_sge;
-
-    cas_sge.addr = (uint64_t) (ctx->response_mr)->addr;
-    cas_sge.length = (uint64_t) (ctx->response_mr)->length;
-    cas_sge.lkey = (uint64_t)(ctx->response_mr)->lkey;
-    
-    bzero(&cas_wr, sizeof(cas_wr));
-    cas_wr.sg_list = &cas_sge;
-    cas_wr.num_sge = 1;
-    cas_wr.opcode = IBV_WR_ATOMIC_CMP_AND_SWP;
-    cas_wr.wr.atomic.rkey = (ctx->server_metadata_attr)->stag.remote_stag;
-    cas_wr.wr.atomic.remote_addr = (ctx->server_metadata_attr)->address;
-    cas_wr.wr.atomic.compare_add = cmp;
-    cas_wr.wr.atomic.swap = swap;
-    cas_wr.send_flags = IBV_SEND_SIGNALED;
-
-    ret = ibv_post_send((ctx->client_id)->qp, &cas_wr, &bad_cas_wr);
-    if(ret) {
-        perror("Failed to send cas\n");
-        return 1;
-    }
-
-    if (process_work_completion_events(ctx->cq, &cas_wc, 1) != 1) {
-        perror("We failed to get 1 work completions\n");
-        return 1;
-    }
-    return 0;
-}
-
-int acquire_spin_lock(c_spin_ctx * ctx,uint64_t *node_id, uint64_t *response) {
-	*response = 1;
+int acquire_spin_lock(struct rdma_cm_id *id, uint64_t *buffer) {
+	client_ctx *ctx = (client_ctx *)(id->context);
+	*buffer = 1;
 	do {
-        copmare_and_swap(ctx, 0, *node_id);
-    } while(*response != 0);
+        copmare_and_swap(id, 0, *(ctx->node_id), 0);
+    } while(*buffer != 0);
 	return 0;
 }
 
-int release_spin_lock(c_spin_ctx *ctx, uint64_t* node_id, uint64_t *response) {
-	*response = 0;
-	copmare_and_swap(ctx, *node_id, 0);
-    if(*response != *node_id) {
+int release_spin_lock(struct rdma_cm_id *id, uint64_t *buffer) {
+	client_ctx *ctx = (client_ctx *)(id->context);
+	*buffer = 0;
+	copmare_and_swap(id, *(ctx->node_id), 0,0);
+    if(*buffer != *(ctx->node_id)) {
         perror("lock release failed\n");
         return -1;
     }
-    // printf("lock release successful\n");
 	return 0;
 }
 
-c_spin_ctx* connect_to_spin_server(struct rdma_event_channel* cm_event_channel, struct sockaddr_in* server_sockaddr,uint64_t* node_id, uint64_t *response, volatile uint64_t *sync) {
-	c_spin_ctx *ctx = NULL;
+struct rdma_cm_id* connect_to_spin_server(struct rdma_event_channel* cm_event_channel, struct sockaddr_in* server_sockaddr, uint64_t* node_id, uint64_t *buffer, volatile uint64_t * metadata) {
+	client_ctx *ctx = NULL;
 	struct rdma_cm_id *cm_client_id = NULL;
 	struct rdma_cm_event *cm_event = NULL;
 	struct rdma_conn_param conn_param;
@@ -318,11 +219,13 @@ c_spin_ctx* connect_to_spin_server(struct rdma_event_channel* cm_event_channel, 
 	}
 	debug("waiting for cm event: RDMA_CM_EVENT_ROUTE_RESOLVED\n");
 
-	ctx = build_client_spin_context(cm_client_id, response, sync);
+	ctx = build_client_spin_context(cm_client_id, metadata, buffer, node_id);
 	if (!ctx) {
 		perror("Failed to build context\n");
 		return NULL;
 	}
+
+	cm_client_id->context = (void *)ctx;
 
 	if (process_rdma_cm_event(cm_event_channel, RDMA_CM_EVENT_ROUTE_RESOLVED, &cm_event)) {
 		perror("Failed to receive a valid event, ret = %d \n");
@@ -342,7 +245,7 @@ c_spin_ctx* connect_to_spin_server(struct rdma_event_channel* cm_event_channel, 
 	conn_param.retry_count = 3;
 	conn_param.private_data = (void *) node_id;
     conn_param.private_data_len = sizeof(uint64_t);
-	if (rdma_connect(ctx->client_id, &conn_param)) {
+	if (rdma_connect(cm_client_id, &conn_param)) {
 		rdma_error("Failed to connect to remote host , errno: %d\n", -errno);
 		return NULL;
 	}
@@ -358,45 +261,16 @@ c_spin_ctx* connect_to_spin_server(struct rdma_event_channel* cm_event_channel, 
 		return NULL;
 	}
 
-	if(send_client_spin_metadata(ctx)) {
+	if(send_client_metadata(cm_client_id)) {
 		perror("Failed to send client metadata.\n");
 		return NULL;
 	}
 
-	return ctx;
-}
-
-int disconnect_from_spin_server(struct rdma_event_channel* cm_event_channel, c_spin_ctx* ctx){
-	struct rdma_cm_event *cm_event = NULL;
-	int ret = 0;
-	if (rdma_disconnect(ctx->client_id)) {
-		rdma_error("Failed to disconnect, errno: %d \n", -errno);
-		ret = -1;
-		//continuing anyways
-	}
-	if (process_rdma_cm_event(cm_event_channel, RDMA_CM_EVENT_DISCONNECTED, &cm_event)) {
-		perror("Failed to get RDMA_CM_EVENT_DISCONNECTED event, ret = %d\n");
-		ret = -1;
-		//continuing anyways 
-	}
-	if (rdma_ack_cm_event(cm_event)) {
-		rdma_error("Failed to acknowledge cm event, errno: %d\n", -errno);
-		ret = -1;
-		//continuing anyways
-	}
-			
-	if(destroy_spin_context(ctx)) {
-		perror("Failed to detroy context fully");
-		ret = -1;
-	}
-
-	free(ctx);
-
-	return ret;
+	return cm_client_id;
 }
 
 void * spin_client(void * in) {
-	c_spin_ctx *ctx = NULL;
+	struct rdma_cm_id *server = NULL;
 	spinLock * spin = NULL;
     ticketLock * ticket = NULL;
     mcsLock * mcs = NULL;
@@ -405,13 +279,13 @@ void * spin_client(void * in) {
 	char * machine_lock_type = ((spin_client_in *)in)->machine_lock_type;
 	char * parent_address = ((spin_client_in *)in)->parent_address;
 	long parent_port = ((spin_client_in *)in)->parent_port;
-	char * gated = ((spin_client_in *)in)->gated;
-	uint64_t *response = calloc(1, sizeof(uint64_t));
-	uint64_t *node_id = calloc(1, sizeof(uint64_t));
+	uint64_t *buffer = (uint64_t *)malloc(sizeof(uint64_t));
+	uint64_t *node_id = (uint64_t *)malloc(sizeof(uint64_t));
 	int critical_section = ((spin_client_in *) in)->critical_section;
 	int noncritical_section = ((spin_client_in *) in)->noncritical_section;
 	int num_aquire = ((spin_client_in *) in)->num_aquire;
-	volatile uint64_t *sync = ((spin_client_in *) in)->sync;
+	volatile uint64_t *metadata = (volatile uint64_t *)malloc(sizeof(uint64_t));
+	*metadata = 0;
 	clock_t start, end;
 	switch(*machine_lock_type) {
         case 'm':
@@ -429,13 +303,7 @@ void * spin_client(void * in) {
 
 	*node_id = ((spin_client_in *) in)->node_id;
 
-	bzero(&server_sockaddr, sizeof server_sockaddr);
-    server_sockaddr.sin_family = AF_INET;    
-    if (get_addr(parent_address, (struct sockaddr*) &server_sockaddr)) {
-		rdma_error("Invalid IP \n");
-		return NULL;
-	}
-    server_sockaddr.sin_port = htons(parent_port);
+	server_sockaddr = build_sockaddr(parent_address, parent_port);
 
 	cm_event_channel = rdma_create_event_channel();
 	if (!cm_event_channel) {
@@ -443,10 +311,10 @@ void * spin_client(void * in) {
 		return NULL;
 	}
 	
-	ctx = connect_to_spin_server(cm_event_channel, &server_sockaddr, node_id, response, sync);
+	server = connect_to_spin_server(cm_event_channel, &server_sockaddr, node_id, buffer, metadata);
 
-	wait_on_sync(sync);
-	*sync = 0;
+	wait_on_data(metadata, 1);
+	*metadata = 0;
 
 	start = clock();
 	for (int i = 0; i < num_aquire; i++) {
@@ -467,18 +335,14 @@ void * spin_client(void * in) {
             default:
                 //Nothing
         }
-		acquire_spin_lock(ctx, node_id, response);
+		acquire_spin_lock(server, node_id, buffer);
 
-		if(*gated == 'y') {
-			wait_on_sync(sync);
-			*sync = 0;
-		}
 		//work
 		for (int c = 0; c < critical_section; c++) {
 			noop(&c);
 		}
 		//unlock
-		release_spin_lock(ctx, node_id, response);
+		release_spin_lock(server, node_id, buffer);
 		switch(*machine_lock_type) {
             case 'm':
                 unlockMcs(mcs);
@@ -495,10 +359,11 @@ void * spin_client(void * in) {
 	}
 	end = clock();
 
-	disconnect_from_spin_server(cm_event_channel, ctx);
+	disconnect_client(cm_event_channel, server);
 	/* We free the buffers */
+	free(metadata);
+	free(buffer);
 	free(node_id);
-	free(response);
 
 	rdma_destroy_event_channel(cm_event_channel);
 

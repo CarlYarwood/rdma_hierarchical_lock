@@ -7,12 +7,221 @@
 
 #include "rdma_common.h"
 
+int disconnect_client(struct rdma_event_channel* cm_event_channel, struct rdma_cm_id* id) {
+	struct rdma_cm_event *cm_event = NULL;
+	int ret = 0;
+	if (rdma_disconnect(id)) {
+		rdma_error("Failed to disconnect, errno: %d \n", -errno);
+		ret = -1;
+		//continuing anyways
+	}
+	if (process_rdma_cm_event(cm_event_channel, RDMA_CM_EVENT_DISCONNECTED, &cm_event)) {
+		perror("Failed to get RDMA_CM_EVENT_DISCONNECTED event, ret = %d\n");
+		ret = -1;
+		//continuing anyways 
+	}
+	if (rdma_ack_cm_event(cm_event)) {
+		rdma_error("Failed to acknowledge cm event, errno: %d\n", -errno);
+		ret = -1;
+		//continuing anyways
+	}
+			
+	if(clean_up_client(id)) {
+		perror("Failed to detroy context fully");
+		ret = -1;
+	}
+
+	return ret;
+}
+
+int clean_up_client(struct rdma_cm_id* id) {
+	client_ctx * ctx = (client_ctx *)(id->context);
+	int ret = 0;
+	rdma_destroy_qp(id);
+
+	if (rdma_destroy_id(id)) {
+		rdma_error("Failed to destroy client id cleanly, %d \n", -errno);
+		ret = -1;
+	}
+
+	if (ibv_destroy_cq(ctx->cq)) {
+		rdma_error("Failed to destroy completion queue cleanly, %d \n", -errno);
+		ret = -1;
+	}
+
+	if (ibv_destroy_comp_channel(ctx->comp)) {
+		rdma_error("Failed to destroy completion channel cleanly, %d \n", -errno);
+		ret = -1;
+		// we continue anyways;
+	}
+
+	/* Destroy memory buffers */
+	rdma_buffer_deregister(ctx->client_metadata_mr);
+	rdma_buffer_deregister(ctx->metadata_mr);
+	rdma_buffer_deregister(ctx->server_metadata_mr);
+	rdma_buffer_deregister(ctx->buffer_mr);
+
+	if (ibv_dealloc_pd(ctx->pd)) {
+		rdma_error("Failed to destroy client protection domain cleanly, %d \n", -errno);
+		ret = -1;
+		// we continue anyways;
+	}
+
+	free(ctx->client_metadata_attr);
+	free(ctx->server_metadata_attr);
+	free(ctx->node_id);
+	free(ctx);
+
+	return ret;
+}
+
+int send_client_metadata(struct rdma_cm_id * id) {
+	client_ctx *ctx = (client_ctx *)(id->context);
+	struct ibv_wc wc;
+	struct ibv_sge client_send_sge;
+	struct ibv_send_wr client_send_wr, *bad_client_send_wr = NULL;
+
+	client_send_sge.addr = (uint64_t)(ctx->client_metadata_attr);
+	client_send_sge.length = (uint32_t) sizeof(struct rdma_buffer_attr);
+	client_send_sge.lkey = (uint32_t) (ctx->client_metadata_mr)->lkey;
+
+	bzero(&client_send_wr, sizeof(client_send_wr));
+	client_send_wr.sg_list = &client_send_sge;
+	client_send_wr.num_sge = 1;
+	client_send_wr.opcode = IBV_WR_SEND;
+	client_send_wr.send_flags = IBV_SEND_SIGNALED;
+
+	if(ibv_post_send(id->qp, &client_send_wr, &bad_client_send_wr)){
+		rdma_error("Posting of client metdata failed, errno: %d \n", -errno);
+	    return -errno;
+	}
+
+	if ( process_work_completion_events(ctx->cq, &wc, 2) != 2) {
+	    perror("Failed to send client metadata, ret = %d \n");
+	    return -1;
+    }
+	return 0;
+}
+
+int compare_and_swap(struct rdma_cm_id* client_id, uint64_t cmp, uint64_t swap, int offset) {
+	client_ctx* ctx = (client_ctx *)client_id->context;
+    uint64_t ret = -1;
+    struct ibv_send_wr cas_wr, *bad_cas_wr = NULL;
+    struct ibv_wc cas_wc;
+    struct ibv_sge cas_sge;
+
+    cas_sge.addr = (uint64_t) (ctx->buffer_mr)->addr;
+    cas_sge.length = (uint64_t) (ctx->buffer_mr)->length;
+    cas_sge.lkey = (uint64_t)(ctx->buffer_mr)->lkey;
+    
+    bzero(&cas_wr, sizeof(cas_wr));
+    cas_wr.sg_list = &cas_sge;
+    cas_wr.num_sge = 1;
+    cas_wr.opcode = IBV_WR_ATOMIC_CMP_AND_SWP;
+    cas_wr.wr.atomic.rkey = (ctx->server_metadata_attr)->stag.remote_stag;
+    cas_wr.wr.atomic.remote_addr = (ctx->server_metadata_attr)->address + (sizeof(uint64_t) * offset);
+    cas_wr.wr.atomic.compare_add = cmp;
+    cas_wr.wr.atomic.swap = swap;
+    cas_wr.send_flags = IBV_SEND_SIGNALED;
+
+    ret = ibv_post_send(client_id->qp, &cas_wr, &bad_cas_wr);
+    if(ret) {
+        perror("Failed to send cas\n");
+        return 1;
+    }
+
+    if (process_work_completion_events(ctx->cq, &cas_wc, 1) != 1) {
+        perror("We failed to get 1 work completions\n");
+        return 1;
+    }
+    return 0;
+}
+
+int rdma_read(struct rdma_cm_id* id, int offset) {
+	client_ctx *ctx = (client_ctx *)(id->context);
+	int ret = -1;
+    struct ibv_send_wr read_wr, *bad_read_wr = NULL;
+    struct ibv_wc read_wc;
+    struct ibv_sge read_sge;
+
+    read_sge.addr = (uint64_t) (ctx->buffer_mr)->addr;
+    read_sge.length = (uint64_t) (ctx->buffer_mr)->length;
+    read_sge.lkey = (uint64_t)(ctx->buffer_mr)->lkey;
+
+	bzero(&read_wr, sizeof(read_wr));
+    read_wr.sg_list = &read_sge;
+    read_wr.num_sge = 1;
+    read_wr.opcode = IBV_WR_RDMA_READ;
+	read_wr.send_flags = IBV_SEND_SIGNALED;
+
+	read_wr.wr.rdma.rkey = (ctx->server_metadata_attr)->stag.remote_stag;
+    read_wr.wr.rdma.remote_addr = (ctx->server_metadata_attr)->address + sizeof(uint64_t) * offset;
+
+	ret = ibv_post_send(id->qp, &read_wr, &bad_read_wr);
+    if(ret) {
+        perror("Failed to send read\n");
+        return 1;
+    }
+    ret = process_work_completion_events(ctx->cq, &read_wc, 1);
+    if (ret != 1) {
+        perror("We failed to get 1 work completions\n");
+        return 1;
+    }
+    return 0;
+
+}
+
+int fetch_and_add(struct rdma_cm_id* id, int offset) {
+	client_ctx *ctx = (client_ctx *)(id->context);
+    int ret = -1;
+    struct ibv_send_wr cas_wr, *bad_cas_wr = NULL;
+    struct ibv_wc cas_wc;
+    struct ibv_sge cas_sge;
+
+    cas_sge.addr = (uint64_t) (ctx->buffer_mr)->addr;
+    cas_sge.length = (uint64_t) (ctx->buffer_mr)->length;
+    cas_sge.lkey = (uint64_t) (ctx->buffer_mr)->lkey;
+    
+    bzero(&cas_wr, sizeof(cas_wr));
+    cas_wr.sg_list = &cas_sge;
+    cas_wr.num_sge = 1;
+    cas_wr.opcode = IBV_WR_ATOMIC_FETCH_AND_ADD;
+    cas_wr.wr.atomic.rkey = (ctx->server_metadata_attr)->stag.remote_stag;
+    cas_wr.wr.atomic.remote_addr = (ctx->server_metadata_attr)->address + sizeof(uint64_t) * offset;
+    cas_wr.wr.atomic.compare_add = 1;
+    cas_wr.send_flags = IBV_SEND_SIGNALED;
+
+    ret = ibv_post_send(id->qp, &cas_wr, &bad_cas_wr);
+    if(ret) {
+        perror("Failed to send cas\n");
+        return 1;
+    }
+    ret = process_work_completion_events(ctx->cq, &cas_wc, 1);
+    if (ret != 1) {
+        perror("We failed to get 1 work completions\n");
+        return 1;
+    }
+    return 0;
+}
+
+struct sockaddr_in build_sockaddr(char * address, long port) {
+	struct sockaddr_in ret;
+	bzero(&ret, sizeof ret);
+	ret.sin_family = AF_INET;
+	if (get_addr(address, (struct sockaddr*) &ret)) {
+		printf("Invalid IP\n");
+		return ret;
+	}
+	ret.sin_port = htons(parent_port);
+	return ret;
+}
+
 void noop(volatile int *dummy) {
     *dummy = *dummy; 
 }
 
-void wait_on_sync(volatile uint64_t* sync) {
-	do {} while(*sync == 0);
+void wait_on_data(volatile uint64_t *data, uint64_t val) {
+	do {} while(*data != val);
 }
 
 void show_rdma_cmid(struct rdma_cm_id *id)
