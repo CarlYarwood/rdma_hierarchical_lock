@@ -257,7 +257,6 @@ int main(int argc, char ** argv){
         case 't':
             printf("in server ticket\n");
             workers = (pthread_t *) malloc(sizeof(pthread_t));
-            server_in * in = (server_in *)malloc(sizeof(server_in));
             in->num_children = peer_group_sizes[child_peer_group];
             pthread_create(workers, NULL, ticket_server, (void *)in);
             pthread_join(*workers, NULL);
@@ -267,7 +266,6 @@ int main(int argc, char ** argv){
         case 's':
             printf("in server spin\n");
             workers = (pthread_t *) malloc(sizeof(pthread_t));
-            server_in * in = (server_in *)malloc(sizeof(server_in));
             in->num_children = peer_group_sizes[child_peer_group];
             pthread_create(workers, NULL, spin_server, (void *)in);
             pthread_join(*workers, NULL);
