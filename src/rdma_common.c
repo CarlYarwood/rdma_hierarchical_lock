@@ -212,7 +212,7 @@ struct sockaddr_in build_sockaddr(char * address, long port) {
 		printf("Invalid IP\n");
 		return ret;
 	}
-	ret.sin_port = htons(parent_port);
+	ret.sin_port = htons(port);
 	return ret;
 }
 
