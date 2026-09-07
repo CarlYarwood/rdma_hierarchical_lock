@@ -545,7 +545,7 @@ void* mcs_client(void *in) {
 			default:
                 rdma_error("Unexpected event received: %s", rdma_event_str(cm_event->event));
 		        rdma_ack_cm_event(cm_event);
-		        return NULL;
+		        // return NULL;
 		}
 	}
 
