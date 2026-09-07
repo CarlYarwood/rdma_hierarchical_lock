@@ -282,8 +282,8 @@ void *spin_server(void * in) {
     struct rdma_event_channel *cm_event_channel = NULL;
     struct rdma_cm_id *cm_server_id = NULL;
 
-    *lock = 0
-    *buffer = 0
+    *lock = 0;
+    *buffer = 0;
     for(int i = 0; i < num_children; i++) {
         id_arr[i] = NULL;
     }
