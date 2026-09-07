@@ -361,7 +361,7 @@ void * spin_client(void * in) {
 
 	disconnect_client(cm_event_channel, server);
 	/* We free the buffers */
-	free(metadata);
+	free((void *)metadata);
 	free(buffer);
 	free(node_id);
 
