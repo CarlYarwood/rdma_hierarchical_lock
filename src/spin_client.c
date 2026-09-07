@@ -363,7 +363,6 @@ void * spin_client(void * in) {
 	/* We free the buffers */
 	free((void *)metadata);
 	free(buffer);
-	free(node_id);
 
 	rdma_destroy_event_channel(cm_event_channel);
 

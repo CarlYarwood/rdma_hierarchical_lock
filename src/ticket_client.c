@@ -384,7 +384,6 @@ void * ticket_client(void * in) {
 	/* We free the buffers */
 	free((void *)metadata);
 	free(buffer);
-	free(node_id);
 
 	printf("%f\n",((double)(num_aquire * critical_section))/((double)(end-start)/CLOCKS_PER_SEC));
 	return NULL;

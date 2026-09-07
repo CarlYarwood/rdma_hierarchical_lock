@@ -231,7 +231,6 @@ int main(int argc, char ** argv){
             for(int i = 0; i < num_workers; i++) {
                 pthread_join(workers[i], NULL);
             }
-            printf("post join\n");
             destroyMcsLock(mcs);
             destroyTicketLock(ticket);
             destroySpinLock(spin);
