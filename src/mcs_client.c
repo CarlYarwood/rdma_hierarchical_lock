@@ -450,7 +450,7 @@ void* mcs_client(void *in) {
         client_sockaddr = build_sockaddr(peer_addresses[i-1], peer_ports[i-1]);
 
         id_arr[i] = connect_to_peer(&client_sockaddr, cm_event_channel, node_id, i, buffer, metadata);
-        num_conn ++;
+        num_conn++;
     }
 
     fetch_and_add(id_arr[SERVER], READY);
@@ -513,6 +513,8 @@ void* mcs_client(void *in) {
 	printf("%f\n",((double)(num_aquire * critical_section))/((double)(end-start)/CLOCKS_PER_SEC));
 
     printf("%d\n", num_conn);
+
+    printf("node id %lu", *node_id)
 
 	while (num_conn > (*node_id)) {
 		struct rdma_cm_event *cm_event = NULL;
