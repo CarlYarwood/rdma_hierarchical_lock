@@ -554,6 +554,7 @@ void* mcs_client(void *in) {
 		}
 	}
 
+    printf("node id %lu after wait", *node_id);
 	for (int i = (*node_id) - 1; i>=0 ; i--) {
         disconnect_client(cm_event_channel, id_arr[i]);
 		id_arr[i] = NULL;
