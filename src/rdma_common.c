@@ -17,7 +17,7 @@ int disconnect_client(struct rdma_event_channel* cm_event_channel, struct rdma_c
 	}
 	if (process_rdma_cm_event(cm_event_channel, RDMA_CM_EVENT_DISCONNECTED, &cm_event)) {
 		perror("Failed to get RDMA_CM_EVENT_DISCONNECTED event, ret = %d\n");
-		client_ctx * ctx = (client_ctx *) client_id->context;
+		client_ctx * ctx = (client_ctx *) id->context;
 		printf("Failed Client disconnect node id %lu\n", ctx->node_id); 
 		ret = -1;
 		//continuing anyways 
