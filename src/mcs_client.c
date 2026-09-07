@@ -513,7 +513,7 @@ void* mcs_client(void *in) {
 
 	printf("%f\n",((double)(num_aquire * critical_section))/((double)(end-start)/CLOCKS_PER_SEC));
 
-	do {
+	while (num_conn > (*node_id)) {
 		struct rdma_cm_event *cm_event = NULL;
         struct rdma_cm_id* client_id = NULL;
     
@@ -549,7 +549,7 @@ void* mcs_client(void *in) {
 		        rdma_ack_cm_event(cm_event);
 		        return NULL;
 		}
-	} while (num_conn > (*node_id));
+	}
 
 	for (int i = (*node_id) - 1; i<=0 + 1; i--) {
         disconnect_client(cm_event_channel, id_arr[i]);
