@@ -450,6 +450,7 @@ void* mcs_client(void *in) {
         client_sockaddr = build_sockaddr(peer_addresses[i-1], peer_ports[i-1]);
 
         id_arr[i] = connect_to_peer(&client_sockaddr, cm_event_channel, node_id, i, buffer, metadata);
+        num_conn ++;
     }
 
     fetch_and_add(id_arr[SERVER], READY);
