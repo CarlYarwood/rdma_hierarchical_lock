@@ -457,8 +457,6 @@ void* mcs_client(void *in) {
 	wait_on_data(&metadata[MCS_SYNC], 2);
     metadata[MCS_SYNC] = 0;
 
-	
-
 	start = clock();
 
 	for (int i = 0; i < num_aquire; i++) {
@@ -551,10 +549,11 @@ void* mcs_client(void *in) {
 		}
 	}
 
-	for (int i = (*node_id) - 1; i<=0 + 1; i--) {
+	for (int i = (*node_id) - 1; i>=0 ; i--) {
         disconnect_client(cm_event_channel, id_arr[i]);
 		id_arr[i] = NULL;
     }
+    printf("after disconnect\n");
 
 	free(node_id);
     free(buffer);
