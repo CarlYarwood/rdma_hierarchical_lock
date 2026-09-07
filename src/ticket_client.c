@@ -163,7 +163,6 @@ client_ctx* build_client_ticket_context(struct rdma_cm_id* client_id, volatile u
 	}
 
 	ctx->node_id = node_id;
-	ctx->client_id = client_id;
 	ctx->pd = pd;
 	ctx->comp = comp;
 	ctx->cq = cq;
@@ -177,7 +176,7 @@ client_ctx* build_client_ticket_context(struct rdma_cm_id* client_id, volatile u
 	return ctx;
 }
 
-uint64_t acquire_ticket_lock(struct rdma_cm_id*  ic, uint64_t *buffer) {
+uint64_t acquire_ticket_lock(struct rdma_cm_id*  id, uint64_t *buffer) {
 	int test = 1;
 	uint64_t ticket;
 	do {
@@ -287,7 +286,7 @@ struct rdma_cm_id* connect_to_ticket_server(struct rdma_event_channel* cm_event_
 
 void * ticket_client(void * in) {
 	struct sockaddr_in server_sockaddr;
-	client_ctx *ctx = NULL;
+	struct rdma_cm_id *server_id = NULL;
 	spinLock * spin = NULL;
     ticketLock * ticket = NULL;
     mcsLock * mcs = NULL;
@@ -329,7 +328,7 @@ void * ticket_client(void * in) {
 		return NULL;
 	}
 
-	ctx = connect_to_ticket_server(cm_event_channel, &server_sockaddr, node_id, buffer, metadata);
+	server_id = connect_to_ticket_server(cm_event_channel, &server_sockaddr, node_id, buffer, metadata);
 
 	wait_on_data(metadata, 1);
 	*metadata = 0;
@@ -356,14 +355,14 @@ void * ticket_client(void * in) {
             default:
                 //Nothing
         }
-		place = acquire_ticket_lock(ctx, buffer);
+		place = acquire_ticket_lock(server_id, buffer);
 
 		//work
 		for (int c = 0; c < critical_section; c++) {
 			noop(&c);
 		}
 		//unlock
-		release_ticket_lock(ctx, place, buffer);
+		release_ticket_lock(server_id, place, buffer);
 		switch(*machine_lock_type) {
             case 'm':
                 unlockMcs(mcs);
