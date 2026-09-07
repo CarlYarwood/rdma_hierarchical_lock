@@ -563,7 +563,7 @@ void* mcs_client(void *in) {
 
 	// free(node_id);
     // free(buffer);
-    free(id_arr);
+    // free(id_arr);
 
 	if (rdma_destroy_id(cm_server_id)) {
 		rdma_error("Failed to destroy server id cleanly, %d \n", -errno);
