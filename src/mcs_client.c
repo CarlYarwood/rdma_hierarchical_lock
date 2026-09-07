@@ -528,7 +528,7 @@ void* mcs_client(void *in) {
 	            }
                 id_arr[(*((client_ctx *)(client_id->context))->node_id)] = NULL;
 
-                if (clean_up_mcs(client_id)) {
+                if (clean_up_client(client_id)) {
                     perror("failed to cleanup client context");
                     return NULL;
                 }
@@ -543,7 +543,7 @@ void* mcs_client(void *in) {
 	} while (num_conn > (*node_id));
 
 	for (int i = (*node_id) - 1; i<=0 + 1; i--) {
-        disconnect_client(id_arr[i], cm_event_channel);
+        disconnect_client(&id_arr[i], cm_event_channel);
 		id_arr[i] = NULL;
     }
 
