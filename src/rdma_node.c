@@ -118,12 +118,13 @@ int main(int argc, char ** argv){
 		}
 	}
 
+    mcsLock* mcs = buildMcsLock();
+    ticketLock* ticket = buildTicketLock();
+    spinLock* spin = buildSpinLock();
+
     switch(*parent_lock_type) {
         case 'm':
             printf("in client mcs\n");
-            mcsLock* mcs = buildMcsLock();
-            ticketLock* ticket = buildTicketLock();
-            spinLock* spin = buildSpinLock();
             workers = (pthread_t *) malloc(sizeof(pthread_t) * num_workers);
             mcs_client_in * in = (mcs_client_in *)malloc(sizeof(mcs_client_in) * num_workers);
             for (int i = 0; i < num_workers; i++) {
@@ -164,9 +165,6 @@ int main(int argc, char ** argv){
             return 0;
         case 't':
             printf("in client ticket\n");
-            mcsLock* mcs = buildMcsLock();
-            ticketLock* ticket = buildTicketLock();
-            spinLock* spin = buildSpinLock();
             workers = (pthread_t *) malloc(sizeof(pthread_t) * num_workers);
             ticket_client_in * in = (ticket_client_in *)malloc(sizeof(ticket_client_in) * num_workers);
             for(int i = 0; i < num_workers; i++) {
@@ -204,9 +202,6 @@ int main(int argc, char ** argv){
             return 0;
         case 's':
             printf("in client spin\n");
-            mcsLock* mcs = buildMcsLock();
-            ticketLock* ticket = buildTicketLock();
-            spinLock* spin = buildSpinLock();
             workers = (pthread_t *) malloc(sizeof(pthread_t) * num_workers);
             spin_client_in * in = (spin_client_in *)malloc(sizeof(spin_client_in) * num_workers);
             for (int i = 0; i < num_workers ; i++) {
@@ -243,7 +238,9 @@ int main(int argc, char ** argv){
             free(workers);
             return 0;
         default:
-            //Do Nothing
+            destroyMcsLock(mcs);
+            destroyTicketLock(ticket);
+            destroySpinLock(spin);
     }
 
     switch(*local_lock_type) {
