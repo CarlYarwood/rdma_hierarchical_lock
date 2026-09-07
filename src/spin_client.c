@@ -271,6 +271,7 @@ struct rdma_cm_id* connect_to_spin_server(struct rdma_event_channel* cm_event_ch
 
 void * spin_client(void * in) {
 	struct rdma_cm_id *server = NULL;
+	basicLock * basic = NULL;
 	spinLock * spin = NULL;
     ticketLock * ticket = NULL;
     mcsLock * mcs = NULL;
@@ -297,6 +298,9 @@ void * spin_client(void * in) {
         case 's':
             spin = ((spin_client_in *)in)->machine_lock.spin;
             break;
+		case 'b':
+			basic = ((spin_client_in *)in)->machine_lock.basic;
+			break;
         default:
             //Nothing
     }
@@ -332,6 +336,9 @@ void * spin_client(void * in) {
             case 's':
                 lockSpin(spin, *node_id);
                 break;
+			case 'b':
+				lockBasic(basic);
+				break;
             default:
                 //Nothing
         }
@@ -353,6 +360,9 @@ void * spin_client(void * in) {
             case 's':
                 unlockSpin(spin);
                 break;
+			case 'b':
+				unlockBasic(basic);
+				break;
             default:
                 //Nothing
         }

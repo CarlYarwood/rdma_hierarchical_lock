@@ -1,5 +1,13 @@
 #include "local_lock.h"
 
+void lockBasic(basicLock *lock) {
+    pthread_mutex_lock(lock->lock_mutex);
+}
+
+void unlockBasic(basicLock *lock) {
+    pthread_mutex_unlock(lock->lock_mutex);
+}
+
 void lockSpin(spinLock *lock, uint64_t node_id) {
     do {} while(lock->owner != 0);
     pthread_mutex_lock(lock->lock_mutex);
@@ -73,6 +81,16 @@ void unlockMcs(mcsLock *lock) {
     pthread_mutex_unlock(lock->lock_mutex);
 }
 
+basicLock* buildBasicLock() {
+    basicLock * lock = NULL;
+    pthread_mutex_t *lock_mutex = NULL;
+    lock = (basicLock *)malloc(sizeof(basicLock));
+    lock_mutex = (pthread_mutex_t *)malloc(sizeof(pthread_mutex_t));
+    pthread_mutex_init(lock_mutex, NULL);
+    lock->lock_mutex = lock_mutex;
+    return lock;
+}
+
 spinLock* buildSpinLock() {
     spinLock *lock = NULL;
     pthread_mutex_t *lock_mutex = NULL;
@@ -108,6 +126,12 @@ mcsLock* buildMcsLock() {
     lock->owner = 0;
     lock->lock_mutex = lock_mutex;
     return lock;
+}
+
+void destroyBasicLock(basicLock* basic) {
+    pthread_mutex_destroy(basic->lock_mutex);
+    free(basic->lock_mutex);
+    free(basic);
 }
 
 void destroySpinLock(spinLock* spin) {

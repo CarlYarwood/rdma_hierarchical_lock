@@ -292,6 +292,7 @@ void* mcs_client(void *in) {
     volatile uint64_t *metadata = (volatile uint64_t *)malloc(sizeof(uint64_t) * 3);
 	uint64_t *buffer = NULL;
 	uint64_t *node_id = (uint64_t *)malloc(sizeof(uint64_t));
+    basicLock * basic = NULL;
     spinLock * spin = NULL;
     ticketLock * ticket = NULL;
     mcsLock * mcs = NULL;
@@ -323,6 +324,9 @@ void* mcs_client(void *in) {
             break;
         case 's':
             spin = ((mcs_client_in *)in)->machine_lock.spin;
+            break;
+        case 'b':
+            basic = ((mcs_client_in *)in)->machine_lock.basic;
             break;
         default:
             //Nothing
@@ -473,6 +477,9 @@ void* mcs_client(void *in) {
             case 's':
                 lockSpin(spin, *node_id);
                 break;
+            case 'b':
+                lockBasic(basic);
+                break;
             default:
                 //Nothing
         }
@@ -493,6 +500,9 @@ void* mcs_client(void *in) {
                 break;
             case 's':
                 unlockSpin(spin);
+                break;
+            case 'b':
+                unlockBasic(basic);
                 break;
             default:
                 //Nothing

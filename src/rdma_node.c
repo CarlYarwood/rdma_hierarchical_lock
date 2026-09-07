@@ -121,6 +121,7 @@ int main(int argc, char ** argv){
     mcsLock* mcs = buildMcsLock();
     ticketLock* ticket = buildTicketLock();
     spinLock* spin = buildSpinLock();
+    basicLock* basic = buildBasicLock();
 
     switch(*parent_lock_type) {
         case 'm':
@@ -148,6 +149,9 @@ int main(int argc, char ** argv){
                     case 's':
                         mcs_in[i].machine_lock.spin = spin;
                         break;
+                    case 'b':
+                        mcs_in[i].machine_lock.basic = basic;
+                        break;
                     default:
                         // do nothing
                 }
@@ -160,6 +164,7 @@ int main(int argc, char ** argv){
             destroyMcsLock(mcs);
             destroyTicketLock(ticket);
             destroySpinLock(spin);
+            destroyBasicLock(basic);
             free(mcs_in);
             free(workers);
             return 0;
@@ -185,6 +190,9 @@ int main(int argc, char ** argv){
                     case 's':
                         ticket_in[i].machine_lock.spin = spin;
                         break;
+                    case 'b':
+                        ticket_in[i].machine_lock.basic = basic;
+                        break;
                     default:
                         // do nothing
                 }
@@ -197,6 +205,7 @@ int main(int argc, char ** argv){
             destroyMcsLock(mcs);
             destroyTicketLock(ticket);
             destroySpinLock(spin);
+            destroyBasicLock(basic);
             free(ticket_in);
             free(workers);
             return 0;
@@ -222,6 +231,9 @@ int main(int argc, char ** argv){
                     case 's':
                         spin_in[i].machine_lock.spin = spin;
                         break;
+                    case 'b':
+                        spin_in[i].machine_lock.basic = basic;
+                        break;
                     default:
                         // do nothing
                 }
@@ -234,6 +246,7 @@ int main(int argc, char ** argv){
             destroyMcsLock(mcs);
             destroyTicketLock(ticket);
             destroySpinLock(spin);
+            destroyBasicLock(basic);
             free(spin_in);
             free(workers);
             return 0;
@@ -241,6 +254,7 @@ int main(int argc, char ** argv){
             destroyMcsLock(mcs);
             destroyTicketLock(ticket);
             destroySpinLock(spin);
+            destroyBasicLock(basic);
     }
 
     server_in * in = (server_in *)malloc(sizeof(server_in));

@@ -287,6 +287,7 @@ struct rdma_cm_id* connect_to_ticket_server(struct rdma_event_channel* cm_event_
 void * ticket_client(void * in) {
 	struct sockaddr_in server_sockaddr;
 	struct rdma_cm_id *server_id = NULL;
+	basicLock * basic = NULL;
 	spinLock * spin = NULL;
     ticketLock * ticket = NULL;
     mcsLock * mcs = NULL;
@@ -318,6 +319,8 @@ void * ticket_client(void * in) {
         case 's':
             spin = ((ticket_client_in *)in)->machine_lock.spin;
             break;
+		case 'b':
+			basic = ((ticket_client_in *)in)->machine_lock.basic;
         default:
             //Nothing
     }
@@ -352,6 +355,9 @@ void * ticket_client(void * in) {
             case 's':
                 lockSpin(spin, *node_id);
                 break;
+			case 'b':
+				lockBasic(basic);
+				break;
             default:
                 //Nothing
         }
@@ -373,6 +379,9 @@ void * ticket_client(void * in) {
             case 's':
                 unlockSpin(spin);
                 break;
+			case 'b':
+				unlockBasic(basic);
+				break;
             default:
                 //Nothing
         }

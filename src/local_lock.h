@@ -39,21 +39,30 @@ typedef struct {
     volatile uint64_t owner;
 } spinLock;
 
+typedef struct {
+    ptherad_mutex_t* lock_mutex;
+} basicLock;
+
 union machine_lock {
+    basicLock * basic;
     mcsLock * mcs;
     ticketLock * ticket;
     spinLock * spin;
 };
 
+void lockBasic(basicLock* lock);
+void unlockBasic(basicLock * lock);
 void lockSpin(spinLock* lock, uint64_t node_id);
 void unlockSpin(spinLock* lock);
 void lockTicket(ticketLock* lock, uint64_t node_id);
 void unlockTicket(ticketLock* lock);
 void lockMcs(mcsLock* lock, uint64_t node_id);
 void unlockMcs(mcsLock* lock);
+basicLokc* buildBasicLock();
 spinLock* buildSpinLock();
 ticketLock* buildTicketLock();
 mcsLock* buildMcsLock();
+void destoryBasicLock(basicLock* basic);
 void destroySpinLock(spinLock* spin);
 void destroyTicketLock(ticketLock* ticket);
 void destroyMcsLock(mcsLock* mcs);
