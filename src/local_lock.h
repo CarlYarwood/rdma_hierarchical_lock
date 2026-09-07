@@ -62,7 +62,7 @@ basicLock* buildBasicLock();
 spinLock* buildSpinLock();
 ticketLock* buildTicketLock();
 mcsLock* buildMcsLock();
-void destoryBasicLock(basicLock* basic);
+void destroyBasicLock(basicLock* basic);
 void destroySpinLock(spinLock* spin);
 void destroyTicketLock(ticketLock* ticket);
 void destroyMcsLock(mcsLock* mcs);
