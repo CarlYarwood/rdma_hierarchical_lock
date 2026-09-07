@@ -40,7 +40,7 @@ typedef struct {
 } spinLock;
 
 typedef struct {
-    ptherad_mutex_t* lock_mutex;
+    pthread_mutex_t* lock_mutex;
 } basicLock;
 
 union machine_lock {
@@ -58,7 +58,7 @@ void lockTicket(ticketLock* lock, uint64_t node_id);
 void unlockTicket(ticketLock* lock);
 void lockMcs(mcsLock* lock, uint64_t node_id);
 void unlockMcs(mcsLock* lock);
-basicLokc* buildBasicLock();
+basicLock* buildBasicLock();
 spinLock* buildSpinLock();
 ticketLock* buildTicketLock();
 mcsLock* buildMcsLock();
