@@ -126,32 +126,32 @@ int main(int argc, char ** argv){
         case 'm':
             printf("in client mcs\n");
             workers = (pthread_t *) malloc(sizeof(pthread_t) * num_workers);
-            mcs_client_in * in = (mcs_client_in *)malloc(sizeof(mcs_client_in) * num_workers);
+            mcs_client_in * mcs_in = (mcs_client_in *)malloc(sizeof(mcs_client_in) * num_workers);
             for (int i = 0; i < num_workers; i++) {
-                in[i].node_id = node_id_start + (uint64_t) i;
-                in[i].critical_section = critical_section;
-                in[i].noncritical_section = noncritical_section;
-                in[i].num_aquire = num_aquire;
-                in[i].parent_address = addresses[parent_peer_group][parent_id];
-                in[i].parent_port = ports[parent_peer_group][parent_id];
-                in[i].peer_addresses = addresses[node_peer_group];
-                in[i].peer_ports = ports[node_peer_group];
-                in[i].num_peers = peer_group_sizes[node_peer_group];
-                in[i].machine_lock_type = machine_lock_type;
+                mcs_in[i].node_id = node_id_start + (uint64_t) i;
+                mcs_in[i].critical_section = critical_section;
+                mcs_in[i].noncritical_section = noncritical_section;
+                mcs_in[i].num_aquire = num_aquire;
+                mcs_in[i].parent_address = addresses[parent_peer_group][parent_id];
+                mcs_in[i].parent_port = ports[parent_peer_group][parent_id];
+                mcs_in[i].peer_addresses = addresses[node_peer_group];
+                mcs_in[i].peer_ports = ports[node_peer_group];
+                mcs_in[i].num_peers = peer_group_sizes[node_peer_group];
+                mcs_in[i].machine_lock_type = machine_lock_type;
                 switch (*machine_lock_type) {
                     case 'm':
-                        in[i].machine_lock.mcs = mcs;
+                        mcs_in[i].machine_lock.mcs = mcs;
                         break;
                     case 't':
-                        in[i].machine_lock.ticket = ticket;
+                        mcs_in[i].machine_lock.ticket = ticket;
                         break;
                     case 's':
-                        in[i].machine_lock.spin = spin;
+                        mcs_in[i].machine_lock.spin = spin;
                         break;
                     default:
                         // do nothing
                 }
-                pthread_create(&workers[i], NULL, mcs_client, (void *)&in[i]);
+                pthread_create(&workers[i], NULL, mcs_client, (void *)&mcs_in[i]);
             }
 
             for(int i = 0; i < num_workers; i++) {
@@ -160,35 +160,35 @@ int main(int argc, char ** argv){
             destroyMcsLock(mcs);
             destroyTicketLock(ticket);
             destroySpinLock(spin);
-            free(in);
+            free(mcs_in);
             free(workers);
             return 0;
         case 't':
             printf("in client ticket\n");
             workers = (pthread_t *) malloc(sizeof(pthread_t) * num_workers);
-            ticket_client_in * in = (ticket_client_in *)malloc(sizeof(ticket_client_in) * num_workers);
+            ticket_client_in * ticket_in = (ticket_client_in *)malloc(sizeof(ticket_client_in) * num_workers);
             for(int i = 0; i < num_workers; i++) {
-                in[i].node_id = node_id_start + (uint64_t) i;
-                in[i].parent_address = addresses[parent_peer_group][parent_id];
-                in[i].parent_port = ports[parent_peer_group][parent_id];
-                in[i].critical_section = critical_section;
-                in[i].noncritical_section = noncritical_section;
-                in[i].num_aquire = num_aquire;
-                in[i].machine_lock_type = machine_lock_type;
+                ticket_in[i].node_id = node_id_start + (uint64_t) i;
+                ticket_in[i].parent_address = addresses[parent_peer_group][parent_id];
+                ticket_in[i].parent_port = ports[parent_peer_group][parent_id];
+                ticket_in[i].critical_section = critical_section;
+                ticket_in[i].noncritical_section = noncritical_section;
+                ticket_in[i].num_aquire = num_aquire;
+                ticket_in[i].machine_lock_type = machine_lock_type;
                 switch (*machine_lock_type) {
                     case 'm':
-                        in[i].machine_lock.mcs = mcs;
+                        ticket_in[i].machine_lock.mcs = mcs;
                         break;
                     case 't':
-                        in[i].machine_lock.ticket = ticket;
+                        ticket_in[i].machine_lock.ticket = ticket;
                         break;
                     case 's':
-                        in[i].machine_lock.spin = spin;
+                        ticket_in[i].machine_lock.spin = spin;
                         break;
                     default:
                         // do nothing
                 }
-                pthread_create(&workers[i], NULL, ticket_client, (void *)&in[i]);
+                pthread_create(&workers[i], NULL, ticket_client, (void *)&ticket_in[i]);
             }
 
             for(int i = 0; i < num_workers; i++) {
@@ -197,35 +197,35 @@ int main(int argc, char ** argv){
             destroyMcsLock(mcs);
             destroyTicketLock(ticket);
             destroySpinLock(spin);
-            free(in);
+            free(ticket_in);
             free(workers);
             return 0;
         case 's':
             printf("in client spin\n");
             workers = (pthread_t *) malloc(sizeof(pthread_t) * num_workers);
-            spin_client_in * in = (spin_client_in *)malloc(sizeof(spin_client_in) * num_workers);
+            spin_client_in * spin_in = (spin_client_in *)malloc(sizeof(spin_client_in) * num_workers);
             for (int i = 0; i < num_workers ; i++) {
-                in[i].machine_lock_type = machine_lock_type;
-                in[i].parent_address = addresses[parent_peer_group][parent_id];
-                in[i].parent_port = ports[parent_peer_group][parent_id];
-                in[i].node_id = node_id_start + (uint64_t) i;
-                in[i].critical_section = critical_section;
-                in[i].noncritical_section = noncritical_section;
-                in[i].num_aquire = num_aquire;
+                spin_in[i].machine_lock_type = machine_lock_type;
+                spin_in[i].parent_address = addresses[parent_peer_group][parent_id];
+                spin_in[i].parent_port = ports[parent_peer_group][parent_id];
+                spin_in[i].node_id = node_id_start + (uint64_t) i;
+                spin_in[i].critical_section = critical_section;
+                spin_in[i].noncritical_section = noncritical_section;
+                spin_in[i].num_aquire = num_aquire;
                 switch (*machine_lock_type) {
                     case 'm':
-                        in[i].machine_lock.mcs = mcs;
+                        spin_in[i].machine_lock.mcs = mcs;
                         break;
                     case 't':
-                        in[i].machine_lock.ticket = ticket;
+                        spin_in[i].machine_lock.ticket = ticket;
                         break;
                     case 's':
-                        in[i].machine_lock.spin = spin;
+                        spin_in[i].machine_lock.spin = spin;
                         break;
                     default:
                         // do nothing
                 }
-                pthread_create(&workers[i], NULL, spin_client, (void *)&in[i]);
+                pthread_create(&workers[i], NULL, spin_client, (void *)&spin_in[i]);
             }
 
             for(int i = 0; i < num_workers; i++) {
@@ -234,7 +234,7 @@ int main(int argc, char ** argv){
             destroyMcsLock(mcs);
             destroyTicketLock(ticket);
             destroySpinLock(spin);
-            free(in);
+            free(spin_in);
             free(workers);
             return 0;
         default:
@@ -243,11 +243,11 @@ int main(int argc, char ** argv){
             destroySpinLock(spin);
     }
 
+    server_in * in = (server_in *)malloc(sizeof(server_in));
     switch(*local_lock_type) {
         case 'm':
             printf("in server mcs\n");
             workers = (pthread_t *) malloc(sizeof(pthread_t));
-            server_in * in = (server_in *)malloc(sizeof(server_in));
             in->num_children = peer_group_sizes[child_peer_group];
             pthread_create(workers, NULL, mcs_server, (void *)in);
             pthread_join(*workers, NULL);
@@ -275,7 +275,7 @@ int main(int argc, char ** argv){
             free(workers);
             return 0;
         default:
-            //Do Nothing
+            free(in);
     }
     return 0;
 }
