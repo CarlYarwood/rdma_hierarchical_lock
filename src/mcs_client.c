@@ -511,6 +511,8 @@ void* mcs_client(void *in) {
 
 	printf("%f\n",((double)(num_aquire * critical_section))/((double)(end-start)/CLOCKS_PER_SEC));
 
+    printf("%d\n", num_conn);
+
 	while (num_conn > (*node_id)) {
 		struct rdma_cm_event *cm_event = NULL;
         struct rdma_cm_id* client_id = NULL;
