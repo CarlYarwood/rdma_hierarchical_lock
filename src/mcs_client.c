@@ -562,7 +562,7 @@ void* mcs_client(void *in) {
     printf("node %lu after disconnect\n", *node_id);
 
 	// free(node_id);
-    free(buffer);
+    // free(buffer);
     free(id_arr);
 
 	if (rdma_destroy_id(cm_server_id)) {
