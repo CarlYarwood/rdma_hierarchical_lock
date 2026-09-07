@@ -379,10 +379,10 @@ void * ticket_client(void * in) {
 	}
 	end = clock();
 
-	disconnect_client(cm_event_channel, ctx);
+	disconnect_client(cm_event_channel, server_id);
 	rdma_destroy_event_channel(cm_event_channel);
 	/* We free the buffers */
-	free(metadata);
+	free((void *)metadata);
 	free(buffer);
 	free(node_id);
 
