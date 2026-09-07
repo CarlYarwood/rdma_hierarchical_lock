@@ -104,7 +104,7 @@ int rdma_read(struct rdma_cm_id* id, int offset);
 int disconnect_client(struct rdma_event_channel* cm_event_channel, struct rdma_cm_id* id);
 int clean_up_client(struct rdma_cm_id* id);
 int send_client_metadata(struct rdma_cm_id * id);
-int copmare_and_swap(struct rdma_cm_id* id , uint64_t cmp, uint64_t swap, int offset);
+int compare_and_swap(struct rdma_cm_id* id , uint64_t cmp, uint64_t swap, int offset);
 struct sockaddr_in build_sockaddr(char * address, long port);
 void wait_on_data(volatile uint64_t *data, uint64_t val);
 void noop(volatile int *dummy);
