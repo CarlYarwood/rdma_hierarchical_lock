@@ -512,10 +512,6 @@ void* mcs_client(void *in) {
 
 	printf("%f\n",((double)(num_aquire * critical_section))/((double)(end-start)/CLOCKS_PER_SEC));
 
-    printf("%d\n", num_conn);
-
-    printf("node id %lu\n", *node_id);
-
 	while (num_conn >= (*node_id)) {
 		struct rdma_cm_event *cm_event = NULL;
         struct rdma_cm_id* client_id = NULL;
@@ -554,16 +550,14 @@ void* mcs_client(void *in) {
 		}
 	}
 
-    printf("node id %lu after wait\n", *node_id);
 	for (int i = (*node_id) - 1; i>=0 ; i--) {
         disconnect_client(cm_event_channel, id_arr[i]);
 		id_arr[i] = NULL;
     }
-    printf("node %lu after disconnect\n", *node_id);
 
-	// free(node_id);
-    // free(buffer);
-    // free(id_arr);
+	free(node_id);
+    free(buffer);
+    free(id_arr);
 
 	if (rdma_destroy_id(cm_server_id)) {
 		rdma_error("Failed to destroy server id cleanly, %d \n", -errno);
