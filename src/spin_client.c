@@ -170,7 +170,7 @@ int acquire_spin_lock(struct rdma_cm_id *id, uint64_t *buffer) {
 	client_ctx *ctx = (client_ctx *)(id->context);
 	*buffer = 1;
 	do {
-        copmare_and_swap(id, 0, *(ctx->node_id), 0);
+        compare_and_swap(id, 0, *(ctx->node_id), 0);
     } while(*buffer != 0);
 	return 0;
 }
@@ -178,7 +178,7 @@ int acquire_spin_lock(struct rdma_cm_id *id, uint64_t *buffer) {
 int release_spin_lock(struct rdma_cm_id *id, uint64_t *buffer) {
 	client_ctx *ctx = (client_ctx *)(id->context);
 	*buffer = 0;
-	copmare_and_swap(id, *(ctx->node_id), 0,0);
+	compare_and_swap(id, *(ctx->node_id), 0,0);
     if(*buffer != *(ctx->node_id)) {
         perror("lock release failed\n");
         return -1;
