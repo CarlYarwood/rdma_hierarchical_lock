@@ -514,7 +514,7 @@ void* mcs_client(void *in) {
 
     printf("%d\n", num_conn);
 
-    printf("node id %lu", *node_id)
+    printf("node id %lu", *node_id);
 
 	while (num_conn > (*node_id)) {
 		struct rdma_cm_event *cm_event = NULL;
