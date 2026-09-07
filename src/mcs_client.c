@@ -553,7 +553,7 @@ void* mcs_client(void *in) {
         disconnect_client(cm_event_channel, id_arr[i]);
 		id_arr[i] = NULL;
     }
-    printf("after disconnect\n");
+    printf("node %lu after disconnect\n", *node_id);
 
 	free(node_id);
     free(buffer);
