@@ -335,14 +335,14 @@ void * spin_client(void * in) {
             default:
                 //Nothing
         }
-		acquire_spin_lock(server, node_id, buffer);
+		acquire_spin_lock(server, buffer);
 
 		//work
 		for (int c = 0; c < critical_section; c++) {
 			noop(&c);
 		}
 		//unlock
-		release_spin_lock(server, node_id, buffer);
+		release_spin_lock(server, buffer);
 		switch(*machine_lock_type) {
             case 'm':
                 unlockMcs(mcs);
