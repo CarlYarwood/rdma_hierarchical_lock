@@ -512,7 +512,6 @@ void* mcs_client(void *in) {
 	end = clock();
 
 	printf("%f\n",((double)(num_aquire * critical_section))/((double)(end-start)/CLOCKS_PER_SEC));
-	return NULL;
 
 	do {
 		struct rdma_cm_event *cm_event = NULL;
