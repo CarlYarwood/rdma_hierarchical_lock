@@ -379,7 +379,7 @@ void connect_to_mcs(char * parent_address, long parent_port, char ** peer_addres
         id_arr[i] = connect_to_peer(&client_sockaddr, cm_event_channel, node_id, i, buffer, metadata);
         *(num_conn)++;
     }
-    printf("node %lu done connecting\n", node_id);
+    printf("node %lu done connecting\n", *node_id);
 
     fetch_and_add(id_arr[SERVER], READY);
 
