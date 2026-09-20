@@ -360,7 +360,7 @@ void connect_to_mcs(char * parent_address, long parent_port, char ** peer_addres
                      perror("Failed to send server metadata \n");
                      return;
                 }
-				*(num_conn)++;
+				(*num_conn)++;
                 break;
 
             default:
@@ -377,7 +377,7 @@ void connect_to_mcs(char * parent_address, long parent_port, char ** peer_addres
         client_sockaddr = build_sockaddr(peer_addresses[i-1], peer_ports[i-1]);
 
         id_arr[i] = connect_to_peer(&client_sockaddr, cm_event_channel, node_id, i, buffer, metadata);
-        *(num_conn)++;
+        (*num_conn)++;
     }
     printf("node %lu done connecting\n", *node_id);
 
@@ -418,7 +418,7 @@ void disconnect_from_mcs(struct rdma_cm_id ** id_arr, struct rdma_event_channel 
                     return;
                 }
 
-                *(num_conn)--;
+                (*num_conn)--;
                 break;
 			default:
                 rdma_error("Unexpected event received: %s", rdma_event_str(cm_event->event));
@@ -430,6 +430,7 @@ void disconnect_from_mcs(struct rdma_cm_id ** id_arr, struct rdma_event_channel 
 	for (int i = (*node_id) - 1; i>=0 ; i--) {
         disconnect_client(cm_event_channel, id_arr[i]);
 		id_arr[i] = NULL;
+        (*num_conn)--;
     }
 
     return;
