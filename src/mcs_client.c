@@ -288,6 +288,149 @@ struct rdma_cm_id* connect_to_peer(struct sockaddr_in* server_sockaddr, struct r
 	return cm_client_id;
 }
 
+void connect_to_mcs(char * parent_address, long parent_port, char ** peer_addresses, long * peer_ports, int num_peers, struct rdma_cm_id ** id_arr, struct rdma_event_channel* cm_event_channel, uint64_t *node_id, uint64_t *buffer, uint64_t *metadata, int* num_conn) {
+    struct sockaddr_in server_sockaddr;
+    server_sockaddr = build_sockaddr(parent_address, parent_port);
+	
+	id_arr[SERVER] = connect_to_peer(&server_sockaddr, cm_event_channel, node_id, SERVER, buffer, metadata);
+
+    wait_on_data(&metadata[MCS_SYNC], 1);
+
+    while(*num_conn < (*node_id) - 1) {
+        struct rdma_cm_event *cm_event = NULL;
+        struct rdma_cm_id* client_id = NULL;
+    
+        if (rdma_get_cm_event(cm_event_channel, &cm_event)) {
+		  rdma_error("Failed to retrieve a cm event, errno: %d \n", -errno);
+		  return;
+        }
+
+        if(0 != cm_event->status){
+		    rdma_error("CM event has non zero status: %d\n", cm_event->status);
+		    rdma_ack_cm_event(cm_event);
+		    return;
+	    }
+
+        switch (cm_event->event){
+            case RDMA_CM_EVENT_CONNECT_REQUEST :
+                client_ctx* ctx = NULL;
+                struct rdma_conn_param conn_param;
+                uint64_t* peer_id = (uint64_t *) malloc(sizeof(uint64_t));
+
+                
+                client_id = cm_event->id;
+                *peer_id = *((uint64_t *) cm_event->param.conn.private_data);
+
+                ctx = build_mcs_context(client_id, metadata, buffer, peer_id);
+                if(!ctx) {
+                    rdma_ack_cm_event(cm_event);
+                    perror("Failed to build client Context\n");
+                    return;
+                }
+
+                (client_id)->context = (void *)ctx;
+
+                id_arr[*peer_id] = client_id;
+
+                if (rdma_ack_cm_event(cm_event)) {
+                    rdma_error("Failed to acknowledge the cm event errno: %d \n", -errno);
+                    return;
+                }
+
+                memset(&conn_param, 0, sizeof(conn_param));
+                conn_param.initiator_depth = 3;
+                conn_param.responder_resources = 3;
+                if (rdma_accept(client_id, &conn_param)) {
+	                rdma_error("Failed to accept the connection, errno: %d \n", -errno);
+	                return;
+                }
+
+                break;
+
+            case RDMA_CM_EVENT_ESTABLISHED :
+                client_id = cm_event->id;
+
+                if (rdma_ack_cm_event(cm_event)) {
+		            rdma_error("Failed to acknowledge the cm event %d\n", -errno);
+		            return;
+	            }
+
+                if(send_client_metadata(client_id)) {
+                     perror("Failed to send server metadata \n");
+                     return;
+                }
+				*(num_conn)++;
+                break;
+
+            default:
+                rdma_error("Unexpected event received: %s", rdma_event_str(cm_event->event));
+		        rdma_ack_cm_event(cm_event);
+		        return;
+        }
+    }
+
+	for (int i = (*node_id) + 1; i < num_peers + 1; i++) {
+        struct sockaddr_in client_sockaddr;
+        client_sockaddr = build_sockaddr(peer_addresses[i-1], peer_ports[i-1]);
+
+        id_arr[i] = connect_to_peer(&client_sockaddr, cm_event_channel, node_id, i, buffer, metadata);
+        *(num_conn)++;
+    }
+
+    fetch_and_add(id_arr[SERVER], READY);
+
+	wait_on_data(&metadata[MCS_SYNC], 2);
+    metadata[MCS_SYNC] = 0;
+    return;
+}
+
+void disconnect_from_mcs(struct rdma_cm_id ** id_arr, struct rdma_event_channel * cm_event_channel, uint64_t * node_id, int * num_conn) {
+    while (*num_conn >= (*node_id)) {
+		struct rdma_cm_event *cm_event = NULL;
+        struct rdma_cm_id* client_id = NULL;
+    
+        if (rdma_get_cm_event(cm_event_channel, &cm_event)) {
+		  rdma_error("Failed to retrieve a cm event, errno: %d \n", -errno);
+		  return;
+        }
+
+        if(0 != cm_event->status){
+		    rdma_error("CM event has non zero status: %d\n", cm_event->status);
+		    rdma_ack_cm_event(cm_event);
+		    return;
+	    }
+		switch(cm_event->event) {
+			case RDMA_CM_EVENT_DISCONNECTED :
+                client_id = cm_event->id;
+
+                if (rdma_ack_cm_event(cm_event)) {
+		            rdma_error("Failed to acknowledge the cm event %d\n", -errno);
+		            return;
+	            }
+                id_arr[(*((client_ctx *)(client_id->context))->node_id)] = NULL;
+
+                if (clean_up_client(client_id)) {
+                    perror("failed to cleanup client context");
+                    return;
+                }
+
+                *(num_conn)--;
+                break;
+			default:
+                rdma_error("Unexpected event received: %s", rdma_event_str(cm_event->event));
+		        rdma_ack_cm_event(cm_event);
+		        return;
+		}
+	}
+
+	for (int i = (*node_id) - 1; i>=0 ; i--) {
+        disconnect_client(cm_event_channel, id_arr[i]);
+		id_arr[i] = NULL;
+    }
+
+    return;
+}
+
 void* mcs_client(void *in) {
     volatile uint64_t *metadata = (volatile uint64_t *)malloc(sizeof(uint64_t) * 3);
 	uint64_t *buffer = NULL;
@@ -305,13 +448,15 @@ void* mcs_client(void *in) {
 	int critical_section = ((mcs_client_in *) in)->critical_section;
 	int noncritical_section = ((mcs_client_in *) in)->noncritical_section;
 	int num_aquire = ((mcs_client_in *) in)->num_aquire;
-    int num_conn = 0;
-	struct sockaddr_in client_server_sockaddr, server_sockaddr;
+    int * num_conn = NULL;
+	struct sockaddr_in client_server_sockaddr;
     struct rdma_event_channel *cm_event_channel = NULL;
     struct rdma_cm_id *cm_server_id = NULL;
     struct rdma_cm_id ** id_arr;
 	clock_t start, end;
 
+    num_conn = (int *)malloc(sizeof(int));
+    *num_conn = 0;
     metadata[NEXT] = 0;
     metadata[NOTIFY] = 0;
     metadata[MCS_SYNC] = 0;
@@ -366,97 +511,7 @@ void* mcs_client(void *in) {
 		return NULL;
 	}
 
-    server_sockaddr = build_sockaddr(parent_address, parent_port);
-	
-	id_arr[SERVER] = connect_to_peer(&server_sockaddr, cm_event_channel, node_id, SERVER, buffer, metadata);
-
-    wait_on_data(&metadata[MCS_SYNC], 1);
-
-    while(num_conn < (*node_id) - 1) {
-        struct rdma_cm_event *cm_event = NULL;
-        struct rdma_cm_id* client_id = NULL;
-    
-        if (rdma_get_cm_event(cm_event_channel, &cm_event)) {
-		  rdma_error("Failed to retrieve a cm event, errno: %d \n", -errno);
-		  return NULL;
-        }
-
-        if(0 != cm_event->status){
-		    rdma_error("CM event has non zero status: %d\n", cm_event->status);
-		    rdma_ack_cm_event(cm_event);
-		    return NULL;
-	    }
-
-        switch (cm_event->event){
-            case RDMA_CM_EVENT_CONNECT_REQUEST :
-                client_ctx* ctx = NULL;
-                struct rdma_conn_param conn_param;
-                uint64_t* peer_id = (uint64_t *) malloc(sizeof(uint64_t));
-
-                
-                client_id = cm_event->id;
-                *peer_id = *((uint64_t *) cm_event->param.conn.private_data);
-
-                ctx = build_mcs_context(client_id, metadata, buffer, peer_id);
-                if(!ctx) {
-                    rdma_ack_cm_event(cm_event);
-                    perror("Failed to build client Context\n");
-                    return NULL;
-                }
-
-                (client_id)->context = (void *)ctx;
-
-                id_arr[*peer_id] = client_id;
-
-                if (rdma_ack_cm_event(cm_event)) {
-                    rdma_error("Failed to acknowledge the cm event errno: %d \n", -errno);
-                    return NULL;
-                }
-
-                memset(&conn_param, 0, sizeof(conn_param));
-                conn_param.initiator_depth = 3;
-                conn_param.responder_resources = 3;
-                if (rdma_accept(client_id, &conn_param)) {
-	                rdma_error("Failed to accept the connection, errno: %d \n", -errno);
-	                return NULL;
-                }
-
-                break;
-
-            case RDMA_CM_EVENT_ESTABLISHED :
-                client_id = cm_event->id;
-
-                if (rdma_ack_cm_event(cm_event)) {
-		            rdma_error("Failed to acknowledge the cm event %d\n", -errno);
-		            return NULL;
-	            }
-
-                if(send_client_metadata(client_id)) {
-                     perror("Failed to send server metadata \n");
-                     return NULL;
-                }
-				num_conn++;
-                break;
-
-            default:
-                rdma_error("Unexpected event received: %s", rdma_event_str(cm_event->event));
-		        rdma_ack_cm_event(cm_event);
-		        return NULL;
-        }
-    }
-
-	for (int i = (*node_id) + 1; i < num_peers + 1; i++) {
-        struct sockaddr_in client_sockaddr;
-        client_sockaddr = build_sockaddr(peer_addresses[i-1], peer_ports[i-1]);
-
-        id_arr[i] = connect_to_peer(&client_sockaddr, cm_event_channel, node_id, i, buffer, metadata);
-        num_conn++;
-    }
-
-    fetch_and_add(id_arr[SERVER], READY);
-
-	wait_on_data(&metadata[MCS_SYNC], 2);
-    metadata[MCS_SYNC] = 0;
+    connect_to_mcs(parent_address, parent_port, peer_addresses, peer_ports, num_peers, id_arr, cm_event_channel, node_id, buffer, metadata, num_conn);
 
 	start = clock();
 
@@ -512,48 +567,7 @@ void* mcs_client(void *in) {
 
 	printf("%f\n",((double)(num_aquire * critical_section))/((double)(end-start)/CLOCKS_PER_SEC));
 
-	while (num_conn >= (*node_id)) {
-		struct rdma_cm_event *cm_event = NULL;
-        struct rdma_cm_id* client_id = NULL;
-    
-        if (rdma_get_cm_event(cm_event_channel, &cm_event)) {
-		  rdma_error("Failed to retrieve a cm event, errno: %d \n", -errno);
-		  return NULL;
-        }
-
-        if(0 != cm_event->status){
-		    rdma_error("CM event has non zero status: %d\n", cm_event->status);
-		    rdma_ack_cm_event(cm_event);
-		    return NULL;
-	    }
-		switch(cm_event->event) {
-			case RDMA_CM_EVENT_DISCONNECTED :
-                client_id = cm_event->id;
-
-                if (rdma_ack_cm_event(cm_event)) {
-		            rdma_error("Failed to acknowledge the cm event %d\n", -errno);
-		            return NULL;
-	            }
-                id_arr[(*((client_ctx *)(client_id->context))->node_id)] = NULL;
-
-                if (clean_up_client(client_id)) {
-                    perror("failed to cleanup client context");
-                    return NULL;
-                }
-
-                num_conn--;
-                break;
-			default:
-                rdma_error("Unexpected event received: %s", rdma_event_str(cm_event->event));
-		        rdma_ack_cm_event(cm_event);
-		        // return NULL;
-		}
-	}
-
-	for (int i = (*node_id) - 1; i>=0 ; i--) {
-        disconnect_client(cm_event_channel, id_arr[i]);
-		id_arr[i] = NULL;
-    }
+    disconnect_from_mcs(id_arr, cm_event_channel, node_id, num_conn);
 
 	free(node_id);
     free(buffer);
