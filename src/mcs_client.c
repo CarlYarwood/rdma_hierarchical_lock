@@ -311,7 +311,6 @@ void connect_to_mcs(char * parent_address, long parent_port, char ** peer_addres
 		    return;
 	    }
         
-        printf("node %lu listening num conn %d\n", *node_id, *num_conn);
         switch (cm_event->event){
             case RDMA_CM_EVENT_CONNECT_REQUEST :
                 client_ctx* ctx = NULL;
@@ -370,8 +369,6 @@ void connect_to_mcs(char * parent_address, long parent_port, char ** peer_addres
         }
     }
 
-    printf("node %lu acctively connecting to other nodes\n", *node_id);
-
 	for (int i = (*node_id) + 1; i < num_peers + 1; i++) {
         struct sockaddr_in client_sockaddr;
         client_sockaddr = build_sockaddr(peer_addresses[i-1], peer_ports[i-1]);
@@ -379,7 +376,6 @@ void connect_to_mcs(char * parent_address, long parent_port, char ** peer_addres
         id_arr[i] = connect_to_peer(&client_sockaddr, cm_event_channel, node_id, i, buffer, metadata);
         (*num_conn)++;
     }
-    printf("node %lu done connecting\n", *node_id);
 
     fetch_and_add(id_arr[SERVER], READY);
 
@@ -516,9 +512,7 @@ void* mcs_client(void *in) {
 		return NULL;
 	}
 
-    printf("node %lu before connect\n", *node_id);
     connect_to_mcs(parent_address, parent_port, peer_addresses, peer_ports, num_peers, id_arr, cm_event_channel, node_id, buffer, metadata, num_conn);
-    printf("node %lu after connect\n", *node_id);
 
 	start = clock();
 
