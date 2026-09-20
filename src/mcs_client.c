@@ -311,7 +311,7 @@ void connect_to_mcs(char * parent_address, long parent_port, char ** peer_addres
 		    return;
 	    }
         
-        printf("node %lu listening\n", *node_id);
+        printf("node %lu listening num conn %d\n", *node_id, *num_conn);
         switch (cm_event->event){
             case RDMA_CM_EVENT_CONNECT_REQUEST :
                 client_ctx* ctx = NULL;
