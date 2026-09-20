@@ -288,7 +288,7 @@ struct rdma_cm_id* connect_to_peer(struct sockaddr_in* server_sockaddr, struct r
 	return cm_client_id;
 }
 
-void connect_to_mcs(char * parent_address, long parent_port, char ** peer_addresses, long * peer_ports, int num_peers, struct rdma_cm_id ** id_arr, struct rdma_event_channel* cm_event_channel, uint64_t *node_id, uint64_t *buffer, uint64_t *metadata, int* num_conn) {
+void connect_to_mcs(char * parent_address, long parent_port, char ** peer_addresses, long * peer_ports, int num_peers, struct rdma_cm_id ** id_arr, struct rdma_event_channel* cm_event_channel, uint64_t *node_id, uint64_t *buffer, volatile uint64_t *metadata, int* num_conn) {
     struct sockaddr_in server_sockaddr;
     server_sockaddr = build_sockaddr(parent_address, parent_port);
 	
