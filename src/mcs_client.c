@@ -511,7 +511,9 @@ void* mcs_client(void *in) {
 		return NULL;
 	}
 
+    printf("node %lu before connect\n", *node_id);
     connect_to_mcs(parent_address, parent_port, peer_addresses, peer_ports, num_peers, id_arr, cm_event_channel, node_id, buffer, metadata, num_conn);
+    printf("node %lu after connect\n", *node_id);
 
 	start = clock();
 
