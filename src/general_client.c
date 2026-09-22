@@ -16,7 +16,7 @@ void* general_client(void *in) {
     union client_info * ci = ((general_client_in *)in)->client_info;
     struct rdma_event_channel *cm_event_channel = NULL;
     union lock_info * li = (union lock_info *)malloc(sizeof(union lock_info) * num_parents);
-    *node_id = ((general_client_in *)in)->node_id
+    *node_id = ((general_client_in *)in)->node_id;
     switch(*machine_lock_type) {
         case 'm':
             mcs = ((mcs_client_in *) in)->machine_lock.mcs;
