@@ -40,30 +40,32 @@ void* general_client(void *in) {
                 // TODO add after ticket and spin are working
                 break;
             case 't':
-                struct sockaddr_in ticket_sockaddr = build_sockaddr(ci[i].ticket_c_info.parent_address, ci[i].ticket_c_info.parent_port);
-                li[i].ticket_l_info.metadata = (uint64_t *)malloc(sizeof(uint64_t));
-                *(li[i].tikcet_l_info.metadata) = 0;
-                li[i].ticket_l_info.buffer = (uint64_t *)malloc(sizeof(uint64_t));
-                *(li[i].ticket_l_info.buffer) = 0;
-                li[i].ticket_l_info.node_id = (uint64_t *)malloc(sizeof(uint64_t));
-                *(li[i].ticket_l_info.node_id) = ci[i].ticket_c_info.node_id;
-                li[i].ticket_l_info.ticket = (uint64_t *)malloc(sizeof(uint64_t));
-                *(li[i].ticket_l_info.ticket) = 0;
-                li[i].ticket_l_info.server_id = connect_to_spin_server(cm_event_channel, &ticket_sockaddr, li[i].ticket_l_info.node_id, li[i].ticket_l_info.buffer, li[i].ticket_l_info.metadata);
-                wait_on_data(li[i].ticket_l_info.metadata, 1);
-                *(li[i].ticket_l_info.metadata) = 0
+                struct sockaddr_in ticket_sockaddr = build_sockaddr(ci[i].ticket_c_info->parent_address, ci[i].ticket_c_info->parent_port);
+                li[i].ticket_l_info = (ticket_lock_info *)malloc(sizeof(ticket_lock_info));
+                li[i].ticket_l_info->metadata = (uint64_t *)malloc(sizeof(uint64_t));
+                *(li[i].tikcet_l_info->metadata) = 0;
+                li[i].ticket_l_info->buffer = (uint64_t *)malloc(sizeof(uint64_t));
+                *(li[i].ticket_l_info->buffer) = 0;
+                li[i].ticket_l_info->node_id = (uint64_t *)malloc(sizeof(uint64_t));
+                *(li[i].ticket_l_info->node_id) = ci[i].ticket_c_info->node_id;
+                li[i].ticket_l_info->ticket = (uint64_t *)malloc(sizeof(uint64_t));
+                *(li[i].ticket_l_info->ticket) = 0;
+                li[i].ticket_l_info->server_id = connect_to_spin_server(cm_event_channel, &ticket_sockaddr, li[i].ticket_l_info->node_id, li[i].ticket_l_info->buffer, li[i].ticket_l_info->metadata);
+                wait_on_data(li[i].ticket_l_info->metadata, 1);
+                *(li[i].ticket_l_info->metadata) = 0
                 break;
             case 's':
-                struct sockaddr_in spin_sockaddr = build_sockaddr(ci[i].spin_c_info.parent_address, ci[i].spin_c_info.parent_port);
-                li[i].spin_l_info.metadata = (uint64_t *)malloc(sizeof(uint64_t));
-                *(li[i].spin_l_info.metadata) = 0;
-                li[i].spin_l_info.buffer = (uint64_t *)malloc(sizeof(uint64_t));
-                *(li[i].spin_l_info.buffer) = 0;
-                li[i].spin_l_info.node_id = (uint64_t *)malloc(sizeof(uint64_t));
-                *(li[i].spin_l_info.node_id) = ci[i].spin_c_info.node_id;
-                li[i].spin_l_info.server_id = connect_to_spin_server(cm_event_channel, &spin_sockaddr, li[i].spin_l_info.node_id, li[i].spin_l_info.buffer, li[i].spin_l_info.metadata);
-                wait_on_data(li[i].spin_l_info.metadata, 1);
-                *(li[i].spin_l_info.metadata) = 0;
+                struct sockaddr_in spin_sockaddr = build_sockaddr(ci[i].spin_c_info->parent_address, ci[i].spin_c_info->parent_port);
+                li[i].spin_l_info = (spin_lock_info *)malloc(sizeof(spin_lock_info));
+                li[i].spin_l_info->metadata = (uint64_t *)malloc(sizeof(uint64_t));
+                *(li[i].spin_l_info->metadata) = 0;
+                li[i].spin_l_info->buffer = (uint64_t *)malloc(sizeof(uint64_t));
+                *(li[i].spin_l_info->buffer) = 0;
+                li[i].spin_l_info->node_id = (uint64_t *)malloc(sizeof(uint64_t));
+                *(li[i].spin_l_info->node_id) = ci[i].spin_c_info->node_id;
+                li[i].spin_l_info->server_id = connect_to_spin_server(cm_event_channel, &spin_sockaddr, li[i].spin_l_info->node_id, li[i].spin_l_info->buffer, li[i].spin_l_info->metadata);
+                wait_on_data(li[i].spin_l_info->metadata, 1);
+                *(li[i].spin_l_info->metadata) = 0;
                 break;
             default:
                 //Nothing
@@ -99,10 +101,10 @@ void* general_client(void *in) {
                     // TODO add after ticket and spin are working
                     break;
                 case 't':
-                    *(li[l].ticket_l_info.ticket) = acquire_ticket_lock(li[l].ticket_l_info.server_id, li[l].ticket_l_info.buffer);
+                    *(li[l].ticket_l_info->ticket) = acquire_ticket_lock(li[l].ticket_l_info->server_id, li[l].ticket_l_info->buffer);
                     break;
                 case 's':
-                    acquire_spin_lock(li[l].spin_l_info.server_id, li[l].spin_l_info.buffer);
+                    acquire_spin_lock(li[l].spin_l_info->server_id, li[l].spin_l_info->buffer);
                     break;
                 default:
                     //Nothing
@@ -119,10 +121,10 @@ void* general_client(void *in) {
                     // TODO add after ticket and spin are working
                     break;
                 case 't':
-                    release_ticket_lock(li[l].ticket_l_info.server_id, *(li[l].ticket_l_info.ticket), li[l].ticket_l_info.buffer);
+                    release_ticket_lock(li[l].ticket_l_info->server_id, *(li[l].ticket_l_info->ticket), li[l].ticket_l_info->buffer);
                     break;
                 case 's':
-                    release_spin_lock(li[l].ticket_l_info.server_id, li[l].ticket_l_info.buffer);
+                    release_spin_lock(li[l].ticket_l_info->server_id, li[l].ticket_l_info->buffer);
                     break;
                 default:
                     //Nothing
@@ -154,17 +156,19 @@ void* general_client(void *in) {
                 // TODO add after ticket and spin are working
                 break;
             case 't':
-                disconnect_client(cm_event_channel, li[i].ticket_l_info.server_id);
-                free((void *)li[i].ticket_l_info.metadata);
-                free(li[i].ticket_l_info.buffer);
-                free(li[i].ticket_l_info.node_id);
-                free(li[i].ticket_l_info.ticket);
+                disconnect_client(cm_event_channel, li[i].ticket_l_info->server_id);
+                free((void *)li[i].ticket_l_info->metadata);
+                free(li[i].ticket_l_info->buffer);
+                free(li[i].ticket_l_info->node_id);
+                free(li[i].ticket_l_info->ticket);
+                free(li[i].ticket_l_info);
                 break;
             case 's':
-                disconnect_client(cm_event_channel, li[i].spin_l_info.server_id);
-                free((void *)li[i].spin_l_info.metadata);
-                free(li[i].spin_l_info.buffer);
-                free(li[i].spin_l_info.node_id);
+                disconnect_client(cm_event_channel, li[i].spin_l_info->server_id);
+                free((void *)li[i].spin_l_info->metadata);
+                free(li[i].spin_l_info->buffer);
+                free(li[i].spin_l_info->node_id);
+                free(li[i].spin_l_info);
                 break;
             default:
                 //Nothing
