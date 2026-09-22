@@ -5,6 +5,11 @@
 #include "spin_client.h"
 #include "spin_server.h"
 
+// Valid Clusters
+// Utah xl170, c6525-100g c6525-25g
+// Wisconsin c220g5 c240g5
+// Clemson c6420
+
 int critical_section = 1;
 int noncritical_section = 1;
 int num_aquire = 1000;
