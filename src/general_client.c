@@ -5,14 +5,14 @@ void* general_client(void *in) {
     spinLock * spin = NULL;
     ticketLock * ticket = NULL;
     mcsLock * mcs = NULL;
-    clock_t = start, end;
+    clock_t start, end;
     int num_parents = ((general_client_in *)in)->num_parents;
     char * parent_types = ((general_client_in *)in)->parent_types;
     int critical_section = ((general_client_in *)in)->critical_section;
     int noncritical_section = ((general_client_in *)in)->noncritical_section;
     int num_aquire = ((general_client_in *)in)->num_aquire;
-    char * machine_lock_type ((general_client_in *)in)->machine_lock_type;
-    union client_info ci = ((general_client_in *)in)->client_info;
+    char * machine_lock_type = ((general_client_in *)in)->machine_lock_type;
+    union client_info * ci = ((general_client_in *)in)->client_info;
     struct rdma_event_channel *cm_event_channel = NULL;
     union lock_info * li = (lock_info *)malloc(sizeof(lock_info) * num_parents);
     switch(*machine_lock_type) {
