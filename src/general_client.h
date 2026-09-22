@@ -35,7 +35,6 @@ typedef struct {
     struct rdma_cm_id ** id_arr;
     uint64_t * node_id;
     uint64_t * buffer;
-    uint64_t * ticket;
     volatile uint64_t * metadata;
 } mcs_lock_info;
 
@@ -43,6 +42,7 @@ typedef struct {
     struct rdma_cm_id * server_id;
     uint64_t * buffer;
     uint64_t * node_id;
+    uint64_t * ticket;
     volatile uint64_t * metadata;
 } ticket_lock_info;
 
@@ -66,6 +66,7 @@ typedef struct {
     int noncritical_section;
     int num_aquire;
     char * machine_lock_type;
+    uint64_t node_id;
     union machine_lock machine_lock;
     union client_info * client_info;
 } general_client_in;
