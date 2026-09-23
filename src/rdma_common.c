@@ -71,7 +71,6 @@ int clean_up_client(struct rdma_cm_id* id) {
 
 	free(ctx->client_metadata_attr);
 	free(ctx->server_metadata_attr);
-	free(ctx->node_id);
 	free(ctx);
 
 	return ret;
