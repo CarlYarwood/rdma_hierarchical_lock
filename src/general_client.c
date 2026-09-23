@@ -92,7 +92,7 @@ void* general_client(void *in) {
                 break;
 			case 'b':
 				lockBasic(basic);
-                printf("Locking basic"\n);
+                printf("Locking basic\n");
 				break;
             default:
                 //Nothing
@@ -146,7 +146,7 @@ void* general_client(void *in) {
                 break;
 			case 'b':
 				unlockBasic(basic);
-                printf("unlocking basic"\n);
+                printf("unlocking basic\n");
 				break;
             default:
                 //Nothing
