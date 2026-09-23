@@ -191,7 +191,7 @@ int main(int argc, char ** argv){
         c_in[i].num_aquire = num_aquire;
         c_in[i].node_id = clients[i].node_id;
         c_in[i].machine_lock_type = config->machine_lock_type;
-        switch(config->machine_lock_type) {
+        switch(*(config->machine_lock_type)) {
             case 'm':
                 c_in[i].machine_lock.mcs = mcs;
                 break;
