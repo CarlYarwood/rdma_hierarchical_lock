@@ -257,6 +257,10 @@ int main(int argc, char ** argv){
         }
         free(c_in[i].client_info);
     }
+    destroyMcsLock(mcs);
+    destroyTicketLock(ticket);
+    destroySpinLock(spin);
+    destroyBasicLock(basic);
     free(c_in);
     free(workers);
 
