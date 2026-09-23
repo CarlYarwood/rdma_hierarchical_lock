@@ -19,16 +19,16 @@ void* general_client(void *in) {
     *node_id = ((general_client_in *)in)->node_id;
     switch(*machine_lock_type) {
         case 'm':
-            mcs = ((mcs_client_in *) in)->machine_lock.mcs;
+            mcs = ((general_client_in *) in)->machine_lock.mcs;
             break;
         case 't':
-            ticket = ((mcs_client_in *)in)->machine_lock.ticket;
+            ticket = ((general_client_in *)in)->machine_lock.ticket;
             break;
         case 's':
-            spin = ((mcs_client_in *)in)->machine_lock.spin;
+            spin = ((general_client_in *)in)->machine_lock.spin;
             break;
         case 'b':
-            basic = ((mcs_client_in *)in)->machine_lock.basic;
+            basic = ((general_client_in *)in)->machine_lock.basic;
             break;
         default:
             //Nothing
