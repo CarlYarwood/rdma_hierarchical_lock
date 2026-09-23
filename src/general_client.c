@@ -145,7 +145,6 @@ void* general_client(void *in) {
                 break;
 			case 'b':
 				unlockBasic(basic);
-                printf("unlocking basic\n");
 				break;
             default:
                 //Nothing

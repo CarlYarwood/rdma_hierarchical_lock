@@ -160,7 +160,6 @@ server_ctx* build_server_ticket_context(struct rdma_cm_id* client_id, uint64_t *
     (*ctx).client_metadata_mr = client_metadata_mr;
     (*ctx).server_metadata_attr = server_metadata_attr;
     (*ctx).client_metadata_attr = client_metadata_attr;
-    printf("context built\n");
     return ctx;
 }
 
@@ -190,7 +189,6 @@ int send_server_ticket_metadata(struct rdma_cm_id* client_id) {
 	    perror("Failed to send server metadata, ret = %d \n");
 	    return -1;
     }
-    printf("metadata sent\n");
     return 0;
 }
 
@@ -225,7 +223,6 @@ int clean_up_ticket_context(struct rdma_cm_id* client_id) {
     free(ctx->server_metadata_attr);
     free(ctx->client_metadata_attr);
     free(ctx);
-    printf("context cleaned up\n");
     return 0;
 }
 
