@@ -17,7 +17,6 @@ void* general_client(void *in) {
     struct rdma_event_channel *cm_event_channel = NULL;
     union lock_info * li = (union lock_info *)malloc(sizeof(union lock_info) * num_parents);
     *node_id = ((general_client_in *)in)->node_id;
-    printf("%s\n", machine_lock_type);
     switch(*machine_lock_type) {
         case 'm':
             mcs = ((mcs_client_in *) in)->machine_lock.mcs;
@@ -29,7 +28,6 @@ void* general_client(void *in) {
             spin = ((mcs_client_in *)in)->machine_lock.spin;
             break;
         case 'b':
-            printf("basic lock extracted\n");
             basic = ((mcs_client_in *)in)->machine_lock.basic;
             break;
         default:
@@ -93,7 +91,6 @@ void* general_client(void *in) {
                 lockSpin(spin, *node_id);
                 break;
 			case 'b':
-                printf("Locking basic\n");
 				lockBasic(basic);
 				break;
             default:

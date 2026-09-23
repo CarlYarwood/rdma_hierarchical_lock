@@ -2,6 +2,7 @@
 
 void lockBasic(basicLock *lock) {
     pthread_mutex_lock(lock->lock_mutex);
+    printf("after lock");
 }
 
 void unlockBasic(basicLock *lock) {
