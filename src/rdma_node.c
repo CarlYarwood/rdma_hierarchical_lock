@@ -107,7 +107,7 @@ client_config clients[31] = {
     { 12, 1, "s", addresses[0], ports[0], NULL, NULL },
     { 13, 1, "s", addresses[0], ports[0], NULL, NULL },
     { 14, 1, "s", addresses[0], ports[0], NULL, NULL },
-    { 15, 1, "s" addresses[0], ports[0], NULL, NULL },
+    { 15, 1, "s", addresses[0], ports[0], NULL, NULL },
     { 16, 1, "s", addresses[0], ports[0], NULL, NULL },
     { 17, 1, "s", addresses[0], ports[0], NULL, NULL },
     { 18, 1, "s", addresses[0], ports[0], NULL, NULL },
