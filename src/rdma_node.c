@@ -87,9 +87,8 @@ int peer_group_sizes[2] = {
     31
 };
 
-server_config servers[1] = {
-    's',
-    31
+server_config servers[2] = {
+    { 's', 31}
 };
 
 client_config clients[31] = {
