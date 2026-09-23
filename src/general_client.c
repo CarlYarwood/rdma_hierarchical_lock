@@ -93,8 +93,8 @@ void* general_client(void *in) {
                 lockSpin(spin, *node_id);
                 break;
 			case 'b':
-				lockBasic(basic);
                 printf("Locking basic\n");
+				lockBasic(basic);
 				break;
             default:
                 //Nothing
