@@ -202,6 +202,7 @@ int main(int argc, char ** argv){
                 c_in[i].machine_lock.spin = spin;
                 break;
             case 'b':
+                printf("basic lock set\n");
                 c_in[i].machine_lock.basic = basic;
                 break;
             default:

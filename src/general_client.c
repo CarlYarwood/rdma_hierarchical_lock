@@ -29,6 +29,7 @@ void* general_client(void *in) {
             spin = ((mcs_client_in *)in)->machine_lock.spin;
             break;
         case 'b':
+            printf("basic lock extracted\n");
             basic = ((mcs_client_in *)in)->machine_lock.basic;
             break;
         default:
