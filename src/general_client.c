@@ -161,7 +161,7 @@ void* general_client(void *in) {
                 disconnect_client(cm_event_channel, li[i].ticket_l_info->server_id);
                 free((void *)li[i].ticket_l_info->metadata);
                 free(li[i].ticket_l_info->buffer);
-                free(li[i].ticket_l_info->node_id);
+                // free(li[i].ticket_l_info->node_id);
                 free(li[i].ticket_l_info->ticket);
                 free(li[i].ticket_l_info);
                 break;
@@ -169,7 +169,7 @@ void* general_client(void *in) {
                 disconnect_client(cm_event_channel, li[i].spin_l_info->server_id);
                 free((void *)li[i].spin_l_info->metadata);
                 free(li[i].spin_l_info->buffer);
-                free(li[i].spin_l_info->node_id);
+                // free(li[i].spin_l_info->node_id);
                 free(li[i].spin_l_info);
                 break;
             default:
@@ -177,6 +177,7 @@ void* general_client(void *in) {
         }
     }
     free(li);
+    free(node_id);
     rdma_destroy_event_channel(cm_event_channel);
 
     printf("%f\n", ((double)(num_aquire * critical_section))/((double)(end - start)/CLOCKS_PER_SEC));
