@@ -71,4 +71,5 @@ typedef struct {
     union client_info * client_info;
 } general_client_in;
 
+void* general_client(void *in);
 #endif
