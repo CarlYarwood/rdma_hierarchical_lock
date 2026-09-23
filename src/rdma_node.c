@@ -207,7 +207,7 @@ int main(int argc, char ** argv){
             default:
                 //Nothing
         }
-        c_in[i].client_info = (union client_info *)malloc(sizeof(client_info) * clients[i].num_parents);
+        c_in[i].client_info = (union client_info *)malloc(sizeof(union client_info) * clients[i].num_parents);
         for(int p = 0; p < clients[i].num_parents ; p++) {
             switch(clients[i].parent_types[p]) {
                 case 'm':
