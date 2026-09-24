@@ -35,6 +35,7 @@ typedef struct {
     struct rdma_cm_id ** id_arr;
     uint64_t * node_id;
     uint64_t * buffer;
+    int * num_conn;
     volatile uint64_t * metadata;
 } mcs_lock_info;
 

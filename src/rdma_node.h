@@ -11,13 +11,14 @@ typedef struct {
 } server_config;
 
 typedef struct {
-    uint64_t node_id;
+    uint64_t * node_id;
     int num_parents;
     char * parent_types;
     char ** parent_addresses;
     long * parent_ports;
     char *** peer_addresses;
     long ** peer_ports;
+    int * num_peers;
 } client_config;
 
 typedef struct {

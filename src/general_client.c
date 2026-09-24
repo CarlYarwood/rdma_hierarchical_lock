@@ -39,7 +39,22 @@ void* general_client(void *in) {
     for (int i = 0; i < num_parents; i++) {
         switch(parent_types[i]) {
             case 'm':
-                // TODO add after ticket and spin are working
+                li[i].mcs_l_info = (mcs_l_info *)malloc(sizeof(mcs_l_info));
+                li[i].mcs_l_info->id_arr = (struct rdma_cm_id **)malloc(sizeof(struct rdma_cm_id *) * (ci[i].mcs_c_info->num_peers + 1));
+                for(int m = 0; m < (ci[i].mcs_c_info->num_peers + 1); m++) {
+                    li[i].mcs_l_info->id_arr[m] = NULL;
+                }
+                li[i].mcs_l_info->node_id = (uint64_t *)malloc(sizeof(uint64_t));
+                *(li[i].mcs_l_info->node_id) = ci[i].mcs_c_info->node_id;
+                li[i].mcs_l_info->buffer = (uint64_t *)malloc(sizeof(uint64_t));
+                *(li[i].mcs_l_info->buffer) = 0;
+                li[i].mcs_l_info->metadata = (uint64_t *)malloc(sizeof(uint64_t) * 3);
+                li[i].mcs_l_info->metadata[NEXT] = 0;
+                li[i].mcs_l_info->metadata[NOTIFY] = 0;
+                li[i].mcs_l_info->metadata[MCS_SYNC] = 0;
+                li[i].mcs_l_info->num_conn = (int *)malloc(sizeof(int));
+                *(li[i].mcs_l_info->num_conn) = 0;
+                connect_to_mcs(ci[i].mcs_c_info->parent_address, ci[i].mcs_c_info->.parent_port, ci[i].mcs_c_info->peer_addresses, ci[i]mcs_c_info->peer_ports, ci[i].mcs_c_info->num_peers, li[i].mcs_l_info->id_arr, cm_event_channel, li[i].mcs_l_info->node_id, li[i].mcs_l_info->buffer, li[i].mcs_l_info->metadata, li[i].mcs_l_info->num_conn);
                 break;
             case 't':
                 struct sockaddr_in ticket_sockaddr = build_sockaddr(ci[i].ticket_c_info->parent_address, ci[i].ticket_c_info->parent_port);
@@ -100,7 +115,7 @@ void* general_client(void *in) {
         for (int l = 0; l < num_parents; l++) {
             switch(parent_types[l]) {
                 case 'm':
-                    // TODO add after ticket and spin are working
+                    acquire_mcs_lock(li[i].mcs_l_info->id_arr, li[i].mcs_l_info->node_id, li[i].mcs_l_info->buffer, li[i].mcs_l_info->metadata);
                     break;
                 case 't':
                     *(li[l].ticket_l_info->ticket) = acquire_ticket_lock(li[l].ticket_l_info->server_id, li[l].ticket_l_info->buffer);
@@ -120,7 +135,7 @@ void* general_client(void *in) {
         for (int l = num_parents - 1; l >= 0; l--) {
             switch(parent_types[l]) {
                 case 'm':
-                    // TODO add after ticket and spin are working
+                    release_mcs_lock(li[i].mcs_l_info->id_arr, li[i].mcs_l_info->node_id, li[i].mcs_l_info->buffer, li[i].mcs_l_info->metadata);
                     break;
                 case 't':
                     release_ticket_lock(li[l].ticket_l_info->server_id, *(li[l].ticket_l_info->ticket), li[l].ticket_l_info->buffer);
@@ -155,7 +170,12 @@ void* general_client(void *in) {
     for(int i = num_parents; i >= 0; i--) {
         switch(parent_types[i]) {
             case 'm':
-                // TODO add after ticket and spin are working
+                disconnect_from_mcs(li[i].mcs_l_info->id_arr, cm_event_channel, li[i].mcs_l_info->node_id, li[i].mcs_l_info->num_conn);
+                free(li[i].mcs_l_info->id_arr);
+                free(li[i].mcs_l_info->node_id);
+                free(li[i].mcs_l_info->buffer);
+                free(li[i].mcs_l_info->num_conn);
+                free((void *)li[i].mcs_l_info->metadata);
                 break;
             case 't':
                 disconnect_client(cm_event_channel, li[i].ticket_l_info->server_id);
