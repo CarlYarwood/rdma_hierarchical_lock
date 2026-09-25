@@ -39,7 +39,27 @@ void* general_client(void *in) {
     for (int i = 0; i < num_parents; i++) {
         switch(parent_types[i]) {
             case 'm':
+                struct sockaddr_in client_server_sockaddr;
+                bzero(&client_server_sockaddr, sizeof client_server_sockaddr);
+	            client_server_sockaddr.sin_family = AF_INET; /* standard IP NET address */
+	            client_server_sockaddr.sin_addr.s_addr = htonl(INADDR_ANY); /* passed address */
+	            client_server_sockaddr.sin_port = htons(ci[i].mcs_c_info->peer_ports[(*node_id) - 1]);
                 li[i].mcs_l_info = (mcs_lock_info *)malloc(sizeof(mcs_lock_info));
+                if (rdma_create_id(cm_event_channel, li[i].mcs_l_info->client_server_id, NULL, RDMA_PS_TCP)) {
+		            rdma_error("Creating server cm id failed with errno: %d ", -errno);
+		            return NULL;
+	            }
+
+                if (rdma_bind_addr(li[i].mcs_l_info->client_server_id, (struct sockaddr*) &client_server_sockaddr)) {
+		            rdma_error("Failed to bind server address, errno: %d \n", -errno);
+		            return NULL;
+	            }
+
+	            if (rdma_listen(li[i].mcs_l_info->client_server_id, 8)) {
+		            rdma_error("rdma_listen failed to listen on server address, errno: %d ", -errno);
+		            return NULL;
+	            }
+
                 li[i].mcs_l_info->id_arr = (struct rdma_cm_id **)malloc(sizeof(struct rdma_cm_id *) * (ci[i].mcs_c_info->num_peers + 1));
                 for(int m = 0; m < (ci[i].mcs_c_info->num_peers + 1); m++) {
                     li[i].mcs_l_info->id_arr[m] = NULL;
@@ -176,6 +196,9 @@ void* general_client(void *in) {
                 free(li[i].mcs_l_info->buffer);
                 free(li[i].mcs_l_info->num_conn);
                 free((void *)li[i].mcs_l_info->metadata);
+                if (rdma_destroy_id(li[i]->client_server_id)) {
+		            rdma_error("Failed to destroy server id cleanly, %d \n", -errno);
+	            }
                 break;
             case 't':
                 disconnect_client(cm_event_channel, li[i].ticket_l_info->server_id);

@@ -32,6 +32,7 @@ union client_info {
 };
 
 typedef struct {
+    struct rdma_cm_id * client_server_id;
     struct rdma_cm_id ** id_arr;
     uint64_t * node_id;
     uint64_t * buffer;
