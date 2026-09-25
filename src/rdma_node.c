@@ -87,7 +87,7 @@ int peer_group_sizes[2] = {
     31
 };
 
-uint64_t client_ids[31][2] {
+uint64_t client_ids[31][2] = {
     { 1, 1 },
     { 2, 2 },
     { 3, 3 },
