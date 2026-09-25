@@ -279,7 +279,7 @@ struct rdma_cm_id* connect_to_peer(struct sockaddr_in* server_sockaddr, struct r
 		perror("Failed to get cm event, ret = %d \n");
 	    return NULL;
 	}
-    prinf("node %lu after EVENT_ESTABLISHED\n", *node_id);
+    printf("node %lu after EVENT_ESTABLISHED\n", *node_id);
 
 	if (rdma_ack_cm_event(cm_event)) {
 		rdma_error("Failed to acknowledge cm event, errno: %d\n", -errno);
