@@ -244,7 +244,7 @@ int main(int argc, char ** argv){
         for(int p = 0; p < clients[i].num_parents ; p++) {
             switch(clients[i].parent_types[p]) {
                 case 'm':
-                    c_in[i].client_info[p].mcs_c_info = (mcs_client_info *)mallocs(sizeof(mcs_client_info));
+                    c_in[i].client_info[p].mcs_c_info = (mcs_client_info *)malloc(sizeof(mcs_client_info));
                     c_in[i].client_info[p].mcs_c_info->parent_address = clients[i].parent_addresses[p];
                     c_in[i].client_info[p].mcs_c_info->parent_port = clients[i].parent_ports[p];
                     c_in[i].client_info[p].mcs_c_info->peer_addresses = clients[i].peer_addresses[p];
@@ -262,7 +262,7 @@ int main(int argc, char ** argv){
                     c_in[i].client_info[p].spin_c_info = (spin_client_info *)malloc(sizeof(spin_client_info));
                     c_in[i].client_info[p].spin_c_info->parent_address = clients[i].parent_addresses[p];
                     c_in[i].client_info[p].spin_c_info->parent_port = clients[i].parent_ports[p];
-                    c_in[i].client_info[p].spin_c_info->node_id = clients[i].node_id[P + 1];
+                    c_in[i].client_info[p].spin_c_info->node_id = clients[i].node_id[p + 1];
                     break;
                 default:
                     //Nothing
