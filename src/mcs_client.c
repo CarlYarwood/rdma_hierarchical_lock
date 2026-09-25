@@ -192,7 +192,7 @@ int acquire_mcs_lock(struct rdma_cm_id ** id_arr, uint64_t *node_id, uint64_t *b
         return 0;
     }
 
-    printf("Node %lu joining line\n", *node_id);
+    printf("Node %lu joining line after node %lu\n", *node_id, *buffer);
     compare_and_swap(id_arr[*buffer], 0, *node_id, NEXT);
     do {} while (metadata[NOTIFY] == 0);
     return 0;
