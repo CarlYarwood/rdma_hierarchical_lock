@@ -373,7 +373,7 @@ void connect_to_mcs(char * parent_address, long parent_port, char ** peer_addres
         }
     }
 
-	for (int i = (*node_id); i < num_peers; i++) {
+	for (int i = (*node_id); i < num_peers + 1; i++) {
         struct sockaddr_in client_sockaddr;
         client_sockaddr = build_sockaddr(peer_addresses[i], peer_ports[i]);
 
