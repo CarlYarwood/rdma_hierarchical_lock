@@ -225,12 +225,10 @@ struct rdma_cm_id* connect_to_peer(struct sockaddr_in* server_sockaddr, struct r
 		return NULL;
 	}
 
-    printf("node %lu before ADDR_RESOlVED\n", *node_id);
 	if (process_rdma_cm_event(cm_event_channel, RDMA_CM_EVENT_ADDR_RESOLVED, &cm_event)) {
 		perror("Failed to receive a valid event, ret = %d \n");
 		return NULL;
 	}
-    printf("node %lu after ADDR_RESOLVED\n", *node_id);
 
 	ctx = build_mcs_context(cm_client_id, metadata, buffer, p_node_id);
 	if (!ctx) {
@@ -250,12 +248,10 @@ struct rdma_cm_id* connect_to_peer(struct sockaddr_in* server_sockaddr, struct r
 	}
 	debug("waiting for cm event: RDMA_CM_EVENT_ROUTE_RESOLVED\n");
 
-    printf("node %lu before ROUTE_RESOLVED\n", *node_id);
 	if (process_rdma_cm_event(cm_event_channel, RDMA_CM_EVENT_ROUTE_RESOLVED, &cm_event)) {
 		perror("Failed to receive a valid event, ret = %d \n");
 		return NULL;
 	}
-    printf("node %lu afte ROURTE_RESOLVED\n", *node_id);
 
     if (rdma_ack_cm_event(cm_event)) {
 		rdma_error("Failed to acknowledge the CM event, errno: %d \n", -errno);
@@ -274,12 +270,10 @@ struct rdma_cm_id* connect_to_peer(struct sockaddr_in* server_sockaddr, struct r
 	}
 	debug("waiting for cm event: RDMA_CM_EVENT_ESTABLISHED\n");
 
-    printf("node %lu before EVENT_ESTABLISHED\n", *node_id);
 	if (process_rdma_cm_event(cm_event_channel, RDMA_CM_EVENT_ESTABLISHED, &cm_event)) {
 		perror("Failed to get cm event, ret = %d \n");
 	    return NULL;
 	}
-    printf("node %lu after EVENT_ESTABLISHED\n", *node_id);
 
 	if (rdma_ack_cm_event(cm_event)) {
 		rdma_error("Failed to acknowledge cm event, errno: %d\n", -errno);
@@ -326,7 +320,6 @@ void connect_to_mcs(char * parent_address, long parent_port, char ** peer_addres
                 
                 client_id = cm_event->id;
                 *peer_id = *((uint64_t *) cm_event->param.conn.private_data);
-                printf("node %lu connection request received from node %lu\n", *node_id, *peer_id);
 
                 ctx = build_mcs_context(client_id, metadata, buffer, peer_id);
                 if(!ctx) {
@@ -356,7 +349,6 @@ void connect_to_mcs(char * parent_address, long parent_port, char ** peer_addres
 
             case RDMA_CM_EVENT_ESTABLISHED :
                 client_id = cm_event->id;
-                printf("node %lu Event established\n", *node_id);
 
                 if (rdma_ack_cm_event(cm_event)) {
 		            rdma_error("Failed to acknowledge the cm event %d\n", -errno);
@@ -379,7 +371,6 @@ void connect_to_mcs(char * parent_address, long parent_port, char ** peer_addres
 
 	for (int i = (*node_id); i < num_peers; i++) {
         struct sockaddr_in client_sockaddr;
-        printf("%s:%ld\n", peer_addresses[i], peer_ports[i]);
         client_sockaddr = build_sockaddr(peer_addresses[i], peer_ports[i]);
 
         id_arr[i] = connect_to_peer(&client_sockaddr, cm_event_channel, node_id, i, buffer, metadata);

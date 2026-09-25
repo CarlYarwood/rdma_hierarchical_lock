@@ -135,7 +135,9 @@ void* general_client(void *in) {
         for (int l = 0; l < num_parents; l++) {
             switch(parent_types[l]) {
                 case 'm':
+                    printf("node %lu before aquire lock\n", *node_id);
                     acquire_mcs_lock(li[i].mcs_l_info->id_arr, li[i].mcs_l_info->node_id, li[i].mcs_l_info->buffer, li[i].mcs_l_info->metadata);
+                    printf("node %lu after aquire lock\n", *node_id);
                     break;
                 case 't':
                     *(li[l].ticket_l_info->ticket) = acquire_ticket_lock(li[l].ticket_l_info->server_id, li[l].ticket_l_info->buffer);
@@ -155,7 +157,9 @@ void* general_client(void *in) {
         for (int l = num_parents - 1; l >= 0; l--) {
             switch(parent_types[l]) {
                 case 'm':
+                    printf("node %lu before release lock\n", *node_id);
                     release_mcs_lock(li[i].mcs_l_info->id_arr, li[i].mcs_l_info->node_id, li[i].mcs_l_info->buffer, li[i].mcs_l_info->metadata);
+                    printf("node %lu after release lock\n", *node_id);
                     break;
                 case 't':
                     release_ticket_lock(li[l].ticket_l_info->server_id, *(li[l].ticket_l_info->ticket), li[l].ticket_l_info->buffer);
