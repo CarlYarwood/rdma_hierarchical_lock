@@ -282,7 +282,7 @@ int main(int argc, char ** argv){
         index++;
     }
 
-    for(int i = (config->total_workers) - 1; i >= 0; i--) {
+    for(int i = 0; i < config->total_workers; i++) {
         pthread_join(workers[i], NULL);
     }
 
