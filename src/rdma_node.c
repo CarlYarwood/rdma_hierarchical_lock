@@ -92,7 +92,7 @@ int peer_groups[1][1] = {
     { 0 }
 };
 
-int peer_group_sizes[1] = {
+int num_peers[1] = {
     31
 };
 
