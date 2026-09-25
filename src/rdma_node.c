@@ -126,7 +126,7 @@ node_config configs[1] = {
         20,
         1,
         19,
-        "t",
+        "m",
         servers,
         clients
     }
