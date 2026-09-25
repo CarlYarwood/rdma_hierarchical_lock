@@ -16,8 +16,8 @@ typedef struct {
     char * parent_types;
     char ** parent_addresses;
     long * parent_ports;
-    char ** peer_addresses[31];
-    long * peer_ports[31];
+    char * peer_addresses[1][31];
+    long peer_ports[1][31];
     int * num_peers;
 } client_config;
 
