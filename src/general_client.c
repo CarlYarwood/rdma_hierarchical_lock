@@ -54,7 +54,7 @@ void* general_client(void *in) {
                 li[i].mcs_l_info->metadata[MCS_SYNC] = 0;
                 li[i].mcs_l_info->num_conn = (int *)malloc(sizeof(int));
                 *(li[i].mcs_l_info->num_conn) = 0;
-                connect_to_mcs(ci[i].mcs_c_info->parent_address, ci[i].mcs_c_info->parent_port, ci[i].mcs_c_info->peer_addresses, ci[i]mcs_c_info->peer_ports, ci[i].mcs_c_info->num_peers, li[i].mcs_l_info->id_arr, cm_event_channel, li[i].mcs_l_info->node_id, li[i].mcs_l_info->buffer, li[i].mcs_l_info->metadata, li[i].mcs_l_info->num_conn);
+                connect_to_mcs(ci[i].mcs_c_info->parent_address, ci[i].mcs_c_info->parent_port, ci[i].mcs_c_info->peer_addresses, ci[i].mcs_c_info->peer_ports, ci[i].mcs_c_info->num_peers, li[i].mcs_l_info->id_arr, cm_event_channel, li[i].mcs_l_info->node_id, li[i].mcs_l_info->buffer, li[i].mcs_l_info->metadata, li[i].mcs_l_info->num_conn);
                 break;
             case 't':
                 struct sockaddr_in ticket_sockaddr = build_sockaddr(ci[i].ticket_c_info->parent_address, ci[i].ticket_c_info->parent_port);
