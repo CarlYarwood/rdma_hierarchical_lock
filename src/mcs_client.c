@@ -225,10 +225,12 @@ struct rdma_cm_id* connect_to_peer(struct sockaddr_in* server_sockaddr, struct r
 		return NULL;
 	}
 
+    printf("node %lu before ADDR_RESOlVED\n", *node_id);
 	if (process_rdma_cm_event(cm_event_channel, RDMA_CM_EVENT_ADDR_RESOLVED, &cm_event)) {
 		perror("Failed to receive a valid event, ret = %d \n");
 		return NULL;
 	}
+    printf("node %lu after ADDR_RESOLVED\n", *node_id);
 
 	ctx = build_mcs_context(cm_client_id, metadata, buffer, p_node_id);
 	if (!ctx) {
@@ -248,10 +250,12 @@ struct rdma_cm_id* connect_to_peer(struct sockaddr_in* server_sockaddr, struct r
 	}
 	debug("waiting for cm event: RDMA_CM_EVENT_ROUTE_RESOLVED\n");
 
+    printf("node %lu before ROUTE_RESOLVED\n", *node_id);
 	if (process_rdma_cm_event(cm_event_channel, RDMA_CM_EVENT_ROUTE_RESOLVED, &cm_event)) {
 		perror("Failed to receive a valid event, ret = %d \n");
 		return NULL;
 	}
+    prinf("node %lu afte ROURTE_RESOLVED\n", *node_id);
 
     if (rdma_ack_cm_event(cm_event)) {
 		rdma_error("Failed to acknowledge the CM event, errno: %d \n", -errno);
@@ -270,10 +274,12 @@ struct rdma_cm_id* connect_to_peer(struct sockaddr_in* server_sockaddr, struct r
 	}
 	debug("waiting for cm event: RDMA_CM_EVENT_ESTABLISHED\n");
 
+    printf("node %lu before EVENT_ESTABLISHED\n", *node_id);
 	if (process_rdma_cm_event(cm_event_channel, RDMA_CM_EVENT_ESTABLISHED, &cm_event)) {
 		perror("Failed to get cm event, ret = %d \n");
 	    return NULL;
 	}
+    prinf("node %lu after EVENT_ESTABLISHED\n", *node_id);
 
 	if (rdma_ack_cm_event(cm_event)) {
 		rdma_error("Failed to acknowledge cm event, errno: %d\n", -errno);
