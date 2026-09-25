@@ -45,7 +45,7 @@ void* general_client(void *in) {
 	            client_server_sockaddr.sin_addr.s_addr = htonl(INADDR_ANY); /* passed address */
 	            client_server_sockaddr.sin_port = htons(ci[i].mcs_c_info->peer_ports[(*node_id) - 1]);
                 li[i].mcs_l_info = (mcs_lock_info *)malloc(sizeof(mcs_lock_info));
-                if (rdma_create_id(cm_event_channel, li[i].mcs_l_info->client_server_id, NULL, RDMA_PS_TCP)) {
+                if (rdma_create_id(cm_event_channel, &(li[i].mcs_l_info->client_server_id), NULL, RDMA_PS_TCP)) {
 		            rdma_error("Creating server cm id failed with errno: %d ", -errno);
 		            return NULL;
 	            }
