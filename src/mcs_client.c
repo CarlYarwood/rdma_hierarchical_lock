@@ -326,6 +326,7 @@ void connect_to_mcs(char * parent_address, long parent_port, char ** peer_addres
                 
                 client_id = cm_event->id;
                 *peer_id = *((uint64_t *) cm_event->param.conn.private_data);
+                prinf("node %lu connection request received from node %lu\n", *node_id, *peer_id);
 
                 ctx = build_mcs_context(client_id, metadata, buffer, peer_id);
                 if(!ctx) {
@@ -355,6 +356,7 @@ void connect_to_mcs(char * parent_address, long parent_port, char ** peer_addres
 
             case RDMA_CM_EVENT_ESTABLISHED :
                 client_id = cm_event->id;
+                printf("node %lu Event established\n", *node_id)
 
                 if (rdma_ack_cm_event(cm_event)) {
 		            rdma_error("Failed to acknowledge the cm event %d\n", -errno);
