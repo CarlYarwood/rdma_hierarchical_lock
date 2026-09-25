@@ -164,7 +164,7 @@ node_config configs[1] = {
         32,
         1,
         31,
-        "b",
+        "n",
         servers,
         clients
     }
@@ -177,9 +177,9 @@ int main(int argc, char ** argv){
     pthread_t * workers;
     node_config * config;
 
-    while ((option = getopt(argc, argv, "n:")) != -1) {
+    while ((option = getopt(argc, argv, "c:")) != -1) {
 		switch (option) {
-            case 'n':
+            case 'c':
                 choice = atoi(optarg);
                 break;
             default:
