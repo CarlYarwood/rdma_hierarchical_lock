@@ -13,41 +13,39 @@ char * parent_addresses[1][1] = {
     {"10.10.1.1"}
 };
 
-char * peer_addresses[1][1][31] = {
+char * peer_addresses[1][31] = {
     {
-        {
-            "10.10.1.1",
-            "10.10.1.1",
-            "10.10.1.1",
-            "10.10.1.1",
-            "10.10.1.1",
-            "10.10.1.1",
-            "10.10.1.1",
-            "10.10.1.1",
-            "10.10.1.1",
-            "10.10.1.1",
-            "10.10.1.1",
-            "10.10.1.1",
-            "10.10.1.1",
-            "10.10.1.1",
-            "10.10.1.1",
-            "10.10.1.1",
-            "10.10.1.1",
-            "10.10.1.1",
-            "10.10.1.1",
-            "10.10.1.1",
-            "10.10.1.1",
-            "10.10.1.1",
-            "10.10.1.1",
-            "10.10.1.1",
-            "10.10.1.1",
-            "10.10.1.1",
-            "10.10.1.1",
-            "10.10.1.1",
-            "10.10.1.1",
-            "10.10.1.1",
-            "10.10.1.1"
-        }
+        "10.10.1.1",
+        "10.10.1.1",
+        "10.10.1.1",
+        "10.10.1.1",
+        "10.10.1.1",
+        "10.10.1.1",
+        "10.10.1.1",
+        "10.10.1.1",
+        "10.10.1.1",
+        "10.10.1.1",
+        "10.10.1.1",
+        "10.10.1.1",
+        "10.10.1.1",
+        "10.10.1.1",
+        "10.10.1.1",
+        "10.10.1.1",
+        "10.10.1.1",
+        "10.10.1.1",
+        "10.10.1.1",
+        "10.10.1.1",
+        "10.10.1.1",
+        "10.10.1.1",
+        "10.10.1.1",
+        "10.10.1.1",
+        "10.10.1.1",
+        "10.10.1.1",
+        "10.10.1.1",
+        "10.10.1.1",
+        "10.10.1.1",
+        "10.10.1.1",
+        "10.10.1.1"
     }
 };
 
@@ -55,45 +53,47 @@ long parent_ports[1][1] = {
     {DEFAULT_RDMA_PORT}
 };
 
-long peer_ports[1][1][31] = {
+long peer_ports[1][31] = {
     {
-        {
-            DEFAULT_RDMA_PORT + 1,
-            DEFAULT_RDMA_PORT + 2,
-            DEFAULT_RDMA_PORT + 3,
-            DEFAULT_RDMA_PORT + 4,
-            DEFAULT_RDMA_PORT + 5,
-            DEFAULT_RDMA_PORT + 6,
-            DEFAULT_RDMA_PORT + 7,
-            DEFAULT_RDMA_PORT + 8,
-            DEFAULT_RDMA_PORT + 9,
-            DEFAULT_RDMA_PORT + 10,
-            DEFAULT_RDMA_PORT + 11,
-            DEFAULT_RDMA_PORT + 12,
-            DEFAULT_RDMA_PORT + 13,
-            DEFAULT_RDMA_PORT + 14,
-            DEFAULT_RDMA_PORT + 15,
-            DEFAULT_RDMA_PORT + 16,
-            DEFAULT_RDMA_PORT + 17,
-            DEFAULT_RDMA_PORT + 18,
-            DEFAULT_RDMA_PORT + 20,
-            DEFAULT_RDMA_PORT + 21,
-            DEFAULT_RDMA_PORT + 22,
-            DEFAULT_RDMA_PORT + 23,
-            DEFAULT_RDMA_PORT + 24,
-            DEFAULT_RDMA_PORT + 25,
-            DEFAULT_RDMA_PORT + 26,
-            DEFAULT_RDMA_PORT + 27,
-            DEFAULT_RDMA_PORT + 28,
-            DEFAULT_RDMA_PORT + 29,
-            DEFAULT_RDMA_PORT + 30,
-            DEFAULT_RDMA_PORT + 31,
-        }
+        DEFAULT_RDMA_PORT + 1,
+        DEFAULT_RDMA_PORT + 2,
+        DEFAULT_RDMA_PORT + 3,
+        DEFAULT_RDMA_PORT + 4,
+        DEFAULT_RDMA_PORT + 5,
+        DEFAULT_RDMA_PORT + 6,
+        DEFAULT_RDMA_PORT + 7,
+        DEFAULT_RDMA_PORT + 8,
+        DEFAULT_RDMA_PORT + 9,
+        DEFAULT_RDMA_PORT + 10,
+        DEFAULT_RDMA_PORT + 11,
+        DEFAULT_RDMA_PORT + 12,
+        DEFAULT_RDMA_PORT + 13,
+        DEFAULT_RDMA_PORT + 14,
+        DEFAULT_RDMA_PORT + 15,
+        DEFAULT_RDMA_PORT + 16,
+        DEFAULT_RDMA_PORT + 17,
+        DEFAULT_RDMA_PORT + 18,
+        DEFAULT_RDMA_PORT + 20,
+        DEFAULT_RDMA_PORT + 21,
+        DEFAULT_RDMA_PORT + 22,
+        DEFAULT_RDMA_PORT + 23,
+        DEFAULT_RDMA_PORT + 24,
+        DEFAULT_RDMA_PORT + 25,
+        DEFAULT_RDMA_PORT + 26,
+        DEFAULT_RDMA_PORT + 27,
+        DEFAULT_RDMA_PORT + 28,
+        DEFAULT_RDMA_PORT + 29,
+        DEFAULT_RDMA_PORT + 30,
+        DEFAULT_RDMA_PORT + 31,
     }
 };
 
-int peer_group_sizes[1][1] = {
-    { 31 }
+int peer_groups[1][1] = {
+    { 0 }
+};
+
+int peer_group_sizes[1] = {
+    31
 };
 
 uint64_t client_ids[31][2] = {
@@ -135,37 +135,37 @@ server_config servers[2] = {
 };
 
 client_config clients[31] = {
-    { client_ids[0], 1, "m", parent_addresses[0], parent_ports[0], peer_addresses[0], peer_ports[0], peer_group_sizes[0] },
-    { client_ids[1], 1, "m", parent_addresses[0], parent_ports[0], peer_addresses[0], peer_ports[0], peer_group_sizes[0] },
-    { client_ids[2], 1, "m", parent_addresses[0], parent_ports[0], peer_addresses[0], peer_ports[0], peer_group_sizes[0] },
-    { client_ids[3], 1, "m", parent_addresses[0], parent_ports[0], peer_addresses[0], peer_ports[0], peer_group_sizes[0] },
-    { client_ids[4], 1, "m", parent_addresses[0], parent_ports[0], peer_addresses[0], peer_ports[0], peer_group_sizes[0] },
-    { client_ids[5], 1, "m", parent_addresses[0], parent_ports[0], peer_addresses[0], peer_ports[0], peer_group_sizes[0] },
-    { client_ids[6], 1, "m", parent_addresses[0], parent_ports[0], peer_addresses[0], peer_ports[0], peer_group_sizes[0] },
-    { client_ids[7], 1, "m", parent_addresses[0], parent_ports[0], peer_addresses[0], peer_ports[0], peer_group_sizes[0] },
-    { client_ids[8], 1, "m", parent_addresses[0], parent_ports[0], peer_addresses[0], peer_ports[0], peer_group_sizes[0] },
-    { client_ids[9], 1, "m", parent_addresses[0], parent_ports[0], peer_addresses[0], peer_ports[0], peer_group_sizes[0] },
-    { client_ids[10], 1, "m", parent_addresses[0], parent_ports[0], peer_addresses[0], peer_ports[0], peer_group_sizes[0] },
-    { client_ids[11], 1, "m", parent_addresses[0], parent_ports[0], peer_addresses[0], peer_ports[0], peer_group_sizes[0] },
-    { client_ids[12], 1, "m", parent_addresses[0], parent_ports[0], peer_addresses[0], peer_ports[0], peer_group_sizes[0] },
-    { client_ids[13], 1, "m", parent_addresses[0], parent_ports[0], peer_addresses[0], peer_ports[0], peer_group_sizes[0] },
-    { client_ids[14], 1, "m", parent_addresses[0], parent_ports[0], peer_addresses[0], peer_ports[0], peer_group_sizes[0] },
-    { client_ids[15], 1, "m", parent_addresses[0], parent_ports[0], peer_addresses[0], peer_ports[0], peer_group_sizes[0] },
-    { client_ids[16], 1, "m", parent_addresses[0], parent_ports[0], peer_addresses[0], peer_ports[0], peer_group_sizes[0] },
-    { client_ids[17], 1, "m", parent_addresses[0], parent_ports[0], peer_addresses[0], peer_ports[0], peer_group_sizes[0] },
-    { client_ids[18], 1, "m", parent_addresses[0], parent_ports[0], peer_addresses[0], peer_ports[0], peer_group_sizes[0] },
-    { client_ids[19], 1, "m", parent_addresses[0], parent_ports[0], peer_addresses[0], peer_ports[0], peer_group_sizes[0] },
-    { client_ids[20], 1, "m", parent_addresses[0], parent_ports[0], peer_addresses[0], peer_ports[0], peer_group_sizes[0] },
-    { client_ids[21], 1, "m", parent_addresses[0], parent_ports[0], peer_addresses[0], peer_ports[0], peer_group_sizes[0] },
-    { client_ids[22], 1, "m", parent_addresses[0], parent_ports[0], peer_addresses[0], peer_ports[0], peer_group_sizes[0] },
-    { client_ids[23], 1, "m", parent_addresses[0], parent_ports[0], peer_addresses[0], peer_ports[0], peer_group_sizes[0] },
-    { client_ids[24], 1, "m", parent_addresses[0], parent_ports[0], peer_addresses[0], peer_ports[0], peer_group_sizes[0] },
-    { client_ids[25], 1, "m", parent_addresses[0], parent_ports[0], peer_addresses[0], peer_ports[0], peer_group_sizes[0] },
-    { client_ids[26], 1, "m", parent_addresses[0], parent_ports[0], peer_addresses[0], peer_ports[0], peer_group_sizes[0] },
-    { client_ids[27], 1, "m", parent_addresses[0], parent_ports[0], peer_addresses[0], peer_ports[0], peer_group_sizes[0] },
-    { client_ids[28], 1, "m", parent_addresses[0], parent_ports[0], peer_addresses[0], peer_ports[0], peer_group_sizes[0] },
-    { client_ids[29], 1, "m", parent_addresses[0], parent_ports[0], peer_addresses[0], peer_ports[0], peer_group_sizes[0] },
-    { client_ids[30], 1, "m", parent_addresses[0], parent_ports[0], peer_addresses[0], peer_ports[0], peer_group_sizes[0] }
+    { client_ids[0], 1, "m", parent_addresses[0], parent_ports[0], peer_groups[0] },
+    { client_ids[1], 1, "m", parent_addresses[0], parent_ports[0], peer_groups[0] },
+    { client_ids[2], 1, "m", parent_addresses[0], parent_ports[0], peer_groups[0] },
+    { client_ids[3], 1, "m", parent_addresses[0], parent_ports[0], peer_groups[0] },
+    { client_ids[4], 1, "m", parent_addresses[0], parent_ports[0], peer_groups[0] },
+    { client_ids[5], 1, "m", parent_addresses[0], parent_ports[0], peer_groups[0] },
+    { client_ids[6], 1, "m", parent_addresses[0], parent_ports[0], peer_groups[0] },
+    { client_ids[7], 1, "m", parent_addresses[0], parent_ports[0], peer_groups[0] },
+    { client_ids[8], 1, "m", parent_addresses[0], parent_ports[0], peer_groups[0] },
+    { client_ids[9], 1, "m", parent_addresses[0], parent_ports[0],  peer_groups[0]},
+    { client_ids[10], 1, "m", parent_addresses[0], parent_ports[0], peer_groups[0] },
+    { client_ids[11], 1, "m", parent_addresses[0], parent_ports[0], peer_groups[0] },
+    { client_ids[12], 1, "m", parent_addresses[0], parent_ports[0], peer_groups[0] },
+    { client_ids[13], 1, "m", parent_addresses[0], parent_ports[0], peer_groups[0] },
+    { client_ids[14], 1, "m", parent_addresses[0], parent_ports[0], peer_groups[0] },
+    { client_ids[15], 1, "m", parent_addresses[0], parent_ports[0], peer_groups[0] },
+    { client_ids[16], 1, "m", parent_addresses[0], parent_ports[0], peer_groups[0] },
+    { client_ids[17], 1, "m", parent_addresses[0], parent_ports[0], peer_groups[0] },
+    { client_ids[18], 1, "m", parent_addresses[0], parent_ports[0], peer_groups[0] },
+    { client_ids[19], 1, "m", parent_addresses[0], parent_ports[0], peer_groups[0] },
+    { client_ids[20], 1, "m", parent_addresses[0], parent_ports[0], peer_groups[0] },
+    { client_ids[21], 1, "m", parent_addresses[0], parent_ports[0], peer_groups[0] },
+    { client_ids[22], 1, "m", parent_addresses[0], parent_ports[0], peer_groups[0] },
+    { client_ids[23], 1, "m", parent_addresses[0], parent_ports[0], peer_groups[0] },
+    { client_ids[24], 1, "m", parent_addresses[0], parent_ports[0], peer_groups[0] },
+    { client_ids[25], 1, "m", parent_addresses[0], parent_ports[0], peer_groups[0] },
+    { client_ids[26], 1, "m", parent_addresses[0], parent_ports[0], peer_groups[0] },
+    { client_ids[27], 1, "m", parent_addresses[0], parent_ports[0], peer_groups[0] },
+    { client_ids[28], 1, "m", parent_addresses[0], parent_ports[0], peer_groups[0] },
+    { client_ids[29], 1, "m", parent_addresses[0], parent_ports[0], peer_groups[0] },
+    { client_ids[30], 1, "m", parent_addresses[0], parent_ports[0], peer_groups[0] }
 };
 
 node_config configs[1] = {
@@ -186,7 +186,7 @@ int main(int argc, char ** argv){
     pthread_t * workers;
     node_config * config;
 
-    while ((option = getopt(argc, argv, "c:")) != -1) {
+    while ((option = getopt(argc, argv, "c:p:")) != -1) {
 		switch (option) {
             case 'c':
                 choice = atoi(optarg);
@@ -256,10 +256,10 @@ int main(int argc, char ** argv){
                     c_in[i].client_info[p].mcs_c_info = (mcs_client_info *)malloc(sizeof(mcs_client_info));
                     c_in[i].client_info[p].mcs_c_info->parent_address = clients[i].parent_addresses[p];
                     c_in[i].client_info[p].mcs_c_info->parent_port = clients[i].parent_ports[p];
-                    c_in[i].client_info[p].mcs_c_info->peer_addresses = clients[i].peer_addresses[p];
-                    c_in[i].client_info[p].mcs_c_info->peer_ports = clients[i].peer_ports[p];
+                    c_in[i].client_info[p].mcs_c_info->peer_addresses = peer_addresses[clients[i].peer_groups[p]];
+                    c_in[i].client_info[p].mcs_c_info->peer_ports = peer_ports[clients[i].peer_groups[p]];
+                    c_in[i].client_info[p].mcs_c_info->num_peers = num_peers[clients[i].peer_groups[p]];
                     c_in[i].client_info[p].mcs_c_info->node_id = clients[i].node_id[p + 1];
-                    c_in[i].client_info[p].mcs_c_info->num_peers = clients[i].num_peers[p];
                     break;
                 case 't':
                     c_in[i].client_info[p].ticket_c_info = (ticket_client_info *)malloc(sizeof(ticket_client_info));
