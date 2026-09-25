@@ -16,6 +16,7 @@ void* general_client(void *in) {
     union client_info * ci = ((general_client_in *)in)->client_info;
     struct rdma_event_channel *cm_event_channel = NULL;
     union lock_info * li = (union lock_info *)malloc(sizeof(union lock_info) * num_parents);
+    printf("%d\n", num_parents);
     *node_id = ((general_client_in *)in)->node_id;
     switch(*machine_lock_type) {
         case 'm':
@@ -61,7 +62,6 @@ void* general_client(void *in) {
 	            }
 
                 li[i].mcs_l_info->id_arr = (struct rdma_cm_id **)malloc(sizeof(struct rdma_cm_id *) * (ci[i].mcs_c_info->num_peers + 1));
-                printf("%d\n", ci[i].mcs_c_info->num_peers);
                 for(int m = 0; m < (ci[i].mcs_c_info->num_peers + 1); m++) {
                     li[i].mcs_l_info->id_arr[m] = NULL;
                 }
@@ -192,7 +192,7 @@ void* general_client(void *in) {
     }
     end = clock();
 
-    for(int i = num_parents; i >= 0; i--) {
+    for(int i = num_parents - 1; i >= 0; i--) {
         switch(parent_types[i]) {
             case 'm':
                 disconnect_from_mcs(li[i].mcs_l_info->id_arr, cm_event_channel, li[i].mcs_l_info->node_id, li[i].mcs_l_info->num_conn);
