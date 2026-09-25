@@ -174,7 +174,7 @@ node_config configs[1] = {
         32,
         1,
         31,
-        "s",
+        "t",
         servers,
         clients
     }
