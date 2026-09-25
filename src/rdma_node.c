@@ -119,7 +119,8 @@ uint64_t client_ids[31][2] = {
     { 29, 29 },
     { 30, 30 },
     { 31, 31 }
-}
+};
+
 server_config servers[2] = {
     { 's', 31}
 };
