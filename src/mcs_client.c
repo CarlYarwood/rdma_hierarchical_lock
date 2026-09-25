@@ -206,6 +206,7 @@ int release_mcs_lock(struct rdma_cm_id** id_arr, uint64_t* node_id, uint64_t *bu
         }
     }
     do {} while(metadata[NEXT] == 0);
+    printf("node %lu letting node %lu in\n", *node_id, metadata[NEXT]);
     compare_and_swap(id_arr[metadata[NEXT]],0, 1, NOTIFY);
     return 0;
 }
