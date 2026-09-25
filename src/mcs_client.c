@@ -175,9 +175,11 @@ client_ctx* build_mcs_context(struct rdma_cm_id* client_id, volatile uint64_t *m
 }
 
 int acquire_mcs_lock(struct rdma_cm_id ** id_arr, uint64_t *node_id, uint64_t *buffer, volatile uint64_t* metadata) {
+    printf("node %lu in aquire lock\n", *node_id);
     metadata[NEXT] = 0;
     metadata[NOTIFY] = 0;
     uint64_t expected = 0;
+    printf("node %lu attempt to grab lock\n", *node_id);
     do {
         compare_and_swap(id_arr[SERVER], expected, *node_id, LOCK);
         if (expected == *buffer) {
@@ -186,9 +188,11 @@ int acquire_mcs_lock(struct rdma_cm_id ** id_arr, uint64_t *node_id, uint64_t *b
         expected = *buffer;
     } while(1);
     if (*buffer == 0) {
+        printf("node %lu aquired lock\n", *node_id);
         return 0;
     }
 
+    printf("Node %lu joining line");
     compare_and_swap(id_arr[*buffer], 0, *node_id, NEXT);
     do {} while (metadata[NOTIFY] == 0);
     return 0;
