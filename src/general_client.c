@@ -80,6 +80,7 @@ void* general_client(void *in) {
                 *(li[i].spin_l_info->buffer) = 0;
                 li[i].spin_l_info->node_id = (uint64_t *)malloc(sizeof(uint64_t));
                 *(li[i].spin_l_info->node_id) = ci[i].spin_c_info->node_id;
+                printf("%lu\n", ci[i].spin_c_info->node_id);
                 li[i].spin_l_info->server_id = connect_to_spin_server(cm_event_channel, &spin_sockaddr, li[i].spin_l_info->node_id, li[i].spin_l_info->buffer, li[i].spin_l_info->metadata);
                 wait_on_data(li[i].spin_l_info->metadata, 1);
                 *(li[i].spin_l_info->metadata) = 0;
