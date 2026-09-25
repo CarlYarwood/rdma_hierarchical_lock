@@ -61,6 +61,7 @@ void* general_client(void *in) {
 	            }
 
                 li[i].mcs_l_info->id_arr = (struct rdma_cm_id **)malloc(sizeof(struct rdma_cm_id *) * (ci[i].mcs_c_info->num_peers + 1));
+                printf("%d\n", ci[i].mcs_c_info->num_peers);
                 for(int m = 0; m < (ci[i].mcs_c_info->num_peers + 1); m++) {
                     li[i].mcs_l_info->id_arr[m] = NULL;
                 }
