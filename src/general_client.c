@@ -196,7 +196,7 @@ void* general_client(void *in) {
                 free(li[i].mcs_l_info->buffer);
                 free(li[i].mcs_l_info->num_conn);
                 free((void *)li[i].mcs_l_info->metadata);
-                if (rdma_destroy_id(li[i]->client_server_id)) {
+                if (rdma_destroy_id(li[i].mcs_l_info->client_server_id)) {
 		            rdma_error("Failed to destroy server id cleanly, %d \n", -errno);
 	            }
                 break;
