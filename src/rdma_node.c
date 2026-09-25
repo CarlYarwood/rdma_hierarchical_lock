@@ -73,6 +73,7 @@ long peer_ports[1][31] = {
         DEFAULT_RDMA_PORT + 16,
         DEFAULT_RDMA_PORT + 17,
         DEFAULT_RDMA_PORT + 18,
+        DEFAULT_RDMA_PORT + 19,
         DEFAULT_RDMA_PORT + 20,
         DEFAULT_RDMA_PORT + 21,
         DEFAULT_RDMA_PORT + 22,
@@ -84,7 +85,7 @@ long peer_ports[1][31] = {
         DEFAULT_RDMA_PORT + 28,
         DEFAULT_RDMA_PORT + 29,
         DEFAULT_RDMA_PORT + 30,
-        DEFAULT_RDMA_PORT + 31,
+        DEFAULT_RDMA_PORT + 31
     }
 };
 
