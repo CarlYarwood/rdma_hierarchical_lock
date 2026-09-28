@@ -77,7 +77,7 @@ int num_peers[1] = {
     18
 };
 
-uint64_t client_ids[31][2] = {
+uint64_t client_ids[18][3] = {
     { 1, 1, 1 },
     { 2, 2, 2 },
     { 3, 3, 3 },
