@@ -39,7 +39,7 @@ char * peer_addresses[1][18] = {
     }
 };
 
-long parent_ports[1][1] = {
+long parent_ports[1][2] = {
     {
         DEFAULT_RDMA_PORT,
         DEFAULT_RDMA_PORT + 1
