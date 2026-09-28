@@ -118,10 +118,10 @@ client_config clients[31] = {
     { client_ids[11], 2, "ss", parent_addresses[0], parent_ports[0], peer_groups[0] },
     { client_ids[12], 2, "ss", parent_addresses[0], parent_ports[0], peer_groups[0] },
     { client_ids[13], 2, "ss", parent_addresses[0], parent_ports[0], peer_groups[0] },
-    { client_ids[14], 1, "ss", parent_addresses[0], parent_ports[0], peer_groups[0] },
-    { client_ids[15], 1, "ss", parent_addresses[0], parent_ports[0], peer_groups[0] },
-    { client_ids[16], 1, "ss", parent_addresses[0], parent_ports[0], peer_groups[0] },
-    { client_ids[17], 1, "ss", parent_addresses[0], parent_ports[0], peer_groups[0] },
+    { client_ids[14], 2, "ss", parent_addresses[0], parent_ports[0], peer_groups[0] },
+    { client_ids[15], 2, "ss", parent_addresses[0], parent_ports[0], peer_groups[0] },
+    { client_ids[16], 2, "ss", parent_addresses[0], parent_ports[0], peer_groups[0] },
+    { client_ids[17], 2, "ss", parent_addresses[0], parent_ports[0], peer_groups[0] },
 };
 
 node_config configs[1] = {

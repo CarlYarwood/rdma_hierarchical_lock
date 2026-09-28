@@ -37,10 +37,8 @@ void* general_client(void *in) {
     cm_event_channel = rdma_create_event_channel();
     
     for (int i = 0; i < num_parents; i++) {
-        printf("node %lu connecting to parent %d\n", *node_id, i);
         switch(parent_types[i]) {
             case 'm':
-                printf("node %lu mcs lock\n", *node_id);
                 struct sockaddr_in client_server_sockaddr;
                 bzero(&client_server_sockaddr, sizeof client_server_sockaddr);
 	            client_server_sockaddr.sin_family = AF_INET; /* standard IP NET address */
@@ -78,9 +76,7 @@ void* general_client(void *in) {
                 *(li[i].mcs_l_info->num_conn) = 0;
                 connect_to_mcs(ci[i].mcs_c_info->parent_address, ci[i].mcs_c_info->parent_port, ci[i].mcs_c_info->peer_addresses, ci[i].mcs_c_info->peer_ports, ci[i].mcs_c_info->num_peers, li[i].mcs_l_info->id_arr, cm_event_channel, li[i].mcs_l_info->node_id, li[i].mcs_l_info->buffer, li[i].mcs_l_info->metadata, li[i].mcs_l_info->num_conn);
                 break;
-            case 't':
-                printf("node %lu ticket lock\n", *node_id);
-                struct sockaddr_in ticket_sockaddr = build_sockaddr(ci[i].ticket_c_info->parent_address, ci[i].ticket_c_info->parent_port);
+            case 't':                struct sockaddr_in ticket_sockaddr = build_sockaddr(ci[i].ticket_c_info->parent_address, ci[i].ticket_c_info->parent_port);
                 li[i].ticket_l_info = (ticket_lock_info *)malloc(sizeof(ticket_lock_info));
                 li[i].ticket_l_info->metadata = (uint64_t *)malloc(sizeof(uint64_t));
                 *(li[i].ticket_l_info->metadata) = 0;
@@ -95,7 +91,6 @@ void* general_client(void *in) {
                 *(li[i].ticket_l_info->metadata) = 0;
                 break;
             case 's':
-                printf("node %lu spin lock\n", *node_id);
                 struct sockaddr_in spin_sockaddr = build_sockaddr(ci[i].spin_c_info->parent_address, ci[i].spin_c_info->parent_port);
                 li[i].spin_l_info = (spin_lock_info *)malloc(sizeof(spin_lock_info));
                 li[i].spin_l_info->metadata = (uint64_t *)malloc(sizeof(uint64_t));
@@ -111,7 +106,6 @@ void* general_client(void *in) {
             default:
                 //Nothing
         }
-        printf("node %lu lock %d connected\n", *node_id, i);
     }
 
     start = clock();
