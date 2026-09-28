@@ -270,6 +270,7 @@ int notify_mcs_clients(struct rdma_cm_id ** id_arr, uint64_t *buffer, uint64_t v
 
 void* mcs_server(void * in) {
     int num_children = ((server_in *)in)->num_children;
+    long port = ((server_in *)in)->port;
     int num_conn = 0;
     int * keepgoing = NULL;
 	struct sockaddr_in server_sockaddr;
@@ -293,7 +294,7 @@ void* mcs_server(void * in) {
 	bzero(&server_sockaddr, sizeof server_sockaddr);
 	server_sockaddr.sin_family = AF_INET; /* standard IP NET address */
 	server_sockaddr.sin_addr.s_addr = htonl(INADDR_ANY); /* passed address */
-	server_sockaddr.sin_port = htons(DEFAULT_RDMA_PORT);
+	server_sockaddr.sin_port = htons(port);
 
     cm_event_channel = rdma_create_event_channel();
     if (!cm_event_channel) {

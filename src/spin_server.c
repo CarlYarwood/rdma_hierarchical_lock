@@ -272,6 +272,7 @@ void *spin_server(void * in) {
     uint64_t *lock = (uint64_t *)malloc(sizeof(uint64_t));
     uint64_t *buffer = (uint64_t *)malloc(sizeof(uint64_t));
     int num_children = ((server_in *)in)->num_children;
+    long port = ((server_in *)in)->port;
     struct rdma_cm_id ** id_arr = (struct rdma_cm_id **)malloc(sizeof(struct rdma_cm_id *) * num_children);
     int num_conn = 0;
     int keepgoing = 1;
@@ -288,7 +289,7 @@ void *spin_server(void * in) {
 	bzero(&server_sockaddr, sizeof server_sockaddr);
 	server_sockaddr.sin_family = AF_INET; /* standard IP NET address */
 	server_sockaddr.sin_addr.s_addr = htonl(INADDR_ANY); /* passed address */
-	server_sockaddr.sin_port = htons(DEFAULT_RDMA_PORT);
+	server_sockaddr.sin_port = htons(port);
 
     cm_event_channel = rdma_create_event_channel();
     if (!cm_event_channel) {

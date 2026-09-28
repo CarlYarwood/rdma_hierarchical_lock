@@ -99,8 +99,8 @@ uint64_t client_ids[18][3] = {
 };
 
 server_config servers[2] = {
-    { 's', 18 },
-    { 's', 18}
+    { 's', 18, parent_ports[0][0] },
+    { 's', 18,  parent_ports[0][1] }
 };
 
 client_config clients[31] = {
@@ -159,6 +159,7 @@ int main(int argc, char ** argv){
     server_in * s_in = (server_in *)malloc(sizeof(server_in) * config->num_servers);
     for (int i = 0; i < config->num_servers; i++) {
         s_in[i].num_children = servers[i].num_children;
+        s_in[i].port = servers[i].port;
         switch(servers[i].server_type) {
             case 'm':
                 pthread_create(&workers[i], NULL, mcs_server, (void *) &s_in[i]);

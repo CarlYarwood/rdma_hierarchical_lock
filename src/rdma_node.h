@@ -8,6 +8,7 @@
 typedef struct {
     char server_type;
     int num_children;
+    long port;
 } server_config;
 
 typedef struct {

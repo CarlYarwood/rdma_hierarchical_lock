@@ -54,6 +54,7 @@ typedef struct {
 
 typedef struct {
     int num_children;
+    long port;
 } server_in;
 
 /* Error Macro*/
