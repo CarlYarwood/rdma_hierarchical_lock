@@ -99,8 +99,8 @@ uint64_t client_ids[18][3] = {
 };
 
 server_config servers[2] = {
-    { 's', 18, parent_ports[0][0] },
-    { 's', 18,  parent_ports[0][1] }
+    { 's', 18, DEFAULT_RDMA_PORT },
+    { 's', 18,  DEFAULT_RDMA_PORT + 1 }
 };
 
 client_config clients[31] = {
