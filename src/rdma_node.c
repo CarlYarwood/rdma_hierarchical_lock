@@ -98,7 +98,7 @@ uint64_t client_ids[18][3] = {
     { 18, 18, 18 }
 };
 
-server_config servers[2][2] = {
+server_config servers[2] = {
     { 's', 18 },
     { 's', 18}
 };
