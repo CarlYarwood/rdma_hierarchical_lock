@@ -9,41 +9,45 @@ int critical_section = 1;
 int noncritical_section = 1;
 int num_aquire = 1000;
 
-char * parent_addresses[1][1] = {
-    {"10.10.1.1"}
-};
-
-char * peer_addresses[1][31] = {
+char * parent_addresses[1][2] = {
     {
-        "10.10.1.1",
-        "10.10.1.1",
-        "10.10.1.1",
-        "10.10.1.1",
-        "10.10.1.1",
-        "10.10.1.1",
-        "10.10.1.1",
-        "10.10.1.1",
-        "10.10.1.1",
-        "10.10.1.1",
-        "10.10.1.1",
-        "10.10.1.1",
-        "10.10.1.1",
-        "10.10.1.1",
-        "10.10.1.1",
-        "10.10.1.1",
-        "10.10.1.1",
         "10.10.1.1",
         "10.10.1.1"
     }
 };
 
-long parent_ports[1][1] = {
-    {DEFAULT_RDMA_PORT}
+char * peer_addresses[1][18] = {
+    {
+        "10.10.1.1",
+        "10.10.1.1",
+        "10.10.1.1",
+        "10.10.1.1",
+        "10.10.1.1",
+        "10.10.1.1",
+        "10.10.1.1",
+        "10.10.1.1",
+        "10.10.1.1",
+        "10.10.1.1",
+        "10.10.1.1",
+        "10.10.1.1",
+        "10.10.1.1",
+        "10.10.1.1",
+        "10.10.1.1",
+        "10.10.1.1",
+        "10.10.1.1",
+        "10.10.1.1",
+    }
 };
 
-long peer_ports[1][31] = {
+long parent_ports[1][1] = {
     {
-        DEFAULT_RDMA_PORT + 1,
+        DEFAULT_RDMA_PORT,
+        DEFAULT_RDMA_PORT + 1
+    }
+};
+
+long peer_ports[1][18] = {
+    {
         DEFAULT_RDMA_PORT + 2,
         DEFAULT_RDMA_PORT + 3,
         DEFAULT_RDMA_PORT + 4,
@@ -61,7 +65,7 @@ long peer_ports[1][31] = {
         DEFAULT_RDMA_PORT + 16,
         DEFAULT_RDMA_PORT + 17,
         DEFAULT_RDMA_PORT + 18,
-        DEFAULT_RDMA_PORT + 19,
+        DEFAULT_RDMA_PORT + 19
     }
 };
 
@@ -70,62 +74,61 @@ int peer_groups[1][1] = {
 };
 
 int num_peers[1] = {
-    19
+    18
 };
 
 uint64_t client_ids[31][2] = {
-    { 1, 1 },
-    { 2, 2 },
-    { 3, 3 },
-    { 4, 4 },
-    { 5, 5 },
-    { 6, 6 },
-    { 7, 7 },
-    { 8, 8 },
-    { 9, 9 },
-    { 10, 10 },
-    { 11, 11 },
-    { 12, 12 },
-    { 13, 13 },
-    { 14, 14 },
-    { 15, 15 },
-    { 16, 16 },
-    { 17, 17 },
-    { 18, 18 },
-    { 19, 19 }
+    { 1, 1, 1 },
+    { 2, 2, 2 },
+    { 3, 3, 3 },
+    { 4, 4, 4 },
+    { 5, 5, 5 },
+    { 6, 6, 6 },
+    { 7, 7, 7 },
+    { 8, 8, 8 },
+    { 9, 9, 9 },
+    { 10, 10, 10 },
+    { 11, 11, 11 },
+    { 12, 12, 12 },
+    { 13, 13, 13 },
+    { 14, 14, 14 },
+    { 15, 15, 15 },
+    { 16, 16, 16 },
+    { 17, 17, 17 },
+    { 18, 18, 18 }
 };
 
-server_config servers[2] = {
-    { 't', 19}
+server_config servers[2][2] = {
+    { 's', 18 },
+    { 's', 18}
 };
 
 client_config clients[31] = {
-    { client_ids[0], 1, "t", parent_addresses[0], parent_ports[0], peer_groups[0] },
-    { client_ids[1], 1, "t", parent_addresses[0], parent_ports[0], peer_groups[0] },
-    { client_ids[2], 1, "t", parent_addresses[0], parent_ports[0], peer_groups[0] },
-    { client_ids[3], 1, "t", parent_addresses[0], parent_ports[0], peer_groups[0] },
-    { client_ids[4], 1, "t", parent_addresses[0], parent_ports[0], peer_groups[0] },
-    { client_ids[5], 1, "t", parent_addresses[0], parent_ports[0], peer_groups[0] },
-    { client_ids[6], 1, "t", parent_addresses[0], parent_ports[0], peer_groups[0] },
-    { client_ids[7], 1, "t", parent_addresses[0], parent_ports[0], peer_groups[0] },
-    { client_ids[8], 1, "t", parent_addresses[0], parent_ports[0], peer_groups[0] },
-    { client_ids[9], 1, "t", parent_addresses[0], parent_ports[0],  peer_groups[0]},
-    { client_ids[10], 1, "t", parent_addresses[0], parent_ports[0], peer_groups[0] },
-    { client_ids[11], 1, "t", parent_addresses[0], parent_ports[0], peer_groups[0] },
-    { client_ids[12], 1, "t", parent_addresses[0], parent_ports[0], peer_groups[0] },
-    { client_ids[13], 1, "t", parent_addresses[0], parent_ports[0], peer_groups[0] },
-    { client_ids[14], 1, "t", parent_addresses[0], parent_ports[0], peer_groups[0] },
-    { client_ids[15], 1, "t", parent_addresses[0], parent_ports[0], peer_groups[0] },
-    { client_ids[16], 1, "t", parent_addresses[0], parent_ports[0], peer_groups[0] },
-    { client_ids[17], 1, "t", parent_addresses[0], parent_ports[0], peer_groups[0] },
-    { client_ids[18], 1, "t", parent_addresses[0], parent_ports[0], peer_groups[0] },
+    { client_ids[0], 2, "ss", parent_addresses[0], parent_ports[0], peer_groups[0] },
+    { client_ids[1], 2, "ss", parent_addresses[0], parent_ports[0], peer_groups[0] },
+    { client_ids[2], 2, "ss", parent_addresses[0], parent_ports[0], peer_groups[0] },
+    { client_ids[3], 2, "ss", parent_addresses[0], parent_ports[0], peer_groups[0] },
+    { client_ids[4], 2, "ss", parent_addresses[0], parent_ports[0], peer_groups[0] },
+    { client_ids[5], 2, "ss", parent_addresses[0], parent_ports[0], peer_groups[0] },
+    { client_ids[6], 2, "ss", parent_addresses[0], parent_ports[0], peer_groups[0] },
+    { client_ids[7], 2, "ss", parent_addresses[0], parent_ports[0], peer_groups[0] },
+    { client_ids[8], 2, "ss", parent_addresses[0], parent_ports[0], peer_groups[0] },
+    { client_ids[9], 2, "ss", parent_addresses[0], parent_ports[0],  peer_groups[0]},
+    { client_ids[10], 2, "ss", parent_addresses[0], parent_ports[0], peer_groups[0] },
+    { client_ids[11], 2, "ss", parent_addresses[0], parent_ports[0], peer_groups[0] },
+    { client_ids[12], 2, "ss", parent_addresses[0], parent_ports[0], peer_groups[0] },
+    { client_ids[13], 2, "ss", parent_addresses[0], parent_ports[0], peer_groups[0] },
+    { client_ids[14], 1, "ss", parent_addresses[0], parent_ports[0], peer_groups[0] },
+    { client_ids[15], 1, "ss", parent_addresses[0], parent_ports[0], peer_groups[0] },
+    { client_ids[16], 1, "ss", parent_addresses[0], parent_ports[0], peer_groups[0] },
+    { client_ids[17], 1, "ss", parent_addresses[0], parent_ports[0], peer_groups[0] },
 };
 
 node_config configs[1] = {
     {
         20,
-        1,
-        19,
+        2,
+        18,
         "n",
         servers,
         clients
