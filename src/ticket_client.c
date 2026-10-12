@@ -180,7 +180,7 @@ uint64_t acquire_ticket_lock(struct rdma_cm_id*  id, uint64_t *buffer, int targe
 	int test = 1;
 	uint64_t ticket;
 	do {
-		test = fetch_and_add(id, (target_lock * 2) + NEXT);
+		test = fetch_and_add(id, (target_lock * 2) + NEXT_TICKET);
 	} while(test != 0);
 	ticket = *buffer;
 	do {
