@@ -186,7 +186,7 @@ int main(int argc, char ** argv){
         case 'm':
             mcs_arr = (mcsLock **)malloc(sizeof(mcsLock *) * config->num_locks);
             for (int i = 0; i < config->num_locks; i++) {
-                mc_arr[i] = buildMcsLock();
+                mcs_arr[i] = buildMcsLock();
             }
             break;
         case 't':
@@ -196,7 +196,7 @@ int main(int argc, char ** argv){
             }
             break;
         case 's':
-            spin_arr = (spinLock **)malloc(sizerof(spinLock *) * config->num_locks);
+            spin_arr = (spinLock **)malloc(sizeof(spinLock *) * config->num_locks);
             for (int i = 0; i < config->num_locks; i++) {
                 spin_arr[i] = buildSpinLock();
             }
