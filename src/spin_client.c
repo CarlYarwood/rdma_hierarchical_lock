@@ -219,7 +219,7 @@ struct rdma_cm_id* connect_to_spin_server(struct rdma_event_channel* cm_event_ch
 	}
 	debug("waiting for cm event: RDMA_CM_EVENT_ROUTE_RESOLVED\n");
 
-	ctx = build_client_spin_context(cm_client_id, metadata, buffer, node_id);
+	ctx = build_client_spin_context(cm_client_id, metadata, buffer, node_id, num_locks);
 	if (!ctx) {
 		perror("Failed to build context\n");
 		return NULL;
