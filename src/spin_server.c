@@ -269,7 +269,6 @@ int notify_spin_clients(struct rdma_cm_id ** id_arr, volatile uint64_t *buffer, 
 }
 
 void *spin_server(void * in) {
-    uint64_t *lock = (uint64_t *)malloc(sizeof(uint64_t));
     uint64_t *buffer = (uint64_t *)malloc(sizeof(uint64_t));
     int num_children = ((server_in *)in)->num_children;
     int num_locks = ((server_in *)in)->num_locks;
@@ -280,6 +279,7 @@ void *spin_server(void * in) {
 	struct sockaddr_in server_sockaddr;
     struct rdma_event_channel *cm_event_channel = NULL;
     struct rdma_cm_id *cm_server_id = NULL;
+    uint64_t *lock = (uint64_t *)malloc(sizeof(uint64_t) * num_locks);
 
     for(int i = 0; i < num_locks; i++) {
         lock[i] = 0;

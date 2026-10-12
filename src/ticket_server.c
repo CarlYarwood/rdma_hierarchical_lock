@@ -279,7 +279,7 @@ void * ticket_server(void * in) {
     struct rdma_event_channel *cm_event_channel = NULL;
     struct rdma_cm_id *cm_server_id = NULL;
     struct rdma_cm_id ** id_arr = (struct rdma_cm_id **)malloc(sizeof(struct rdma_cm_id *) * num_children);
-    uint64_t* lock = (uint64_t *)malloc(sizeof(uint64_t)  * ( 2 * num_locks ));
+    uint64_t* lock = (uint64_t *)malloc(sizeof(uint64_t)  *  2 * num_locks );
 
     for(int i = 0; i < 2 * num_locks; i++) {
         lock[i] = 0;
