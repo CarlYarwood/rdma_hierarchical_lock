@@ -1,6 +1,6 @@
 #include "ticket_server.h"
 
-server_ctx* build_server_ticket_context(struct rdma_cm_id* client_id, uint64_t *lock, uint64_t *buffer, uint64_t *node_id) {
+server_ctx* build_server_ticket_context(struct rdma_cm_id* client_id, uint64_t *lock, uint64_t *buffer, uint64_t *node_id, int num_locks) {
     server_ctx* ctx;
     struct ibv_pd* pd = NULL;
     struct ibv_comp_channel* comp = NULL;
@@ -77,7 +77,7 @@ server_ctx* build_server_ticket_context(struct rdma_cm_id* client_id, uint64_t *
         return NULL;
     }
 
-    lock_mr = rdma_buffer_register(pd, lock, sizeof(uint64_t) * 2, (IBV_ACCESS_LOCAL_WRITE|IBV_ACCESS_REMOTE_READ|IBV_ACCESS_REMOTE_WRITE|IBV_ACCESS_REMOTE_ATOMIC));
+    lock_mr = rdma_buffer_register(pd, lock, sizeof(uint64_t) * 2 * num_locks, (IBV_ACCESS_LOCAL_WRITE|IBV_ACCESS_REMOTE_READ|IBV_ACCESS_REMOTE_WRITE|IBV_ACCESS_REMOTE_ATOMIC));
     if(!lock_mr){
         rdma_error("Server failed to create lock memory region \n");
         ibv_destroy_cq(cq);
@@ -346,7 +346,7 @@ void * ticket_server(void * in) {
                 client_id = cm_event->id;
                 *node_id = *((uint64_t *) cm_event->param.conn.private_data);
 
-                ctx = build_server_ticket_context(client_id, lock, buffer, node_id);
+                ctx = build_server_ticket_context(client_id, lock, buffer, node_id, num_locks);
                 if(!ctx) {
                     rdma_ack_cm_event(cm_event);
                     perror("Failed to build client Context\n");

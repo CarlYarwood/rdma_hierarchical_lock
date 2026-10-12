@@ -1,6 +1,6 @@
 #include "mcs_server.h"
 
-server_ctx* build_server_mcs_context(struct rdma_cm_id* client_id, volatile uint64_t *lock, uint64_t *buffer, uint64_t *node_id) {
+server_ctx* build_server_mcs_context(struct rdma_cm_id* client_id, volatile uint64_t *lock, uint64_t *buffer, uint64_t *node_id, int num_locks) {
     server_ctx* ctx;
     struct ibv_pd* pd = NULL;
     struct ibv_comp_channel* comp = NULL;
@@ -77,7 +77,7 @@ server_ctx* build_server_mcs_context(struct rdma_cm_id* client_id, volatile uint
         return NULL;
     }
 
-    lock_mr = rdma_buffer_register(pd, (void *)lock, sizeof(uint64_t) * 2, (IBV_ACCESS_LOCAL_WRITE|IBV_ACCESS_REMOTE_READ|IBV_ACCESS_REMOTE_WRITE|IBV_ACCESS_REMOTE_ATOMIC));
+    lock_mr = rdma_buffer_register(pd, (void *)lock, sizeof(uint64_t) * (1 + num_locks), (IBV_ACCESS_LOCAL_WRITE|IBV_ACCESS_REMOTE_READ|IBV_ACCESS_REMOTE_WRITE|IBV_ACCESS_REMOTE_ATOMIC));
     if(!lock_mr){
         rdma_error("Server failed to create lock memory region \n");
         ibv_destroy_cq(cq);
