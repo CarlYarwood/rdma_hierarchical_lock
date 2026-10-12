@@ -143,7 +143,7 @@ int main(int argc, char ** argv){
     pthread_t * workers;
     node_config * config;
 
-    while ((option = getopt(argc, argv, "c:p:")) != -1) {
+    while ((option = getopt(argc, argv, "c:")) != -1) {
 		switch (option) {
             case 'c':
                 choice = atoi(optarg);
