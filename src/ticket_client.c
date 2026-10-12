@@ -176,7 +176,7 @@ client_ctx* build_client_ticket_context(struct rdma_cm_id* client_id, volatile u
 	return ctx;
 }
 
-uint64_t acquire_ticket_lock(struct rdma_cm_id*  id, uint64_t *buffer) {
+uint64_t acquire_ticket_lock(struct rdma_cm_id*  id, uint64_t *buffer, int target_lock) {
 	int test = 1;
 	uint64_t ticket;
 	do {
@@ -192,7 +192,7 @@ uint64_t acquire_ticket_lock(struct rdma_cm_id*  id, uint64_t *buffer) {
 	return ticket;
 }
 
-int release_ticket_lock(struct rdma_cm_id* id, uint64_t ticket, uint64_t *buffer) {
+int release_ticket_lock(struct rdma_cm_id* id, uint64_t ticket, uint64_t *buffer, int target_lock) {
 	fetch_and_add(id, (target_lock * 2) + NOW);
     if(*buffer != ticket) {
         perror("de-latch failed\n");
