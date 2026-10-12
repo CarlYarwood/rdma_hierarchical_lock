@@ -270,13 +270,14 @@ int notify_mcs_clients(struct rdma_cm_id ** id_arr, uint64_t *buffer, uint64_t v
 
 void* mcs_server(void * in) {
     int num_children = ((server_in *)in)->num_children;
+    int num_locks = ((server_in *)in)->num_locks;
     long port = ((server_in *)in)->port;
     int num_conn = 0;
     int * keepgoing = NULL;
 	struct sockaddr_in server_sockaddr;
     struct rdma_event_channel *cm_event_channel = NULL;
     struct rdma_cm_id *cm_server_id = NULL;
-    volatile uint64_t *lock = (uint64_t *)malloc(sizeof(uint64_t) * 2);
+    volatile uint64_t *lock = (uint64_t *)malloc(sizeof(uint64_t) * (1 + num_locks));
     uint64_t *buffer = NULL;
     struct rdma_cm_id ** id_arr = (struct rdma_cm_id **)malloc(sizeof(struct rdma_cm_id *) * num_children);
 
@@ -284,8 +285,9 @@ void* mcs_server(void * in) {
         id_arr[i] = NULL;
     }
 
-    lock[LOCK] = 0;
-    lock[READY] = 0;
+    for(int i = 0; i < 1 + num_locks; i ++) {
+        lock[i] = 0;
+    }
 
     keepgoing = (int *)malloc(sizeof(int));
     *keepgoing = 1;

@@ -7,12 +7,12 @@
 
 int critical_section = 1;
 int noncritical_section = 1;
-int num_aquire = 1000;
+int num_aquire = 10000;
 
 char * parent_addresses[1][2] = {
     {
         "10.10.1.1",
-        "10.10.1.1"
+        "10.10.1.1",
     }
 };
 
@@ -42,7 +42,7 @@ char * peer_addresses[1][18] = {
 long parent_ports[1][2] = {
     {
         DEFAULT_RDMA_PORT,
-        DEFAULT_RDMA_PORT + 1
+        DEFAULT_RDMA_PORT + 1,
     }
 };
 
@@ -65,16 +65,16 @@ long peer_ports[1][18] = {
         DEFAULT_RDMA_PORT + 16,
         DEFAULT_RDMA_PORT + 17,
         DEFAULT_RDMA_PORT + 18,
-        DEFAULT_RDMA_PORT + 19
+        DEFAULT_RDMA_PORT + 19,
     }
 };
 
 int peer_groups[1][1] = {
-    { 0 }
+    { 0 },
 };
 
 int num_peers[1] = {
-    18
+    18,
 };
 
 uint64_t client_ids[18][3] = {
@@ -95,33 +95,33 @@ uint64_t client_ids[18][3] = {
     { 15, 15, 15 },
     { 16, 16, 16 },
     { 17, 17, 17 },
-    { 18, 18, 18 }
+    { 18, 18, 18 },
 };
 
 server_config servers[2] = {
     { 's', 18, DEFAULT_RDMA_PORT },
-    { 't', 18,  DEFAULT_RDMA_PORT + 1 }
+    { 't', 18,  DEFAULT_RDMA_PORT + 1 },
 };
 
 client_config clients[31] = {
-    { client_ids[0], 2, "st", parent_addresses[0], parent_ports[0], peer_groups[0] },
-    { client_ids[1], 2, "st", parent_addresses[0], parent_ports[0], peer_groups[0] },
-    { client_ids[2], 2, "st", parent_addresses[0], parent_ports[0], peer_groups[0] },
-    { client_ids[3], 2, "st", parent_addresses[0], parent_ports[0], peer_groups[0] },
-    { client_ids[4], 2, "st", parent_addresses[0], parent_ports[0], peer_groups[0] },
-    { client_ids[5], 2, "st", parent_addresses[0], parent_ports[0], peer_groups[0] },
-    { client_ids[6], 2, "st", parent_addresses[0], parent_ports[0], peer_groups[0] },
-    { client_ids[7], 2, "st", parent_addresses[0], parent_ports[0], peer_groups[0] },
-    { client_ids[8], 2, "st", parent_addresses[0], parent_ports[0], peer_groups[0] },
-    { client_ids[9], 2, "st", parent_addresses[0], parent_ports[0],  peer_groups[0]},
-    { client_ids[10], 2, "st", parent_addresses[0], parent_ports[0], peer_groups[0] },
-    { client_ids[11], 2, "st", parent_addresses[0], parent_ports[0], peer_groups[0] },
-    { client_ids[12], 2, "st", parent_addresses[0], parent_ports[0], peer_groups[0] },
-    { client_ids[13], 2, "st", parent_addresses[0], parent_ports[0], peer_groups[0] },
-    { client_ids[14], 2, "st", parent_addresses[0], parent_ports[0], peer_groups[0] },
-    { client_ids[15], 2, "st", parent_addresses[0], parent_ports[0], peer_groups[0] },
-    { client_ids[16], 2, "st", parent_addresses[0], parent_ports[0], peer_groups[0] },
-    { client_ids[17], 2, "st", parent_addresses[0], parent_ports[0], peer_groups[0] },
+    { client_ids[0], 2, "st", parent_addresses[0], parent_ports[0], peer_groups[0], 0 },
+    { client_ids[1], 2, "st", parent_addresses[0], parent_ports[0], peer_groups[0], 0 },
+    { client_ids[2], 2, "st", parent_addresses[0], parent_ports[0], peer_groups[0], 0 },
+    { client_ids[3], 2, "st", parent_addresses[0], parent_ports[0], peer_groups[0], 0 },
+    { client_ids[4], 2, "st", parent_addresses[0], parent_ports[0], peer_groups[0], 0 },
+    { client_ids[5], 2, "st", parent_addresses[0], parent_ports[0], peer_groups[0], 0 },
+    { client_ids[6], 2, "st", parent_addresses[0], parent_ports[0], peer_groups[0], 0 },
+    { client_ids[7], 2, "st", parent_addresses[0], parent_ports[0], peer_groups[0], 0 },
+    { client_ids[8], 2, "st", parent_addresses[0], parent_ports[0], peer_groups[0], 0 },
+    { client_ids[9], 2, "st", parent_addresses[0], parent_ports[0], peer_groups[0], 0 },
+    { client_ids[10], 2, "st", parent_addresses[0], parent_ports[0], peer_groups[0], 0 },
+    { client_ids[11], 2, "st", parent_addresses[0], parent_ports[0], peer_groups[0], 0 },
+    { client_ids[12], 2, "st", parent_addresses[0], parent_ports[0], peer_groups[0], 0 },
+    { client_ids[13], 2, "st", parent_addresses[0], parent_ports[0], peer_groups[0], 0 },
+    { client_ids[14], 2, "st", parent_addresses[0], parent_ports[0], peer_groups[0], 0 },
+    { client_ids[15], 2, "st", parent_addresses[0], parent_ports[0], peer_groups[0], 0 },
+    { client_ids[16], 2, "st", parent_addresses[0], parent_ports[0], peer_groups[0], 0 },
+    { client_ids[17], 2, "st", parent_addresses[0], parent_ports[0], peer_groups[0], 0 },
 };
 
 node_config configs[1] = {
@@ -129,6 +129,7 @@ node_config configs[1] = {
         20,
         2,
         18,
+        1,
         "n",
         servers,
         clients
@@ -159,6 +160,7 @@ int main(int argc, char ** argv){
     server_in * s_in = (server_in *)malloc(sizeof(server_in) * config->num_servers);
     for (int i = 0; i < config->num_servers; i++) {
         s_in[i].num_children = servers[i].num_children;
+        s_in[i].num_locks = config->num_locks;
         s_in[i].port = servers[i].port;
         switch(servers[i].server_type) {
             case 'm':
@@ -176,10 +178,38 @@ int main(int argc, char ** argv){
         index++;
     }
 
-    mcsLock* mcs = buildMcsLock();
-    ticketLock* ticket = buildTicketLock();
-    spinLock* spin = buildSpinLock();
-    basicLock * basic = buildBasicLock();
+    mcsLock ** mcs_arr = NULL;
+    ticketLock ** ticket_arr = NULL;
+    spinLock ** spin_arr = NULL;
+    basicLock ** basic_arr = NULL;\
+    switch(*(config->machine_lock_type)) {
+        case 'm':
+            mcs_arr = (mcsLock **)malloc(sizeof(mcsLock *) * config->num_locks);
+            for (int i = 0; i < config->num_locks; i++) {
+                mc_arr[i] = buildMcsLock();
+            }
+            break;
+        case 't':
+            ticket_arr = (ticketLock **)malloc(sizeof(ticketLock *) * config->num_locks);
+            for (int i = 0; i < config->num_locks; i++) {
+                ticket_arr[i] = buildTicketLock();
+            }
+            break;
+        case 's':
+            spin_arr = (spinLock **)malloc(sizerof(spinLock *) * config->num_locks);
+            for (int i = 0; i < config->num_locks; i++) {
+                spin_arr[i] = buildSpinLock();
+            }
+            break;
+        case 'b':
+            basic_arr = (basicLock **)malloc(sizeof(basicLock *) * config->num_locks);
+            for (int i = 0; i < config->num_locks; i++) {
+                basic_arr[i] = buildBasicLock();
+            }
+            break;
+        default:
+            //Nothing
+    }
     client_config * clients = config->clients;
     general_client_in * c_in = malloc(sizeof(general_client_in) * config->num_clients);
     for (int i = 0; i < config->num_clients; i++) {
@@ -189,19 +219,20 @@ int main(int argc, char ** argv){
         c_in[i].noncritical_section = noncritical_section;
         c_in[i].num_aquire = num_aquire;
         c_in[i].node_id = clients[i].node_id[0];
+        c_in[i].target_lock = clients[i].target_lock;
         c_in[i].machine_lock_type = config->machine_lock_type;
         switch(*(config->machine_lock_type)) {
             case 'm':
-                c_in[i].machine_lock.mcs = mcs;
+                c_in[i].machine_lock.mcs_arr = mcs_arr;
                 break;
             case 't':
-                c_in[i].machine_lock.ticket = ticket;
+                c_in[i].machine_lock.ticket_arr = ticket_arr;
                 break;
             case 's':
-                c_in[i].machine_lock.spin = spin;
+                c_in[i].machine_lock.spin_arr = spin_arr;
                 break;
             case 'b':
-                c_in[i].machine_lock.basic = basic;
+                c_in[i].machine_lock.basic_arr = basic_arr;
                 break;
             default:
                 //Nothing
@@ -261,10 +292,34 @@ int main(int argc, char ** argv){
         }
         free(c_in[i].client_info);
     }
-    destroyMcsLock(mcs);
-    destroyTicketLock(ticket);
-    destroySpinLock(spin);
-    destroyBasicLock(basic);
+    switch(*(config->machine_lock_type)) {
+        case 'm' :
+            for(int i = 0; i < config->num_locks; i++) {
+                destroyMcsLock(mcs_arr[i]);
+            }
+            free(mcs_arr);
+            break;
+        case 't' :
+            for(int i = 0; i < config->num_locks; i++) {
+                destroyTicketLock(ticket_arr[i]);
+            }
+            free(ticket_arr);
+            break;
+        case 's' :
+            for(int i = 0; i < config->num_locks; i++) {
+                destroySpinLock(spin_arr[i]);
+            }
+            free(spin_arr);
+            break;
+        case 'b' :
+            for(int i = 0; i < config->num_locks; i++) {
+                destroyBasicLock(basic_arr[i]);
+            }
+            free(basic_arr);
+            break;
+        default:
+            //Nothing
+    }
     free(c_in);
     free(workers);
     return 0;

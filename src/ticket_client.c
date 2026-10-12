@@ -180,11 +180,11 @@ uint64_t acquire_ticket_lock(struct rdma_cm_id*  id, uint64_t *buffer) {
 	int test = 1;
 	uint64_t ticket;
 	do {
-		test = fetch_and_add(id, NEXT);
+		test = fetch_and_add(id, (target_lock * 2) + NEXT);
 	} while(test != 0);
 	ticket = *buffer;
 	do {
-		if(rdma_read(id, NOW) != 0) {
+		if(rdma_read(id, (target_lock * 2) + NOW) != 0) {
 			printf("read fail\n");
 		}
 	} while(ticket != *buffer);
@@ -193,7 +193,7 @@ uint64_t acquire_ticket_lock(struct rdma_cm_id*  id, uint64_t *buffer) {
 }
 
 int release_ticket_lock(struct rdma_cm_id* id, uint64_t ticket, uint64_t *buffer) {
-	fetch_and_add(id, NOW);
+	fetch_and_add(id, (target_lock * 2) + NOW);
     if(*buffer != ticket) {
         perror("de-latch failed\n");
         return -1;
@@ -282,118 +282,4 @@ struct rdma_cm_id* connect_to_ticket_server(struct rdma_event_channel* cm_event_
 	}
 
 	return cm_client_id;
-}
-
-void * ticket_client(void * in) {
-	struct sockaddr_in server_sockaddr;
-	struct rdma_cm_id *server_id = NULL;
-	basicLock * basic = NULL;
-	spinLock * spin = NULL;
-    ticketLock * ticket = NULL;
-    mcsLock * mcs = NULL;
-	uint64_t * node_id = (uint64_t *)malloc(sizeof(uint64_t));
-	struct rdma_event_channel *cm_event_channel = NULL;
-	char * machine_lock_type = ((ticket_client_in *)in)->machine_lock_type;
-	char * parent_address = ((ticket_client_in *)in)->parent_address;
-	long parent_port = ((ticket_client_in *)in)->parent_port;
-	uint64_t *buffer = (uint64_t *)malloc(sizeof(uint64_t));
-	volatile uint64_t *metadata = (volatile uint64_t *)malloc(sizeof(uint64_t));
-	int critical_section = ((ticket_client_in *) in)->critical_section;
-	int noncritical_section = ((ticket_client_in *) in)->noncritical_section;
-	int num_aquire = ((ticket_client_in *) in)->num_aquire;
-	clock_t start, end;
-
-	*node_id = ((ticket_client_in *)in)->node_id;
-
-	*metadata = 0;
-
-	server_sockaddr = build_sockaddr(parent_address, parent_port);
-
-	switch(*machine_lock_type) {
-        case 'm':
-            mcs = ((ticket_client_in *) in)->machine_lock.mcs;
-            break;
-        case 't':
-            ticket = ((ticket_client_in *)in)->machine_lock.ticket;
-            break;
-        case 's':
-            spin = ((ticket_client_in *)in)->machine_lock.spin;
-            break;
-		case 'b':
-			basic = ((ticket_client_in *)in)->machine_lock.basic;
-        default:
-            //Nothing
-    }
-
-	cm_event_channel = rdma_create_event_channel();
-	if (!cm_event_channel) {
-		rdma_error("Creating cm event channel failed, errno: %d \n", -errno);
-		return NULL;
-	}
-
-	server_id = connect_to_ticket_server(cm_event_channel, &server_sockaddr, node_id, buffer, metadata);
-
-	wait_on_data(metadata, 1);
-	*metadata = 0;
-
-	
-	start = clock();
-
-	for (int i = 0; i < num_aquire; i++) {
-		uint64_t place;
-		for (int n = 0; n < noncritical_section; n++) {
-			noop(&n);
-		}
-		//lock
-        switch(*machine_lock_type) {
-            case 'm':
-                lockMcs(mcs, *node_id);
-                break;
-            case 't':
-                lockTicket(ticket , *node_id);
-                break;
-            case 's':
-                lockSpin(spin, *node_id);
-                break;
-			case 'b':
-				lockBasic(basic);
-				break;
-            default:
-                //Nothing
-        }
-		place = acquire_ticket_lock(server_id, buffer);
-
-		//work
-		for (int c = 0; c < critical_section; c++) {
-			noop(&c);
-		}
-		//unlock
-		release_ticket_lock(server_id, place, buffer);
-		switch(*machine_lock_type) {
-            case 'm':
-                unlockMcs(mcs);
-                break;
-            case 't':
-                unlockTicket(ticket);
-                break;
-            case 's':
-                unlockSpin(spin);
-                break;
-			case 'b':
-				unlockBasic(basic);
-				break;
-            default:
-                //Nothing
-        }
-	}
-	end = clock();
-
-	disconnect_client(cm_event_channel, server_id);
-	rdma_destroy_event_channel(cm_event_channel);
-	/* We free the buffers */
-	free((void *)metadata);
-	free(buffer);
-
-	printf("%f\n",((double)(num_aquire * critical_section))/((double)(end-start)/CLOCKS_PER_SEC));
-	return NULL;
 }

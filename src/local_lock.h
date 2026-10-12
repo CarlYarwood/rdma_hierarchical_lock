@@ -44,10 +44,10 @@ typedef struct {
 } basicLock;
 
 union machine_lock {
-    basicLock * basic;
-    mcsLock * mcs;
-    ticketLock * ticket;
-    spinLock * spin;
+    basicLock ** basic_arr;
+    mcsLock ** mcs_arr;
+    ticketLock ** ticket_arr;
+    spinLock ** spin_arr;
 };
 
 void lockBasic(basicLock* lock);

@@ -1,10 +1,10 @@
 #include "general_client.h"
 
 void* general_client(void *in) {
-    basicLock * basic = NULL;
-    spinLock * spin = NULL;
-    ticketLock * ticket = NULL;
-    mcsLock * mcs = NULL;
+    basicLock ** basic_arr = NULL;
+    spinLock ** spin_arr = NULL;
+    ticketLock ** ticket_arr = NULL;
+    mcsLock ** mcs_arr = NULL;
     uint64_t * node_id = (uint64_t *)malloc(sizeof(uint64_t));
     clock_t start, end;
     int num_parents = ((general_client_in *)in)->num_parents;
@@ -12,6 +12,7 @@ void* general_client(void *in) {
     int critical_section = ((general_client_in *)in)->critical_section;
     int noncritical_section = ((general_client_in *)in)->noncritical_section;
     int num_aquire = ((general_client_in *)in)->num_aquire;
+    int target_lock = ((general_client_in *)in)->target_lock;
     char * machine_lock_type = ((general_client_in *)in)->machine_lock_type;
     union client_info * ci = ((general_client_in *)in)->client_info;
     struct rdma_event_channel *cm_event_channel = NULL;
@@ -19,16 +20,16 @@ void* general_client(void *in) {
     *node_id = ((general_client_in *)in)->node_id;
     switch(*machine_lock_type) {
         case 'm':
-            mcs = ((general_client_in *) in)->machine_lock.mcs;
+            mcs_arr = ((general_client_in *) in)->machine_lock.mcs_arr;
             break;
         case 't':
-            ticket = ((general_client_in *)in)->machine_lock.ticket;
+            ticket_arr = ((general_client_in *)in)->machine_lock.ticket_arr;
             break;
         case 's':
-            spin = ((general_client_in *)in)->machine_lock.spin;
+            spin_arr = ((general_client_in *)in)->machine_lock.spin_arr;
             break;
         case 'b':
-            basic = ((general_client_in *)in)->machine_lock.basic;
+            basic_arr = ((general_client_in *)in)->machine_lock.basic_arr;
             break;
         default:
             //Nothing
@@ -116,16 +117,16 @@ void* general_client(void *in) {
         
         switch(*machine_lock_type) {
             case 'm':
-                lockMcs(mcs, *node_id);
+                lockMcs(mcs_arr[target_lock], *node_id);
                 break;
             case 't':
-                lockTicket(ticket , *node_id);
+                lockTicket(ticket_arr[target_lock] , *node_id);
                 break;
             case 's':
-                lockSpin(spin, *node_id);
+                lockSpin(spin_arr[target_lock], *node_id);
                 break;
 			case 'b':
-				lockBasic(basic);
+				lockBasic(basic_arr[target_lock]);
 				break;
             default:
                 //Nothing
@@ -134,13 +135,13 @@ void* general_client(void *in) {
         for (int l = 0; l < num_parents; l++) {
             switch(parent_types[l]) {
                 case 'm':
-                    acquire_mcs_lock(li[l].mcs_l_info->id_arr, li[l].mcs_l_info->node_id, li[l].mcs_l_info->buffer, li[l].mcs_l_info->metadata);
+                    acquire_mcs_lock(li[l].mcs_l_info->id_arr, li[l].mcs_l_info->node_id, li[l].mcs_l_info->buffer, li[l].mcs_l_info->metadata, target_lock);
                     break;
                 case 't':
-                    *(li[l].ticket_l_info->ticket) = acquire_ticket_lock(li[l].ticket_l_info->server_id, li[l].ticket_l_info->buffer);
+                    *(li[l].ticket_l_info->ticket) = acquire_ticket_lock(li[l].ticket_l_info->server_id, li[l].ticket_l_info->buffer, target_lock);
                     break;
                 case 's':
-                    acquire_spin_lock(li[l].spin_l_info->server_id, li[l].spin_l_info->buffer);
+                    acquire_spin_lock(li[l].spin_l_info->server_id, li[l].spin_l_info->buffer, target_lock);
                     break;
                 default:
                     //Nothing
@@ -154,13 +155,13 @@ void* general_client(void *in) {
         for (int l = num_parents - 1; l >= 0; l--) {
             switch(parent_types[l]) {
                 case 'm':
-                    release_mcs_lock(li[l].mcs_l_info->id_arr, li[l].mcs_l_info->node_id, li[l].mcs_l_info->buffer, li[l].mcs_l_info->metadata);
+                    release_mcs_lock(li[l].mcs_l_info->id_arr, li[l].mcs_l_info->node_id, li[l].mcs_l_info->buffer, li[l].mcs_l_info->metadata, target_lock);
                     break;
                 case 't':
-                    release_ticket_lock(li[l].ticket_l_info->server_id, *(li[l].ticket_l_info->ticket), li[l].ticket_l_info->buffer);
+                    release_ticket_lock(li[l].ticket_l_info->server_id, *(li[l].ticket_l_info->ticket), li[l].ticket_l_info->buffer, target_lock);
                     break;
                 case 's':
-                    release_spin_lock(li[l].ticket_l_info->server_id, li[l].ticket_l_info->buffer);
+                    release_spin_lock(li[l].ticket_l_info->server_id, li[l].ticket_l_info->buffer, target_lock);
                     break;
                 default:
                     //Nothing
@@ -169,16 +170,16 @@ void* general_client(void *in) {
 
         switch(*machine_lock_type) {
             case 'm':
-                unlockMcs(mcs);
+                unlockMcs(mcs_arr[target_lock]);
                 break;
             case 't':
-                unlockTicket(ticket);
+                unlockTicket(ticket_arr[target_lock]);
                 break;
             case 's':
-                unlockSpin(spin);
+                unlockSpin(spin_arr[target_lock]);
                 break;
 			case 'b':
-				unlockBasic(basic);
+				unlockBasic(basic_arr[target_lock]);
 				break;
             default:
                 //Nothing
@@ -221,7 +222,8 @@ void* general_client(void *in) {
     free(li);
     rdma_destroy_event_channel(cm_event_channel);
 
-    printf("node %lu %f\n", *node_id, ((double)(num_aquire * critical_section))/((double)(end - start)/CLOCKS_PER_SEC));
+    printf("node %lu %d total ops", *node_id, ((num_aquire * critical_section)));
+    printf("node %lu %f secsonds\n", *node_id, ((double)(end - start)/CLOCKS_PER_SEC));
     free(node_id);
     return NULL;
 }

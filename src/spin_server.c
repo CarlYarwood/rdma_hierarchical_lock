@@ -272,6 +272,7 @@ void *spin_server(void * in) {
     uint64_t *lock = (uint64_t *)malloc(sizeof(uint64_t));
     uint64_t *buffer = (uint64_t *)malloc(sizeof(uint64_t));
     int num_children = ((server_in *)in)->num_children;
+    int num_locks = ((server_in *)in)->num_locks;
     long port = ((server_in *)in)->port;
     struct rdma_cm_id ** id_arr = (struct rdma_cm_id **)malloc(sizeof(struct rdma_cm_id *) * num_children);
     int num_conn = 0;
@@ -280,7 +281,10 @@ void *spin_server(void * in) {
     struct rdma_event_channel *cm_event_channel = NULL;
     struct rdma_cm_id *cm_server_id = NULL;
 
-    *lock = 0;
+    for(int i = 0; i < num_locks; i++) {
+        lock[i] = 0;
+    }
+
     *buffer = 0;
     for(int i = 0; i < num_children; i++) {
         id_arr[i] = NULL;

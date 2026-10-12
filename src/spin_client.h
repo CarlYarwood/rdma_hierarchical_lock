@@ -16,8 +16,7 @@ typedef struct {
 } spin_client_in;
 
 client_ctx* build_client_spin_context(struct rdma_cm_id* client_id, volatile uint64_t* metadata, uint64_t *buffer, uint64_t* node_id);
-int acquire_spin_lock(struct rdma_cm_id *id, uint64_t *buffer);
-int release_spin_lock(struct rdma_cm_id *id, uint64_t *buffer);
+int acquire_spin_lock(struct rdma_cm_id *id, uint64_t *buffer, int target_lock);
+int release_spin_lock(struct rdma_cm_id *id, uint64_t *buffer, int target_lock);
 struct rdma_cm_id* connect_to_spin_server(struct rdma_event_channel* cm_event_channel, struct sockaddr_in* server_sockaddr,uint64_t* node_id, uint64_t *buffer, volatile uint64_t * metadata);
-void * spin_client(void * in);
 #endif

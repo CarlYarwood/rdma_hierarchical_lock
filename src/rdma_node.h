@@ -18,12 +18,14 @@ typedef struct {
     char **parent_addresses;
     long *parent_ports;
     int * peer_groups;
+    int target_lock;
 } client_config;
 
 typedef struct {
     int total_workers;
     int num_servers;
     int num_clients;
+    int num_locks;
     char * machine_lock_type;
     server_config * servers;
     client_config * clients;

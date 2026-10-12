@@ -166,19 +166,19 @@ client_ctx* build_client_spin_context(struct rdma_cm_id* client_id, volatile uin
 	return ctx;
 }
 
-int acquire_spin_lock(struct rdma_cm_id *id, uint64_t *buffer) {
+int acquire_spin_lock(struct rdma_cm_id *id, uint64_t *buffer, int target_lock) {
 	client_ctx *ctx = (client_ctx *)(id->context);
 	*buffer = 1;
 	do {
-        compare_and_swap(id, 0, *(ctx->node_id), 0);
+        compare_and_swap(id, 0, *(ctx->node_id), target_lock);
     } while(*buffer != 0);
 	return 0;
 }
 
-int release_spin_lock(struct rdma_cm_id *id, uint64_t *buffer) {
+int release_spin_lock(struct rdma_cm_id *id, uint64_t *buffer, int target_lock) {
 	client_ctx *ctx = (client_ctx *)(id->context);
 	*buffer = 0;
-	compare_and_swap(id, *(ctx->node_id), 0,0);
+	compare_and_swap(id, *(ctx->node_id), 0, target_lock);
     if(*buffer != *(ctx->node_id)) {
         perror("lock release failed\n");
         return -1;
@@ -267,115 +267,4 @@ struct rdma_cm_id* connect_to_spin_server(struct rdma_event_channel* cm_event_ch
 	}
 
 	return cm_client_id;
-}
-
-void * spin_client(void * in) {
-	struct rdma_cm_id *server = NULL;
-	basicLock * basic = NULL;
-	spinLock * spin = NULL;
-    ticketLock * ticket = NULL;
-    mcsLock * mcs = NULL;
-	struct sockaddr_in server_sockaddr;
-	struct rdma_event_channel *cm_event_channel = NULL;
-	char * machine_lock_type = ((spin_client_in *)in)->machine_lock_type;
-	char * parent_address = ((spin_client_in *)in)->parent_address;
-	long parent_port = ((spin_client_in *)in)->parent_port;
-	uint64_t *buffer = (uint64_t *)malloc(sizeof(uint64_t));
-	uint64_t *node_id = (uint64_t *)malloc(sizeof(uint64_t));
-	int critical_section = ((spin_client_in *) in)->critical_section;
-	int noncritical_section = ((spin_client_in *) in)->noncritical_section;
-	int num_aquire = ((spin_client_in *) in)->num_aquire;
-	volatile uint64_t *metadata = (volatile uint64_t *)malloc(sizeof(uint64_t));
-	*metadata = 0;
-	clock_t start, end;
-	switch(*machine_lock_type) {
-        case 'm':
-            mcs = ((spin_client_in *) in)->machine_lock.mcs;
-            break;
-        case 't':
-            ticket = ((spin_client_in *)in)->machine_lock.ticket;
-            break;
-        case 's':
-            spin = ((spin_client_in *)in)->machine_lock.spin;
-            break;
-		case 'b':
-			basic = ((spin_client_in *)in)->machine_lock.basic;
-			break;
-        default:
-            //Nothing
-    }
-
-	*node_id = ((spin_client_in *) in)->node_id;
-
-	server_sockaddr = build_sockaddr(parent_address, parent_port);
-
-	cm_event_channel = rdma_create_event_channel();
-	if (!cm_event_channel) {
-		rdma_error("Creating cm event channel failed, errno: %d \n", -errno);
-		return NULL;
-	}
-	
-	server = connect_to_spin_server(cm_event_channel, &server_sockaddr, node_id, buffer, metadata);
-
-	wait_on_data(metadata, 1);
-	*metadata = 0;
-
-	start = clock();
-	for (int i = 0; i < num_aquire; i++) {
-		for (int n = 0; n < noncritical_section; n++) {
-			noop(&n);
-		}
-		//lock
-        switch(*machine_lock_type) {
-            case 'm':
-                lockMcs(mcs, *node_id);
-                break;
-            case 't':
-                lockTicket(ticket , *node_id);
-                break;
-            case 's':
-                lockSpin(spin, *node_id);
-                break;
-			case 'b':
-				lockBasic(basic);
-				break;
-            default:
-                //Nothing
-        }
-		acquire_spin_lock(server, buffer);
-
-		//work
-		for (int c = 0; c < critical_section; c++) {
-			noop(&c);
-		}
-		//unlock
-		release_spin_lock(server, buffer);
-		switch(*machine_lock_type) {
-            case 'm':
-                unlockMcs(mcs);
-                break;
-            case 't':
-                unlockTicket(ticket);
-                break;
-            case 's':
-                unlockSpin(spin);
-                break;
-			case 'b':
-				unlockBasic(basic);
-				break;
-            default:
-                //Nothing
-        }
-	}
-	end = clock();
-
-	disconnect_client(cm_event_channel, server);
-	/* We free the buffers */
-	free((void *)metadata);
-	free(buffer);
-
-	rdma_destroy_event_channel(cm_event_channel);
-
-	printf("%f\n",((double)(num_aquire * critical_section))/((double)(end-start)/CLOCKS_PER_SEC));
-	return NULL;
 }

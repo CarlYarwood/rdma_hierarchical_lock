@@ -54,6 +54,7 @@ typedef struct {
 
 typedef struct {
     int num_children;
+    int num_locks;
     long port;
 } server_in;
 

@@ -174,12 +174,12 @@ client_ctx* build_mcs_context(struct rdma_cm_id* client_id, volatile uint64_t *m
     return ctx;
 }
 
-int acquire_mcs_lock(struct rdma_cm_id ** id_arr, uint64_t *node_id, uint64_t *buffer, volatile uint64_t* metadata) {
+int acquire_mcs_lock(struct rdma_cm_id ** id_arr, uint64_t *node_id, uint64_t *buffer, volatile uint64_t* metadata, int target_lock) {
     metadata[NEXT] = 0;
     metadata[NOTIFY] = 0;
     uint64_t expected = 0;
     do {
-        compare_and_swap(id_arr[SERVER], expected, *node_id, LOCK);
+        compare_and_swap(id_arr[SERVER], expected, *node_id, LOCK_OFFSET + target_lock);
         if (expected == *buffer) {
             break;
         }
@@ -194,9 +194,9 @@ int acquire_mcs_lock(struct rdma_cm_id ** id_arr, uint64_t *node_id, uint64_t *b
     return 0;
 }
 
-int release_mcs_lock(struct rdma_cm_id** id_arr, uint64_t* node_id, uint64_t *buffer, volatile uint64_t* metadata) {
+int release_mcs_lock(struct rdma_cm_id** id_arr, uint64_t* node_id, uint64_t *buffer, volatile uint64_t* metadata, int target_lock) {
 	if (metadata[NEXT] == 0) {
-        compare_and_swap(id_arr[SERVER], *node_id, 0, LOCK);
+        compare_and_swap(id_arr[SERVER], *node_id, 0, LOCK_OFFSET + target_lock);
         if(*buffer == *node_id) {
             return 0;
         }
@@ -430,153 +430,4 @@ void disconnect_from_mcs(struct rdma_cm_id ** id_arr, struct rdma_event_channel 
     }
 
     return;
-}
-
-void* mcs_client(void *in) {
-    volatile uint64_t *metadata = (volatile uint64_t *)malloc(sizeof(uint64_t) * 3);
-	uint64_t *buffer = NULL;
-	uint64_t *node_id = (uint64_t *)malloc(sizeof(uint64_t));
-    basicLock * basic = NULL;
-    spinLock * spin = NULL;
-    ticketLock * ticket = NULL;
-    mcsLock * mcs = NULL;
-    char * machine_lock_type = ((mcs_client_in *)in)->machine_lock_type;
-    char * parent_address = ((mcs_client_in *)in)->parent_address;
-    long parent_port = ((mcs_client_in *)in)->parent_port;
-    char ** peer_addresses = ((mcs_client_in *)in)->peer_addresses;
-    long * peer_ports = ((mcs_client_in *)in)->peer_ports;
-    int num_peers = ((mcs_client_in *) in)->num_peers;
-	int critical_section = ((mcs_client_in *) in)->critical_section;
-	int noncritical_section = ((mcs_client_in *) in)->noncritical_section;
-	int num_aquire = ((mcs_client_in *) in)->num_aquire;
-    int * num_conn = NULL;
-	struct sockaddr_in client_server_sockaddr;
-    struct rdma_event_channel *cm_event_channel = NULL;
-    struct rdma_cm_id *cm_server_id = NULL;
-    struct rdma_cm_id ** id_arr;
-	clock_t start, end;
-
-    num_conn = (int *)malloc(sizeof(int));
-    *num_conn = 0;
-    metadata[NEXT] = 0;
-    metadata[NOTIFY] = 0;
-    metadata[MCS_SYNC] = 0;
-    switch(*machine_lock_type) {
-        case 'm':
-            mcs = ((mcs_client_in *) in)->machine_lock.mcs;
-            break;
-        case 't':
-            ticket = ((mcs_client_in *)in)->machine_lock.ticket;
-            break;
-        case 's':
-            spin = ((mcs_client_in *)in)->machine_lock.spin;
-            break;
-        case 'b':
-            basic = ((mcs_client_in *)in)->machine_lock.basic;
-            break;
-        default:
-            //Nothing
-    }
-
-	*node_id = ((mcs_client_in *) in)->node_id;
-    id_arr = (struct rdma_cm_id **) malloc(sizeof(struct rdma_cm_id *) * (num_peers + 1));
-
-    for (int i = 0;  i < (num_peers + 1); i++) {
-        id_arr[i] = NULL;
-    }
-
-    buffer = calloc(1, sizeof(uint64_t));
-	bzero(&client_server_sockaddr, sizeof client_server_sockaddr);
-	client_server_sockaddr.sin_family = AF_INET; /* standard IP NET address */
-	client_server_sockaddr.sin_addr.s_addr = htonl(INADDR_ANY); /* passed address */
-	client_server_sockaddr.sin_port = htons(peer_ports[(*node_id) - 1]);
-
-    cm_event_channel = rdma_create_event_channel();
-    if (!cm_event_channel) {
-        rdma_error("Creating cm event channel failed with errno : (%d)", -errno);
-		return NULL;
-    }
-
-	if (rdma_create_id(cm_event_channel, &cm_server_id, NULL, RDMA_PS_TCP)) {
-		rdma_error("Creating server cm id failed with errno: %d ", -errno);
-		return NULL;
-	}
-
-    if (rdma_bind_addr(cm_server_id, (struct sockaddr*) &client_server_sockaddr)) {
-		rdma_error("Failed to bind server address, errno: %d \n", -errno);
-		return NULL;
-	}
-
-	if (rdma_listen(cm_server_id, 8)) {
-		rdma_error("rdma_listen failed to listen on server address, errno: %d ", -errno);
-		return NULL;
-	}
-
-    connect_to_mcs(parent_address, parent_port, peer_addresses, peer_ports, num_peers, id_arr, cm_event_channel, node_id, buffer, metadata, num_conn);
-
-	start = clock();
-
-	for (int i = 0; i < num_aquire; i++) {
-		// pre work
-		for (int n = 0; n < noncritical_section; n++) {
-			noop(&n);
-		}
-		// lock
-        switch(*machine_lock_type) {
-            case 'm':
-                lockMcs(mcs, *node_id);
-                break;
-            case 't':
-                lockTicket(ticket , *node_id);
-                break;
-            case 's':
-                lockSpin(spin, *node_id);
-                break;
-            case 'b':
-                lockBasic(basic);
-                break;
-            default:
-                //Nothing
-        }
-        
-		acquire_mcs_lock(id_arr, node_id, buffer, metadata);
-		// work
-		for (int c = 0; c < critical_section; c++) {
-			noop(&c);
-		}
-		// unlock
-		release_mcs_lock(id_arr, node_id, buffer, metadata);
-        switch(*machine_lock_type) {
-            case 'm':
-                unlockMcs(mcs);
-                break;
-            case 't':
-                unlockTicket(ticket);
-                break;
-            case 's':
-                unlockSpin(spin);
-                break;
-            case 'b':
-                unlockBasic(basic);
-                break;
-            default:
-                //Nothing
-        }
-	}
-
-	end = clock();
-
-	printf("%f\n",((double)(num_aquire * critical_section))/((double)(end-start)/CLOCKS_PER_SEC));
-
-    disconnect_from_mcs(id_arr, cm_event_channel, node_id, num_conn);
-
-	free(node_id);
-    free(buffer);
-    free(id_arr);
-
-	if (rdma_destroy_id(cm_server_id)) {
-		rdma_error("Failed to destroy server id cleanly, %d \n", -errno);
-	}
-	rdma_destroy_event_channel(cm_event_channel);
-	return NULL;
 }

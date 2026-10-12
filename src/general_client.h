@@ -67,6 +67,7 @@ typedef struct {
     int critical_section;
     int noncritical_section;
     int num_aquire;
+    int target_lock;
     char * machine_lock_type;
     uint64_t node_id;
     union machine_lock machine_lock;
