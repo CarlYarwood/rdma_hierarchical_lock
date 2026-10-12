@@ -402,7 +402,6 @@ void *spin_server(void * in) {
                 }
 
                 num_conn--;
-                printf("%d \n", num_conn);
                 break;
             default:
                 rdma_error("Unexpected event received: %s", rdma_event_str(cm_event->event));

@@ -130,7 +130,7 @@ node_config configs[1] = {
         2,
         18,
         18,
-        "b",
+        "s",
         servers,
         clients
     }
