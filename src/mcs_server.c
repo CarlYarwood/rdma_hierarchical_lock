@@ -354,7 +354,7 @@ void* mcs_server(void * in) {
                 client_id = cm_event->id;
                 *node_id = *((uint64_t *) cm_event->param.conn.private_data);
 
-                ctx = build_server_mcs_context(client_id, lock, buffer, node_id);
+                ctx = build_server_mcs_context(client_id, lock, buffer, node_id, num_locks);
                 if(!ctx) {
                     rdma_ack_cm_event(cm_event);
                     perror("Failed to build client Context\n");
