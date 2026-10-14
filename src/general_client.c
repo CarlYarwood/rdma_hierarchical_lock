@@ -224,9 +224,7 @@ void* general_client(void *in) {
     free(li);
     rdma_destroy_event_channel(cm_event_channel);
 
-    printf("node %lu %d total ops\n", *node_id, ((num_aquire * critical_section)));
-    printf("node %lu %f secsonds\n", *node_id, ((double)(end - start)/CLOCKS_PER_SEC));
-    printf("node %lu %f avg latency\n", *node_id, (l_total/CLOCKS_PER_SEC)/num_aquire);
+    printf("%lu, %d, %f, %f\n", *node_id, ((num_aquire * critical_section)), ((double)(end - start)/CLOCKS_PER_SEC), (l_total/CLOCKS_PER_SEC)/num_aquire);
     free(node_id);
     return NULL;
 }
