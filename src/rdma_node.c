@@ -162,7 +162,7 @@ node_config configs[7] = {
         1,
         1,
         0,
-        12,
+        24,
         "n",
         servers,
         NULL,
