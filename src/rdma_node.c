@@ -12,60 +12,34 @@ int num_aquire = 10000;
 char * parent_addresses[1][2] = {
     {
         "10.10.1.1",
-        "10.10.1.1",
     }
 };
 
 char * peer_addresses[1][18] = {
     {
-        "10.10.1.1",
-        "10.10.1.1",
-        "10.10.1.1",
-        "10.10.1.1",
-        "10.10.1.1",
-        "10.10.1.1",
-        "10.10.1.1",
-        "10.10.1.1",
-        "10.10.1.1",
-        "10.10.1.1",
-        "10.10.1.1",
-        "10.10.1.1",
-        "10.10.1.1",
-        "10.10.1.1",
-        "10.10.1.1",
-        "10.10.1.1",
-        "10.10.1.1",
-        "10.10.1.1",
+        "10.10.1.2",
+        "10.10.1.3",
+        "10.10.1.4",
+        "10.10.1.5",
+        "10.10.1.6",
+        "10.10.1.7",
     }
 };
 
 long parent_ports[1][2] = {
     {
         DEFAULT_RDMA_PORT,
-        DEFAULT_RDMA_PORT + 1,
     }
 };
 
 long peer_ports[1][18] = {
     {
-        DEFAULT_RDMA_PORT + 2,
-        DEFAULT_RDMA_PORT + 3,
-        DEFAULT_RDMA_PORT + 4,
-        DEFAULT_RDMA_PORT + 5,
-        DEFAULT_RDMA_PORT + 6,
-        DEFAULT_RDMA_PORT + 7,
-        DEFAULT_RDMA_PORT + 8,
-        DEFAULT_RDMA_PORT + 9,
-        DEFAULT_RDMA_PORT + 10,
-        DEFAULT_RDMA_PORT + 11,
-        DEFAULT_RDMA_PORT + 12,
-        DEFAULT_RDMA_PORT + 13,
-        DEFAULT_RDMA_PORT + 14,
-        DEFAULT_RDMA_PORT + 15,
-        DEFAULT_RDMA_PORT + 16,
-        DEFAULT_RDMA_PORT + 17,
-        DEFAULT_RDMA_PORT + 18,
-        DEFAULT_RDMA_PORT + 19,
+        DEFAULT_RDMA_PORT,
+        DEFAULT_RDMA_PORT,
+        DEFAULT_RDMA_PORT,
+        DEFAULT_RDMA_PORT,
+        DEFAULT_RDMA_PORT,
+        DEFAULT_RDMA_PORT,
     }
 };
 
@@ -74,66 +48,107 @@ int peer_groups[1][1] = {
 };
 
 int num_peers[1] = {
-    18,
+    6,
 };
 
-uint64_t client_ids[18][3] = {
-    { 1, 1, 1 },
-    { 2, 2, 2 },
-    { 3, 3, 3 },
-    { 4, 4, 4 },
-    { 5, 5, 5 },
-    { 6, 6, 6 },
-    { 7, 7, 7 },
-    { 8, 8, 8 },
-    { 9, 9, 9 },
-    { 10, 10, 10 },
-    { 11, 11, 11 },
-    { 12, 12, 12 },
-    { 13, 13, 13 },
-    { 14, 14, 14 },
-    { 15, 15, 15 },
-    { 16, 16, 16 },
-    { 17, 17, 17 },
-    { 18, 18, 18 },
+uint64_t client_ids[18][2] = {
+    { 1, 1 },
+    { 2, 2 },
+    { 3, 3 },
+    { 4, 4 },
+    { 5, 5 },
+    { 6, 6 },
 };
 
-server_config servers[2] = {
-    { 's', 18, DEFAULT_RDMA_PORT },
-    { 't', 18,  DEFAULT_RDMA_PORT + 1 },
+server_config servers[1] = {
+    { 's', 6, DEFAULT_RDMA_PORT },
 };
 
-client_config clients[31] = {
-    { client_ids[0], 2, "st", parent_addresses[0], parent_ports[0], peer_groups[0], 0 },
-    { client_ids[1], 2, "st", parent_addresses[0], parent_ports[0], peer_groups[0], 0 },
-    { client_ids[2], 2, "st", parent_addresses[0], parent_ports[0], peer_groups[0], 0 },
-    { client_ids[3], 2, "st", parent_addresses[0], parent_ports[0], peer_groups[0], 0 },
-    { client_ids[4], 2, "st", parent_addresses[0], parent_ports[0], peer_groups[0], 0 },
-    { client_ids[5], 2, "st", parent_addresses[0], parent_ports[0], peer_groups[0], 0 },
-    { client_ids[6], 2, "st", parent_addresses[0], parent_ports[0], peer_groups[0], 0 },
-    { client_ids[7], 2, "st", parent_addresses[0], parent_ports[0], peer_groups[0], 0 },
-    { client_ids[8], 2, "st", parent_addresses[0], parent_ports[0], peer_groups[0], 0 },
-    { client_ids[9], 2, "st", parent_addresses[0], parent_ports[0], peer_groups[0], 0 },
-    { client_ids[10], 2, "st", parent_addresses[0], parent_ports[0], peer_groups[0], 0 },
-    { client_ids[11], 2, "st", parent_addresses[0], parent_ports[0], peer_groups[0], 0 },
-    { client_ids[12], 2, "st", parent_addresses[0], parent_ports[0], peer_groups[0], 0 },
-    { client_ids[13], 2, "st", parent_addresses[0], parent_ports[0], peer_groups[0], 0 },
-    { client_ids[14], 2, "st", parent_addresses[0], parent_ports[0], peer_groups[0], 0 },
-    { client_ids[15], 2, "st", parent_addresses[0], parent_ports[0], peer_groups[0], 0 },
-    { client_ids[16], 2, "st", parent_addresses[0], parent_ports[0], peer_groups[0], 0 },
-    { client_ids[17], 2, "st", parent_addresses[0], parent_ports[0], peer_groups[0], 0 },
-};
-
-node_config configs[1] = {
+client_config clients[6][1] = {
     {
-        20,
-        2,
-        18,
-        18,
-        "b",
+        { client_ids[0], 1, "s", parent_addresses[0], parent_ports[0], peer_groups[0], 0 },
+    },
+    {
+        { client_ids[1], 1, "s", parent_addresses[0], parent_ports[0], peer_groups[0], 1 },
+    },
+    {
+        { client_ids[2], 1, "s", parent_addresses[0], parent_ports[0], peer_groups[0], 2 },
+    },
+    {
+        { client_ids[3], 1, "s", parent_addresses[0], parent_ports[0], peer_groups[0], 3 },
+    },
+    {
+        { client_ids[4], 1, "s", parent_addresses[0], parent_ports[0], peer_groups[0], 4 },
+    },
+    {
+        { client_ids[5], 1, "s", parent_addresses[0], parent_ports[0], peer_groups[0], 5 },
+    },
+};
+
+node_config configs[7] = {
+    {
+        1,
+        1,
+        0,
+        6,
+        "n",
         servers,
-        clients
-    }
+        NULL,
+    },
+    {
+        1,
+        0,
+        1,
+        6,
+        "n",
+        NULL,
+        clients[0],
+    },
+    {
+        1,
+        0,
+        1,
+        6,
+        "n",
+        NULL,
+        clients[1],
+    },
+    {
+        1,
+        0,
+        1,
+        6,
+        "n",
+        NULL,
+        clients[2],
+    },
+    {
+        1,
+        0,
+        1,
+        6,
+        "n",
+        NULL,
+        clients[3],
+    },
+    {
+        1,
+        0,
+        1,
+        6,
+        "n",
+        NULL,
+        clients[4],
+    },
+    {
+        1,
+        0,
+        1,
+        6,
+        "n",
+        NULL,
+        clients[5],
+    },
 };
 
 int main(int argc, char ** argv){
