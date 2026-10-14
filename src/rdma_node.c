@@ -87,7 +87,7 @@ int num_peers[1] = {
     24,
 };
 
-uint64_t client_ids[12][2] = {
+uint64_t client_ids[24][2] = {
     { 1, 1 },
     { 2, 2 },
     { 3, 3 },
@@ -118,7 +118,7 @@ server_config servers[1] = {
     { 's', 24, DEFAULT_RDMA_PORT },
 };
 
-client_config clients[6][2] = {
+client_config clients[6][4] = {
     {
         { client_ids[0], 1, "s", parent_addresses[0], parent_ports[0], peer_groups[0], 0 },
         { client_ids[1], 1, "s", parent_addresses[0], parent_ports[0], peer_groups[0], 1 },
