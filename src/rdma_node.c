@@ -82,7 +82,7 @@ server_config servers[1] = {
     { 's', 12, DEFAULT_RDMA_PORT },
 };
 
-client_config clients[6][1] = {
+client_config clients[6][2] = {
     {
         { client_ids[0], 1, "s", parent_addresses[0], parent_ports[0], peer_groups[0], 0 },
         { client_ids[1], 1, "s", parent_addresses[0], parent_ports[0], peer_groups[0], 1 },
