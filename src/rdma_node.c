@@ -583,7 +583,7 @@ uint64_t client_ids[180][2] = {
 };
 
 server_config servers[1] = {
-    { 's', 180, DEFAULT_RDMA_PORT },
+    { 't', 180, DEFAULT_RDMA_PORT },
 };
 
 client_config clients[6][30] = {
