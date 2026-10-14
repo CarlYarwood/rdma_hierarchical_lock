@@ -6,7 +6,8 @@ void* general_client(void *in) {
     ticketLock ** ticket_arr = NULL;
     mcsLock ** mcs_arr = NULL;
     uint64_t * node_id = (uint64_t *)malloc(sizeof(uint64_t));
-    clock_t start, end;
+    clock_t start, end, l_start, l_end;
+    double l_total = 0;
     int num_parents = ((general_client_in *)in)->num_parents;
     char * parent_types = ((general_client_in *)in)->parent_types;
     int critical_section = ((general_client_in *)in)->critical_section;
@@ -131,7 +132,7 @@ void* general_client(void *in) {
             default:
                 //Nothing
         }
-
+        l_start = clock();
         for (int l = 0; l < num_parents; l++) {
             switch(parent_types[l]) {
                 case 'm':
@@ -147,7 +148,8 @@ void* general_client(void *in) {
                     //Nothing
             }
         }
-
+        l_end = clock();
+        l_total += (double) (l_end - l_start);
         for (int c = 0; c < critical_section; c++) {
             noop(&c);
         }
@@ -224,6 +226,7 @@ void* general_client(void *in) {
 
     printf("node %lu %d total ops\n", *node_id, ((num_aquire * critical_section)));
     printf("node %lu %f secsonds\n", *node_id, ((double)(end - start)/CLOCKS_PER_SEC));
+    printf("node %lu %f avg latency\n", *node_id, (l_total/CLOCKS_PER_SEC)/num_acquire);
     free(node_id);
     return NULL;
 }
