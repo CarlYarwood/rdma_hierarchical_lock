@@ -15,43 +15,67 @@ char * parent_addresses[1][1] = {
     }
 };
 
-char * peer_addresses[1][12] = {
+char * peer_addresses[1][24] = {
     {
         "10.10.1.2",
         "10.10.1.2",
+        "10.10.1.2",
+        "10.10.1.2",
+        "10.10.1.3",
+        "10.10.1.3",
         "10.10.1.3",
         "10.10.1.3",
         "10.10.1.4",
         "10.10.1.4",
+        "10.10.1.4",
+        "10.10.1.4",
+        "10.10.1.5",
+        "10.10.1.5",
         "10.10.1.5",
         "10.10.1.5",
         "10.10.1.6",
         "10.10.1.6",
+        "10.10.1.6",
+        "10.10.1.6",
+        "10.10.1.7",
+        "10.10.1.7",
         "10.10.1.7",
         "10.10.1.7",
     }
 };
 
-long parent_ports[1][2] = {
+long parent_ports[1][1] = {
     {
         DEFAULT_RDMA_PORT,
     }
 };
 
-long peer_ports[1][18] = {
+long peer_ports[1][24] = {
     {
         DEFAULT_RDMA_PORT,
         DEFAULT_RDMA_PORT + 1,
+        DEFAULT_RDMA_PORT + 3,
+        DEFAULT_RDMA_PORT + 4,
         DEFAULT_RDMA_PORT,
         DEFAULT_RDMA_PORT + 1,
+        DEFAULT_RDMA_PORT + 3,
+        DEFAULT_RDMA_PORT + 4,
         DEFAULT_RDMA_PORT,
         DEFAULT_RDMA_PORT + 1,
+        DEFAULT_RDMA_PORT + 3,
+        DEFAULT_RDMA_PORT + 4,
         DEFAULT_RDMA_PORT,
         DEFAULT_RDMA_PORT + 1,
+        DEFAULT_RDMA_PORT + 3,
+        DEFAULT_RDMA_PORT + 4,
         DEFAULT_RDMA_PORT,
         DEFAULT_RDMA_PORT + 1,
+        DEFAULT_RDMA_PORT + 3,
+        DEFAULT_RDMA_PORT + 4,
         DEFAULT_RDMA_PORT,
         DEFAULT_RDMA_PORT + 1,
+        DEFAULT_RDMA_PORT + 3,
+        DEFAULT_RDMA_PORT + 4,
     }
 };
 
@@ -60,7 +84,7 @@ int peer_groups[1][1] = {
 };
 
 int num_peers[1] = {
-    12,
+    24,
 };
 
 uint64_t client_ids[12][2] = {
@@ -76,36 +100,60 @@ uint64_t client_ids[12][2] = {
     { 10, 10 },
     { 11, 11 },
     { 12, 12 },
+    { 13, 13 },
+    { 14, 14 },
+    { 15, 15 },
+    { 16, 16 },
+    { 17, 17 },
+    { 18, 18 },
+    { 19, 19 },
+    { 20, 20 },
+    { 21, 21 },
+    { 22, 22 },
+    { 23, 23 },
+    { 24, 24 },
 };
 
 server_config servers[1] = {
-    { 's', 12, DEFAULT_RDMA_PORT },
+    { 's', 24, DEFAULT_RDMA_PORT },
 };
 
 client_config clients[6][2] = {
     {
         { client_ids[0], 1, "s", parent_addresses[0], parent_ports[0], peer_groups[0], 0 },
         { client_ids[1], 1, "s", parent_addresses[0], parent_ports[0], peer_groups[0], 1 },
-    },
-    {
         { client_ids[2], 1, "s", parent_addresses[0], parent_ports[0], peer_groups[0], 2 },
         { client_ids[3], 1, "s", parent_addresses[0], parent_ports[0], peer_groups[0], 3 },
     },
     {
         { client_ids[4], 1, "s", parent_addresses[0], parent_ports[0], peer_groups[0], 4 },
         { client_ids[5], 1, "s", parent_addresses[0], parent_ports[0], peer_groups[0], 5 },
-    },
-    {
         { client_ids[6], 1, "s", parent_addresses[0], parent_ports[0], peer_groups[0], 6 },
         { client_ids[7], 1, "s", parent_addresses[0], parent_ports[0], peer_groups[0], 7 },
     },
     {
         { client_ids[8], 1, "s", parent_addresses[0], parent_ports[0], peer_groups[0], 8 },
         { client_ids[9], 1, "s", parent_addresses[0], parent_ports[0], peer_groups[0], 9 },
-    },
-    {
         { client_ids[10], 1, "s", parent_addresses[0], parent_ports[0], peer_groups[0], 10 },
         { client_ids[11], 1, "s", parent_addresses[0], parent_ports[0], peer_groups[0], 11 },
+    },
+    {
+        { client_ids[12], 1, "s", parent_addresses[0], parent_ports[0], peer_groups[0], 12 },
+        { client_ids[13], 1, "s", parent_addresses[0], parent_ports[0], peer_groups[0], 13 },
+        { client_ids[14], 1, "s", parent_addresses[0], parent_ports[0], peer_groups[0], 14 },
+        { client_ids[15], 1, "s", parent_addresses[0], parent_ports[0], peer_groups[0], 15 },
+    },
+    {
+        { client_ids[16], 1, "s", parent_addresses[0], parent_ports[0], peer_groups[0], 16 },
+        { client_ids[17], 1, "s", parent_addresses[0], parent_ports[0], peer_groups[0], 17 },
+        { client_ids[18], 1, "s", parent_addresses[0], parent_ports[0], peer_groups[0], 18 },
+        { client_ids[19], 1, "s", parent_addresses[0], parent_ports[0], peer_groups[0], 19 },   
+    },
+    {
+        { client_ids[20], 1, "s", parent_addresses[0], parent_ports[0], peer_groups[0], 20 },
+        { client_ids[21], 1, "s", parent_addresses[0], parent_ports[0], peer_groups[0], 21 },
+        { client_ids[22], 1, "s", parent_addresses[0], parent_ports[0], peer_groups[0], 22 },
+        { client_ids[23], 1, "s", parent_addresses[0], parent_ports[0], peer_groups[0], 23 },
     },
 };
 
@@ -120,55 +168,55 @@ node_config configs[7] = {
         NULL,
     },
     {
-        2,
+        4,
         0,
-        2,
-        12,
+        4,
+        24,
         "n",
         NULL,
         clients[0],
     },
     {
-        2,
+        4,
         0,
-        2,
-        12,
+        4,
+        24,
         "n",
         NULL,
         clients[1],
     },
     {
-        2,
+        4,
         0,
-        2,
-        12,
+        4,
+        24,
         "n",
         NULL,
         clients[2],
     },
     {
-        2,
+        4,
         0,
-        2,
-        12,
+        4,
+        24,
         "n",
         NULL,
         clients[3],
     },
     {
-        2,
+        4,
         0,
-        2,
-        12,
+        4,
+        24,
         "n",
         NULL,
         clients[4],
     },
     {
-        2,
+        4,
         0,
-        2,
-        12,
+        4,
+        24,
         "n",
         NULL,
         clients[5],
