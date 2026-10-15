@@ -369,9 +369,9 @@ client_config clients[6][16] = {
         { client_ids[28], 1, "s", parent_addresses[0], parent_ports[0], peer_groups[0], 28 },
         { client_ids[29], 1, "s", parent_addresses[0], parent_ports[0], peer_groups[0], 29 },
         { client_ids[30], 1, "s", parent_addresses[0], parent_ports[0], peer_groups[0], 30 },
+        { client_ids[31], 1, "s", parent_addresses[0], parent_ports[0], peer_groups[0], 31 },
     },
     {
-        { client_ids[31], 1, "s", parent_addresses[0], parent_ports[0], peer_groups[0], 31 },
         { client_ids[32], 1, "s", parent_addresses[0], parent_ports[0], peer_groups[0], 32 },
         { client_ids[33], 1, "s", parent_addresses[0], parent_ports[0], peer_groups[0], 33 },
         { client_ids[34], 1, "s", parent_addresses[0], parent_ports[0], peer_groups[0], 34 },
