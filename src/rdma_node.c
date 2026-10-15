@@ -331,7 +331,7 @@ uint64_t client_ids[96][2] = {
 };
 
 server_config servers[1] = {
-    { 't', 96, DEFAULT_RDMA_PORT },
+    { 's', 96, DEFAULT_RDMA_PORT },
 };
 
 client_config clients[6][16] = {
