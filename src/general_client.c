@@ -116,6 +116,7 @@ void* general_client(void *in) {
             noop(&n);
         }
         
+        l_start = clock();
         switch(*machine_lock_type) {
             case 'm':
                 lockMcs(mcs_arr[target_lock], *node_id);
@@ -132,7 +133,7 @@ void* general_client(void *in) {
             default:
                 //Nothing
         }
-        l_start = clock();
+
         for (int l = 0; l < num_parents; l++) {
             switch(parent_types[l]) {
                 case 'm':
