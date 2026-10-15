@@ -15,19 +15,13 @@ char * parent_addresses[1][1] = {
     }
 };
 
-char * peer_addresses[1][12] = {
+char * peer_addresses[1][6] = {
     {
         "10.10.1.2",
-        "10.10.1.2",
-        "10.10.1.3",
         "10.10.1.3",
         "10.10.1.4",
-        "10.10.1.4",
-        "10.10.1.5",
         "10.10.1.5",
         "10.10.1.6",
-        "10.10.1.6",
-        "10.10.1.7",
         "10.10.1.7",
     }
 };
@@ -38,20 +32,14 @@ long parent_ports[1][1] = {
     }
 };
 
-long peer_ports[1][12] = {
+long peer_ports[1][6] = {
     {
         DEFAULT_RDMA_PORT,
-        DEFAULT_RDMA_PORT + 1,
         DEFAULT_RDMA_PORT,
-        DEFAULT_RDMA_PORT + 1,
         DEFAULT_RDMA_PORT,
-        DEFAULT_RDMA_PORT + 1,
         DEFAULT_RDMA_PORT,
-        DEFAULT_RDMA_PORT + 1,
         DEFAULT_RDMA_PORT,
-        DEFAULT_RDMA_PORT + 1,
         DEFAULT_RDMA_PORT,
-        DEFAULT_RDMA_PORT + 1,
     }
 };
 
@@ -60,52 +48,40 @@ int peer_groups[1][1] = {
 };
 
 int num_peers[1] = {
-    12,
+    6,
 };
 
-uint64_t client_ids[12][2] = {
+uint64_t client_ids[6][2] = {
     { 1, 1 },
     { 2, 2 },
     { 3, 3 },
     { 4, 4 },
     { 5, 5 },
     { 6, 6 },
-    { 7, 7 },
-    { 8, 8 },
-    { 9, 9 },
-    { 10, 10 },
-    { 11, 11 },
-    { 12, 12 },
 };
 
 server_config servers[1] = {
-    { 't', 12, DEFAULT_RDMA_PORT },
+    { 's', 6, DEFAULT_RDMA_PORT },
 };
 
-client_config clients[6][2] = {
+client_config clients[6][1] = {
     {
-        { client_ids[0], 1, "t", parent_addresses[0], parent_ports[0], peer_groups[0], 0 },
-        { client_ids[1], 1, "t", parent_addresses[0], parent_ports[0], peer_groups[0], 1 },
+        { client_ids[0], 1, "s", parent_addresses[0], parent_ports[0], peer_groups[0], 0 },
     },
     {
-        { client_ids[2], 1, "t", parent_addresses[0], parent_ports[0], peer_groups[0], 2 },
-        { client_ids[3], 1, "t", parent_addresses[0], parent_ports[0], peer_groups[0], 3 },
+        { client_ids[1], 1, "s", parent_addresses[0], parent_ports[0], peer_groups[0], 1 },
     },
     {
-        { client_ids[4], 1, "t", parent_addresses[0], parent_ports[0], peer_groups[0], 4 },
-        { client_ids[5], 1, "t", parent_addresses[0], parent_ports[0], peer_groups[0], 5 },
+        { client_ids[2], 1, "s", parent_addresses[0], parent_ports[0], peer_groups[0], 2 },
     },
     {
-        { client_ids[6], 1, "t", parent_addresses[0], parent_ports[0], peer_groups[0], 6 },
-        { client_ids[7], 1, "t", parent_addresses[0], parent_ports[0], peer_groups[0], 7 },
+        { client_ids[3], 1, "s", parent_addresses[0], parent_ports[0], peer_groups[0], 3 },
     },
     {
-        { client_ids[8], 1, "t", parent_addresses[0], parent_ports[0], peer_groups[0], 8 },
-        { client_ids[9], 1, "t", parent_addresses[0], parent_ports[0], peer_groups[0], 9 },
+        { client_ids[4], 1, "s", parent_addresses[0], parent_ports[0], peer_groups[0], 4 },
     },
     {
-        { client_ids[10], 1, "t", parent_addresses[0], parent_ports[0], peer_groups[0], 10 },
-        { client_ids[11], 1, "t", parent_addresses[0], parent_ports[0], peer_groups[0], 11 },
+        { client_ids[5], 1, "s", parent_addresses[0], parent_ports[0], peer_groups[0], 5 },
     },
 };
 
@@ -114,62 +90,62 @@ node_config configs[7] = {
         1,
         1,
         0,
-        12,
+        6,
         "n",
         servers,
         NULL,
     },
     {
-        2,
+        1,
         0,
-        2,
-        12,
-        "m",
+        1,
+        6,
+        "n",
         NULL,
         clients[0],
     },
     {
-        2,
+        1,
         0,
-        2,
-        12,
-        "m",
+        1,
+        6,
+        "n",
         NULL,
         clients[1],
     },
     {
-        2,
+        1,
         0,
-        2,
-        12,
-        "m",
+        1,
+        6,
+        "n",
         NULL,
         clients[2],
     },
     {
-        2,
+        1,
         0,
-        2,
-        12,
-        "m",
+        1,
+        6,
+        "n",
         NULL,
         clients[3],
     },
     {
-        2,
+        1,
         0,
-        2,
-        12,
-        "m",
+        1,
+        6,
+        "n",
         NULL,
         clients[4],
     },
     {
-        2,
+        1,
         0,
-        2,
-        12,
-        "m",
+        1,
+        6,
+        "n",
         NULL,
         clients[5],
     },
