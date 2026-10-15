@@ -79,33 +79,33 @@ uint64_t client_ids[12][2] = {
 };
 
 server_config servers[1] = {
-    { 't', 12, DEFAULT_RDMA_PORT },
+    { 'm', 12, DEFAULT_RDMA_PORT },
 };
 
 client_config clients[6][2] = {
     {
-        { client_ids[0], 1, "t", parent_addresses[0], parent_ports[0], peer_groups[0], 0 },
-        { client_ids[1], 1, "t", parent_addresses[0], parent_ports[0], peer_groups[0], 1 },
+        { client_ids[0], 1, "m", parent_addresses[0], parent_ports[0], peer_groups[0], 0 },
+        { client_ids[1], 1, "m", parent_addresses[0], parent_ports[0], peer_groups[0], 1 },
     },
     {
-        { client_ids[2], 1, "t", parent_addresses[0], parent_ports[0], peer_groups[0], 2 },
-        { client_ids[3], 1, "t", parent_addresses[0], parent_ports[0], peer_groups[0], 3 },
+        { client_ids[2], 1, "m", parent_addresses[0], parent_ports[0], peer_groups[0], 2 },
+        { client_ids[3], 1, "m", parent_addresses[0], parent_ports[0], peer_groups[0], 3 },
     },
     {
-        { client_ids[4], 1, "t", parent_addresses[0], parent_ports[0], peer_groups[0], 4 },
-        { client_ids[5], 1, "t", parent_addresses[0], parent_ports[0], peer_groups[0], 5 },
+        { client_ids[4], 1, "m", parent_addresses[0], parent_ports[0], peer_groups[0], 4 },
+        { client_ids[5], 1, "m", parent_addresses[0], parent_ports[0], peer_groups[0], 5 },
     },
     {
-        { client_ids[6], 1, "t", parent_addresses[0], parent_ports[0], peer_groups[0], 6 },
-        { client_ids[7], 1, "t", parent_addresses[0], parent_ports[0], peer_groups[0], 7 },
+        { client_ids[6], 1, "m", parent_addresses[0], parent_ports[0], peer_groups[0], 6 },
+        { client_ids[7], 1, "m", parent_addresses[0], parent_ports[0], peer_groups[0], 7 },
     },
     {
-        { client_ids[8], 1, "t", parent_addresses[0], parent_ports[0], peer_groups[0], 8 },
-        { client_ids[9], 1, "t", parent_addresses[0], parent_ports[0], peer_groups[0], 9 },
+        { client_ids[8], 1, "m", parent_addresses[0], parent_ports[0], peer_groups[0], 8 },
+        { client_ids[9], 1, "m", parent_addresses[0], parent_ports[0], peer_groups[0], 9 },
     },
     {
-        { client_ids[10], 1, "t", parent_addresses[0], parent_ports[0], peer_groups[0], 10 },
-        { client_ids[11], 1, "t", parent_addresses[0], parent_ports[0], peer_groups[0], 11 },
+        { client_ids[10], 1, "m", parent_addresses[0], parent_ports[0], peer_groups[0], 10 },
+        { client_ids[11], 1, "m", parent_addresses[0], parent_ports[0], peer_groups[0], 11 },
     },
 };
 
