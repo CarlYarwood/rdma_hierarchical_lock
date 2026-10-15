@@ -61,27 +61,27 @@ uint64_t client_ids[6][2] = {
 };
 
 server_config servers[1] = {
-    { 's', 6, DEFAULT_RDMA_PORT },
+    { 't', 6, DEFAULT_RDMA_PORT },
 };
 
 client_config clients[6][1] = {
     {
-        { client_ids[0], 1, "s", parent_addresses[0], parent_ports[0], peer_groups[0], 0 },
+        { client_ids[0], 1, "t", parent_addresses[0], parent_ports[0], peer_groups[0], 0 },
     },
     {
-        { client_ids[1], 1, "s", parent_addresses[0], parent_ports[0], peer_groups[0], 1 },
+        { client_ids[1], 1, "t", parent_addresses[0], parent_ports[0], peer_groups[0], 1 },
     },
     {
-        { client_ids[2], 1, "s", parent_addresses[0], parent_ports[0], peer_groups[0], 2 },
+        { client_ids[2], 1, "t", parent_addresses[0], parent_ports[0], peer_groups[0], 2 },
     },
     {
-        { client_ids[3], 1, "s", parent_addresses[0], parent_ports[0], peer_groups[0], 3 },
+        { client_ids[3], 1, "t", parent_addresses[0], parent_ports[0], peer_groups[0], 3 },
     },
     {
-        { client_ids[4], 1, "s", parent_addresses[0], parent_ports[0], peer_groups[0], 4 },
+        { client_ids[4], 1, "t", parent_addresses[0], parent_ports[0], peer_groups[0], 4 },
     },
     {
-        { client_ids[5], 1, "s", parent_addresses[0], parent_ports[0], peer_groups[0], 5 },
+        { client_ids[5], 1, "t", parent_addresses[0], parent_ports[0], peer_groups[0], 5 },
     },
 };
 
