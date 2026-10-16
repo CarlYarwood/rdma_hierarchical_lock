@@ -61,27 +61,27 @@ uint64_t client_ids[6][2] = {
 };
 
 server_config servers[1] = {
-    { 'm', 6, DEFAULT_RDMA_PORT },
+    { 's', 6, DEFAULT_RDMA_PORT },
 };
 
 client_config clients[6][1] = {
     {
-        { client_ids[0], 1, "m", parent_addresses[0], parent_ports[0], peer_groups[0], 0 },
+        { client_ids[0], 1, "s", parent_addresses[0], parent_ports[0], peer_groups[0], 0 },
     },
     {
-        { client_ids[1], 1, "m", parent_addresses[0], parent_ports[0], peer_groups[0], 0 },
+        { client_ids[1], 1, "s", parent_addresses[0], parent_ports[0], peer_groups[0], 0 },
     },
     {   
-        { client_ids[2], 1, "m", parent_addresses[0], parent_ports[0], peer_groups[0], 0 },
+        { client_ids[2], 1, "s", parent_addresses[0], parent_ports[0], peer_groups[0], 0 },
     },
     {
-        { client_ids[3], 1, "m", parent_addresses[0], parent_ports[0], peer_groups[0], 0 },
+        { client_ids[3], 1, "s", parent_addresses[0], parent_ports[0], peer_groups[0], 0 },
     },
     {
-        { client_ids[4], 1, "m", parent_addresses[0], parent_ports[0], peer_groups[0], 0 },  
+        { client_ids[4], 1, "s", parent_addresses[0], parent_ports[0], peer_groups[0], 0 },  
     },
     {
-        { client_ids[5], 1, "m", parent_addresses[0], parent_ports[0], peer_groups[0], 0 },
+        { client_ids[5], 1, "s", parent_addresses[0], parent_ports[0], peer_groups[0], 0 },
     },
 };
 
@@ -100,7 +100,7 @@ node_config configs[7] = {
         0,
         1,
         1,
-        "n",
+        "b",
         NULL,
         clients[0],
     },
@@ -109,7 +109,7 @@ node_config configs[7] = {
         0,
         1,
         1,
-        "n",
+        "b",
         NULL,
         clients[1],
     },
@@ -118,7 +118,7 @@ node_config configs[7] = {
         0,
         1,
         1,
-        "n",
+        "b",
         NULL,
         clients[2],
     },
@@ -127,7 +127,7 @@ node_config configs[7] = {
         0,
         1,
         1,
-        "n",
+        "b",
         NULL,
         clients[3],
     },
@@ -136,7 +136,7 @@ node_config configs[7] = {
         0,
         1,
         1,
-        "n",
+        "b",
         NULL,
         clients[4],
     },
@@ -145,7 +145,7 @@ node_config configs[7] = {
         0,
         1,
         1,
-        "n",
+        "b",
         NULL,
         clients[5],
     },
