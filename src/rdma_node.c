@@ -115,45 +115,45 @@ uint64_t client_ids[24][2] = {
 };
 
 server_config servers[1] = {
-    { 't', 24, DEFAULT_RDMA_PORT },
+    { 'm', 24, DEFAULT_RDMA_PORT },
 };
 
 client_config clients[6][4] = {
     {
-        { client_ids[0], 1, "t", parent_addresses[0], parent_ports[0], peer_groups[0], 0 },
-        { client_ids[1], 1, "t", parent_addresses[0], parent_ports[0], peer_groups[0], 0 },
-        { client_ids[2], 1, "t", parent_addresses[0], parent_ports[0], peer_groups[0], 0 },
-        { client_ids[3], 1, "t", parent_addresses[0], parent_ports[0], peer_groups[0], 0 },
+        { client_ids[0], 1, "m", parent_addresses[0], parent_ports[0], peer_groups[0], 0 },
+        { client_ids[1], 1, "m", parent_addresses[0], parent_ports[0], peer_groups[0], 0 },
+        { client_ids[2], 1, "m", parent_addresses[0], parent_ports[0], peer_groups[0], 0 },
+        { client_ids[3], 1, "m", parent_addresses[0], parent_ports[0], peer_groups[0], 0 },
     },
     {
-        { client_ids[4], 1, "t", parent_addresses[0], parent_ports[0], peer_groups[0], 0 },
-        { client_ids[5], 1, "t", parent_addresses[0], parent_ports[0], peer_groups[0], 0 },
-        { client_ids[6], 1, "t", parent_addresses[0], parent_ports[0], peer_groups[0], 0 },
-        { client_ids[7], 1, "t", parent_addresses[0], parent_ports[0], peer_groups[0], 0 },
+        { client_ids[4], 1, "m", parent_addresses[0], parent_ports[0], peer_groups[0], 0 },
+        { client_ids[5], 1, "m", parent_addresses[0], parent_ports[0], peer_groups[0], 0 },
+        { client_ids[6], 1, "m", parent_addresses[0], parent_ports[0], peer_groups[0], 0 },
+        { client_ids[7], 1, "m", parent_addresses[0], parent_ports[0], peer_groups[0], 0 },
     },
     {
-        { client_ids[8], 1, "t", parent_addresses[0], parent_ports[0], peer_groups[0], 0 },
-        { client_ids[9], 1, "t", parent_addresses[0], parent_ports[0], peer_groups[0], 0 },
-        { client_ids[10], 1, "t", parent_addresses[0], parent_ports[0], peer_groups[0], 0 },
-        { client_ids[11], 1, "t", parent_addresses[0], parent_ports[0], peer_groups[0], 0 },
+        { client_ids[8], 1, "m", parent_addresses[0], parent_ports[0], peer_groups[0], 0 },
+        { client_ids[9], 1, "m", parent_addresses[0], parent_ports[0], peer_groups[0], 0 },
+        { client_ids[10], 1, "m", parent_addresses[0], parent_ports[0], peer_groups[0], 0 },
+        { client_ids[11], 1, "m", parent_addresses[0], parent_ports[0], peer_groups[0], 0 },
     },
     {
-        { client_ids[12], 1, "t", parent_addresses[0], parent_ports[0], peer_groups[0], 0 },
-        { client_ids[13], 1, "t", parent_addresses[0], parent_ports[0], peer_groups[0], 0 },
-        { client_ids[14], 1, "t", parent_addresses[0], parent_ports[0], peer_groups[0], 0 },
-        { client_ids[15], 1, "t", parent_addresses[0], parent_ports[0], peer_groups[0], 0 },
+        { client_ids[12], 1, "m", parent_addresses[0], parent_ports[0], peer_groups[0], 0 },
+        { client_ids[13], 1, "m", parent_addresses[0], parent_ports[0], peer_groups[0], 0 },
+        { client_ids[14], 1, "m", parent_addresses[0], parent_ports[0], peer_groups[0], 0 },
+        { client_ids[15], 1, "m", parent_addresses[0], parent_ports[0], peer_groups[0], 0 },
     },
     {
-        { client_ids[16], 1, "t", parent_addresses[0], parent_ports[0], peer_groups[0], 0 },
-        { client_ids[17], 1, "t", parent_addresses[0], parent_ports[0], peer_groups[0], 0 },
-        { client_ids[18], 1, "t", parent_addresses[0], parent_ports[0], peer_groups[0], 0 },
-        { client_ids[19], 1, "t", parent_addresses[0], parent_ports[0], peer_groups[0], 0 },
+        { client_ids[16], 1, "m", parent_addresses[0], parent_ports[0], peer_groups[0], 0 },
+        { client_ids[17], 1, "m", parent_addresses[0], parent_ports[0], peer_groups[0], 0 },
+        { client_ids[18], 1, "m", parent_addresses[0], parent_ports[0], peer_groups[0], 0 },
+        { client_ids[19], 1, "m", parent_addresses[0], parent_ports[0], peer_groups[0], 0 },
     },
     {
-        { client_ids[20], 1, "t", parent_addresses[0], parent_ports[0], peer_groups[0], 0 },
-        { client_ids[21], 1, "t", parent_addresses[0], parent_ports[0], peer_groups[0], 0 },
-        { client_ids[22], 1, "t", parent_addresses[0], parent_ports[0], peer_groups[0], 0 },
-        { client_ids[23], 1, "t", parent_addresses[0], parent_ports[0], peer_groups[0], 0 },
+        { client_ids[20], 1, "m", parent_addresses[0], parent_ports[0], peer_groups[0], 0 },
+        { client_ids[21], 1, "m", parent_addresses[0], parent_ports[0], peer_groups[0], 0 },
+        { client_ids[22], 1, "m", parent_addresses[0], parent_ports[0], peer_groups[0], 0 },
+        { client_ids[23], 1, "m", parent_addresses[0], parent_ports[0], peer_groups[0], 0 },
     },
 };
 
