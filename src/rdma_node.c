@@ -680,9 +680,9 @@ node_config configs[7] = {
         NULL,
     },
     {
-        27,
+        17,
         1,
-        26,
+        16,
         96,
         "n",
         servers[1],
