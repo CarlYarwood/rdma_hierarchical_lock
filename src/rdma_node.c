@@ -974,7 +974,7 @@ server_config servers[2][1] = {
         { 's', 180, DEFAULT_RDMA_PORT },
     },
     {
-        {'s', 60, DEFAULT_RDMA_PORT + 30}
+        {'t', 60, DEFAULT_RDMA_PORT + 30}
     }
 };
 
