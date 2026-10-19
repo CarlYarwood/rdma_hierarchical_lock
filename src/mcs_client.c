@@ -373,7 +373,7 @@ void connect_to_mcs(char * parent_address, long parent_port, char ** peer_addres
         struct sockaddr_in client_sockaddr;
         client_sockaddr = build_sockaddr(peer_addresses[i], peer_ports[i]);
         printf("node %lu %s\n", *node_id, peer_addresses[i], peer_ports[i]);
-        printf("node %lu %s\n", *node_id, peer_addresses[i], peer_ports[i]);
+        printf("node %lu %ld\n", *node_id, peer_addresses[i], peer_ports[i]);
 
         id_arr[i + 1] = connect_to_peer(&client_sockaddr, cm_event_channel, node_id, i, buffer, metadata);
         (*num_conn)++;
