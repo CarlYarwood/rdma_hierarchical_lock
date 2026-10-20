@@ -116,16 +116,16 @@ client_config clients[6][2] = {
         { client_ids[1], 2, "ss", parent_addresses[0], parent_ports[0], peer_groups[0], 1 },
     },
     {
-        { client_ids[2], 2, "ss", parent_addresses[0], parent_ports[0], peer_groups[0], 2 },
+        { client_ids[2], 2, "ss", parent_addresses[1], parent_ports[0], peer_groups[1], 2 },
     },
     {
-        { client_ids[3], 2, "ss", parent_addresses[0], parent_ports[0], peer_groups[0], 3 },
+        { client_ids[3], 2, "ss", parent_addresses[1], parent_ports[0], peer_groups[1], 3 },
     },
     {
-        { client_ids[4], 2, "ss", parent_addresses[1], parent_ports[0], peer_groups[1], 4 },
+        { client_ids[4], 2, "ss", parent_addresses[2], parent_ports[0], peer_groups[2], 4 },
     },
     {
-        { client_ids[5], 2, "ss", parent_addresses[1], parent_ports[0], peer_groups[1], 5 },
+        { client_ids[5], 2, "ss", parent_addresses[2], parent_ports[0], peer_groups[2], 5 },
     },
 };
 
