@@ -43,6 +43,7 @@ void* general_client(void *in) {
         switch(parent_types[i]) {
             case 'm':
                 struct sockaddr_in client_server_sockaddr;
+                printf("node %lu\n", *node_id);
                 bzero(&client_server_sockaddr, sizeof client_server_sockaddr);
                 li[i].mcs_l_info = (mcs_lock_info *)malloc(sizeof(mcs_lock_info));
                 li[i].mcs_l_info->node_id = (uint64_t *)malloc(sizeof(uint64_t));
@@ -65,7 +66,6 @@ void* general_client(void *in) {
 		            return NULL;
 	            }
 
-                printf("server_id created node %lu\n", *node_id);
                 li[i].mcs_l_info->id_arr = (struct rdma_cm_id **)malloc(sizeof(struct rdma_cm_id *) * (ci[i].mcs_c_info->num_peers + 1));
                 for(int m = 0; m < (ci[i].mcs_c_info->num_peers + 1); m++) {
                     li[i].mcs_l_info->id_arr[m] = NULL;
