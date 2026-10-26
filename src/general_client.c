@@ -54,7 +54,7 @@ void* general_client(void *in) {
 		            rdma_error("Creating server cm id failed with errno: %d ", -errno);
 		            return NULL;
 	            }
-                printf("node %lu\n", *node_id);
+
                 if (rdma_bind_addr(li[i].mcs_l_info->client_server_id, (struct sockaddr*) &client_server_sockaddr)) {
 		            rdma_error("Failed to bind server address, errno: %d \n", -errno);
 		            return NULL;
@@ -65,6 +65,7 @@ void* general_client(void *in) {
 		            return NULL;
 	            }
 
+                printf("node %lu\n", *node_id);
                 li[i].mcs_l_info->id_arr = (struct rdma_cm_id **)malloc(sizeof(struct rdma_cm_id *) * (ci[i].mcs_c_info->num_peers + 1));
                 for(int m = 0; m < (ci[i].mcs_c_info->num_peers + 1); m++) {
                     li[i].mcs_l_info->id_arr[m] = NULL;
