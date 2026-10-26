@@ -65,11 +65,11 @@ void* general_client(void *in) {
 		            return NULL;
 	            }
 
-                printf("node %lu\n", *node_id);
                 li[i].mcs_l_info->id_arr = (struct rdma_cm_id **)malloc(sizeof(struct rdma_cm_id *) * (ci[i].mcs_c_info->num_peers + 1));
                 for(int m = 0; m < (ci[i].mcs_c_info->num_peers + 1); m++) {
                     li[i].mcs_l_info->id_arr[m] = NULL;
                 }
+                printf("node %lu\n", *node_id);
                 li[i].mcs_l_info->buffer = (uint64_t *)malloc(sizeof(uint64_t));
                 *(li[i].mcs_l_info->buffer) = 0;
                 li[i].mcs_l_info->metadata = (uint64_t *)malloc(sizeof(uint64_t) * 3);
