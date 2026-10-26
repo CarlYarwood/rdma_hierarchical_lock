@@ -43,7 +43,6 @@ void* general_client(void *in) {
         switch(parent_types[i]) {
             case 'm':
                 struct sockaddr_in client_server_sockaddr;
-                printf("node %lu\n", *node_id);
                 bzero(&client_server_sockaddr, sizeof client_server_sockaddr);
                 li[i].mcs_l_info = (mcs_lock_info *)malloc(sizeof(mcs_lock_info));
                 li[i].mcs_l_info->node_id = (uint64_t *)malloc(sizeof(uint64_t));
@@ -51,6 +50,7 @@ void* general_client(void *in) {
 	            client_server_sockaddr.sin_family = AF_INET; /* standard IP NET address */
 	            client_server_sockaddr.sin_addr.s_addr = htonl(INADDR_ANY); /* passed address */
 	            client_server_sockaddr.sin_port = htons(ci[i].mcs_c_info->peer_ports[*(li[i].mcs_l_info->node_id) - 1]);
+                printf("node %lu\n", *node_id);
                 if (rdma_create_id(cm_event_channel, &(li[i].mcs_l_info->client_server_id), NULL, RDMA_PS_TCP)) {
 		            rdma_error("Creating server cm id failed with errno: %d ", -errno);
 		            return NULL;
