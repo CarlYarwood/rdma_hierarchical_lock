@@ -380,7 +380,6 @@ void connect_to_mcs(char * parent_address, long parent_port, char ** peer_addres
     fetch_and_add(id_arr[SERVER], READY);
 
 	wait_on_data(&metadata[MCS_SYNC], 2);
-    metadata[MCS_SYNC] = 0;
     return;
 }
 

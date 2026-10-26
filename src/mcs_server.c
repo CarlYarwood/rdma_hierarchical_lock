@@ -327,7 +327,9 @@ void* mcs_server(void * in) {
             do {} while (lock[READY] != num_conn);
             printf("All Clients Ready\n");
             notify_mcs_clients(id_arr, buffer, 2, MCS_SYNC, num_children);
-            lock[READY] = 0;
+        }
+        if(lock[READY] == 2 * num_conn) {
+            notify_mcs_clients(id_arr, buffer, 3, MCS_SYNC, num_children);
         }
         struct rdma_cm_event *cm_event = NULL;
         struct rdma_cm_id* client_id = NULL;
