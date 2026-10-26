@@ -235,7 +235,6 @@ client_config clients[6][4] = {
         { client_ids[22], 2, "ms", parent_addresses[2], parent_ports[0], peer_groups[2], 0 },
         { client_ids[23], 2, "ms", parent_addresses[2], parent_ports[0], peer_groups[2], 0 },
     },
-    },
 };
 
 node_config configs[7] = {
