@@ -329,6 +329,7 @@ void* mcs_server(void * in) {
             notify_mcs_clients(id_arr, buffer, 2, MCS_SYNC, num_children);
         }
         if(lock[READY] == (2 * num_children)) {
+            printf("All Clients Done");
             notify_mcs_clients(id_arr, buffer, 3, MCS_SYNC, num_children);
         }
         struct rdma_cm_event *cm_event = NULL;
