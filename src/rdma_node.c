@@ -1318,7 +1318,7 @@ int main(int argc, char ** argv){
     general_client_in * c_in = malloc(sizeof(general_client_in) * config->num_clients);
     if(config->num_clients > 0) {
         printf("node, Throughput (ops/sec), Average Latency(sec)\n");
-        pintf("%d\n", config->num_clients);
+        printf("%d\n", config->num_clients);
     }
     for (int i = 0; i < config->num_clients; i++) {
         c_in[i].num_parents = clients[i].num_parents;
