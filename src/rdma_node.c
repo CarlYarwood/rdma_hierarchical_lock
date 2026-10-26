@@ -1318,7 +1318,6 @@ int main(int argc, char ** argv){
     general_client_in * c_in = malloc(sizeof(general_client_in) * config->num_clients);
     if(config->num_clients > 0) {
         printf("node, Throughput (ops/sec), Average Latency(sec)\n");
-        printf("%d\n", config->num_clients);
     }
     for (int i = 0; i < config->num_clients; i++) {
         c_in[i].num_parents = clients[i].num_parents;
@@ -1373,7 +1372,6 @@ int main(int argc, char ** argv){
                     //Nothing
             }
         }
-        printf("%d\n", i);
         pthread_create(&workers[index], NULL, general_client, (void *) &c_in[i]);
         index++;
     }
