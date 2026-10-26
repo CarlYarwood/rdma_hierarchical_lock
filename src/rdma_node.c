@@ -1373,6 +1373,7 @@ int main(int argc, char ** argv){
                     //Nothing
             }
         }
+        printf("%d\n", i);
         pthread_create(&workers[index], NULL, general_client, (void *) &c_in[i]);
         index++;
     }
