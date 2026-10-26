@@ -195,7 +195,6 @@ void* general_client(void *in) {
         switch(parent_types[i]) {
             case 'm':
                 fetch_and_add(li[i].mcs_l_info->id_arr[SERVER], READY);
-                printf("node %lu waiting to disconnect\n", *node_id);
                 wait_on_data(&(li[i].mcs_l_info->metadata[MCS_SYNC]), 3);
                 disconnect_from_mcs(li[i].mcs_l_info->id_arr, cm_event_channel, li[i].mcs_l_info->node_id, li[i].mcs_l_info->num_conn);
                 free(li[i].mcs_l_info->id_arr);
