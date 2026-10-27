@@ -445,7 +445,7 @@ int peer_groups[3][2] = {
 
 int num_peers[4] = {
     96,
-    23,
+    32,
     32,
     32,
 };
